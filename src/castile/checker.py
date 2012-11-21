@@ -96,8 +96,6 @@ class TypeChecker(object):
             self.return_type = None
             if return_type is None:
                 return_type = Void()
-            # modify AST for compiler's benefit
-            ast.children[1].value = 'function body'
             return Function(arg_types, return_type)
         elif ast.type == 'Args':
             types = []
@@ -192,15 +190,17 @@ class TypeChecker(object):
                 self.assert_eq(t1, struct_defn.content_types[i])
                 i += 1
             return t
+        elif ast.type == 'FieldInit':
+            return self.type_of(ast.children[0])
         elif ast.type == 'Index':
             t = self.type_of(ast.children[0])
             field_name = ast.value
             struct_fields = self.struct_fields[t.name]
             if field_name not in struct_fields:
                 raise SyntaxError("undefined field")
+            # TODO: for some compiler backends, we might
+            # want to make this value available to them:
             index = struct_fields[field_name]
-            # we modify the AST for the evaluator's benefit.
-            ast.value = index
             # we look up the type from the StructDefinition
             return self.structs[t.name].content_types[index]
         elif ast.type == 'TypeCase':

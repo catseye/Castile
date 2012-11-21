@@ -74,7 +74,7 @@ only happen in a Stmt.)
     Expr2   ::= Expr3 {("+" | "-") Expr3}.
     Expr3   ::= Expr4 {("*" | "/") Expr4}.
     Expr4   ::= Expr5 {"(" [Expr0 {"," Expr0}] ")" | "." ident}.
-    Expr5   ::= "make" ident "(" [Expr0 {"," Expr0}] ")"
+    Expr5   ::= "make" ident "(" [ident ":" Expr0 {"," ident ":" Expr0}] ")"
               | "(" Expr0 ")"
               | "not" Expr1
               | Literal
@@ -654,15 +654,15 @@ And make them:
 
     | struct person { name: string; age: integer }
     | main = fun() {
-    |   var j = make person("Jake", 23);
+    |   var j = make person(name:"Jake", age:23);
     |   j
     | }
-    = ('Jake', 23)
+    = {'age': 23, 'name': 'Jake'}
 
 Structs must be defined somewhere.
 
     | main = fun() {
-    |   var j = make person("Jake", 23);
+    |   var j = make person(name:"Jake", age:23);
     |   j
     | }
     ? undefined
@@ -670,11 +670,11 @@ Structs must be defined somewhere.
 Structs need not be defined before use.
 
     | main = fun() {
-    |   var j = make person("Jake", 23);
+    |   var j = make person(name:"Jake", age:23);
     |   j
     | }
     | struct person { name: string; age: integer }
-    = ('Jake', 23)
+    = {'age': 23, 'name': 'Jake'}
 
 Structs may contain structs which don't exist.  (Surprisingly.  Might just leave this in.)
 
@@ -683,28 +683,28 @@ Structs may contain structs which don't exist.  (Surprisingly.  Might just leave
     = 333
 
     | struct person { name: string; age: foobar }
-    | main = fun() { make person("Jake", 23) }
+    | main = fun() { make person(name:"Jake", age:23) }
     ? type mismatch
 
 Types must match when making a struct.
 
     | struct person { name: string; age: integer }
     | main = fun() {
-    |   var j = make person("Jake", "Old enough to know better");
+    |   var j = make person(name:"Jake", age:"Old enough to know better");
     |   j
     | }
     ? type mismatch
 
     | struct person { name: string; age: integer }
     | main = fun() {
-    |   var j = make person("Jake");
+    |   var j = make person(name:"Jake");
     |   j
     | }
     ? argument mismatch
 
     | struct person { name: string }
     | main = fun() {
-    |   make person("Jake", 23);
+    |   make person(name:"Jake", age:23);
     | }
     ? argument mismatch
 
@@ -713,10 +713,10 @@ Structs can be passed to functions.
     | struct person { name: string; age: integer }
     | fun wat(bouncer: person) { bouncer }
     | main = fun() {
-    |   var j = make person("Jake", 23);
+    |   var j = make person(name:"Jake", age:23);
     |   wat(j)
     | }
-    = ('Jake', 23)
+    = {'age': 23, 'name': 'Jake'}
 
 Structs have name equivalence, not structural.
 
@@ -724,7 +724,7 @@ Structs have name equivalence, not structural.
     | struct city { name: string; population: integer }
     | fun wat(hometown: city) { hometown }
     | main = fun() {
-    |   var j = make person("Jake", 23);
+    |   var j = make person(name:"Jake", age:23);
     |   wat(j)
     | }
     ? type mismatch
@@ -733,7 +733,7 @@ Struct fields must all be unique.
 
     | struct person { name: string; name: string }
     | main = fun() {
-    |   var j = make person("Jake", "Smith");
+    |   var j = make person(name:"Jake", name:"Smith");
     | }
     ? defined
 
@@ -742,7 +742,7 @@ Values can be retrieved from structs.
     | struct person { name: string; age: integer }
     | fun age(bouncer: person) { bouncer.age }
     | main = fun() {
-    |   var j = make person("Jake", 23);
+    |   var j = make person(name:"Jake", age:23);
     |   age(j)
     | }
     = 23
@@ -750,7 +750,7 @@ Values can be retrieved from structs.
     | struct person { name: string }
     | fun age(bouncer: person) { bouncer.age }
     | main = fun() {
-    |   var j = make person("Jake");
+    |   var j = make person(name:"Jake");
     |   age(j)
     | }
     ? undefined
@@ -760,15 +760,13 @@ Different structs may have the same field name in different positions.
     | struct person { name: string; age: integer }
     | struct city { population: integer; name: string }
     | main = fun() {
-    |   var j = make person("Jake", 23);
-    |   var w = make city(600000, "Winnipeg");
+    |   var j = make person(name:"Jake", age:23);
+    |   var w = make city(population:600000, name:"Winnipeg");
     |   print(j.name)
     |   print(w.name)
-    |   0
     | }
     = Jake
     = Winnipeg
-    = 0
 
 Can't define the same struct multiple times.
 
@@ -799,7 +797,7 @@ But you can't actually make one of these infinite structs.
     | struct recursive {
     |   next: recursive;
     | }
-    | fun main() { make recursive(make recursive("nooo")) }
+    | fun main() { make recursive(next:make recursive(next:"nooo")) }
     ? type mismatch
 
 ### Union Types ###
@@ -904,12 +902,12 @@ you can actually make finite, recursive data types.
     |   next: union(list, integer);
     | }
     | main = fun() {
-    |   make list("first",
-    |     make list("second",
-    |               0 as integer in union(list, integer)
+    |   make list(value:"first", next:
+    |     make list(value:"second",
+    |               next:0 as integer in union(list, integer)
     |              ) as list in union(list, integer))
     | }
-    = ('first', ('StructType(list:)', ('second', ('Type(integer:)', 0))))
+    = {'value': 'first', 'next': ('StructType(list:)', {'value': 'second', 'next': ('Type(integer:)', 0)})}
 
 You may want to use helper functions to hide this ugliness.
 
@@ -918,12 +916,12 @@ You may want to use helper functions to hide this ugliness.
     |   next: union(list, void);
     | }
     | fun singleton(v: string) {
-    |   make list(v, null as void in union(list, void))
+    |   make list(value:v, next:null as void in union(list, void))
     | }
     | fun cons(v: string, l: list) {
-    |   make list(v, l as list in union(list, void))
+    |   make list(value:v, next:l as list in union(list, void))
     | }
     | main = fun() {
     |   cons("first", singleton("second"))
     | }
-    = ('first', ('StructType(list:)', ('second', ('Type(void:)', None))))
+    = {'value': 'first', 'next': ('StructType(list:)', {'value': 'second', 'next': ('Type(void:)', None)})}

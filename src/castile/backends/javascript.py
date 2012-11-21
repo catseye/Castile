@@ -76,8 +76,6 @@ print(repr(result));
         elif ast.type == 'Arg':
             self.out.write(ast.value)
         elif ast.type == 'Block':
-            # typechecker assigned ast.t the type of this block
-            # typechecker assigned value 'function body' if it is a fn bd
             self.out.write('{')
             for child in ast.children:
                 self.compile(child)

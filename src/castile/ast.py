@@ -2,17 +2,29 @@ class AST(object):
     def __init__(self, type, children=None, value=None):
         # TODO 'type' should be 'tag' or 'kind' or smth; 'type' should be
         # the type, in the type system, of the value this node evaluates to
-        self.type = type
-        self.value = value
+        self._type = type
+        self._value = value
         if children is not None:
-            self.children = children
+            self._children = children
         else:
-            self.children = []
+            self._children = []
         assert isinstance(self.children, list)
         for child in self.children:
             assert isinstance(child, AST), \
               "child %r of %r is not an AST node" % (child, self)
         #print "created %r" % self
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def children(self):
+        return self._children
 
     def __repr__(self):
         if self.value is None:

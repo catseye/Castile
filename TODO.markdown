@@ -1,14 +1,13 @@
 TODO
 ----
 
+Canonical representation of values that's not Python's or Javascript's.
+
 Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)
 
 Tests for all the edge cases for function literals (closure variable return ugghness.)
 
 Lack of `break` is annoying.
-
-Make evaluator independent of typechecker.  The few places the typechecker
-modifies the AST -- find another way (have parser do it / find way to not need it.)
 
 ### Implementation ###
 

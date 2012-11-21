@@ -305,9 +305,16 @@ class Parser(object):
             texpr = self.texpr()
             self.expect('(')
             args = []
-            args.append(self.expr0())
-            while self.consume(","):
-                args.append(self.expr0())
+            if not self.on(')'):
+                id = self.expect_type('identifier')
+                self.expect(':')
+                e = self.expr0()
+                args.append(AST('FieldInit', [e], value=id))
+                while self.consume(","):
+                    id = self.expect_type('identifier')
+                    self.expect(':')
+                    e = self.expr0()
+                    args.append(AST('FieldInit', [e], value=id))
             self.expect(")")
             return AST('Make', [texpr] + args)
         elif self.consume('('):

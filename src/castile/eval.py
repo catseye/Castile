@@ -120,12 +120,13 @@ class Closure(object):
             return None
         elif ast.type == 'Index':
             v = self.eval(ast.children[0])
-            # ast.value was converted from a field name to an index by
-            # the typechecker.
-            index = ast.value
-            return v[index]
+            return v[ast.value]
         elif ast.type == 'Make':
-            return tuple([self.eval(arg) for arg in ast.children[1:]])
+            v = {}
+            for arg in ast.children[1:]:
+                assert arg.type == 'FieldInit'
+                v[arg.value] = self.eval(arg.children[0])
+            return v
         elif ast.type == 'TypeCast':
             return TaggedValue(ast.value, self.eval(ast.children[0]))
         elif ast.type == 'TypeCase':

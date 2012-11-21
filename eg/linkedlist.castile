@@ -1,0 +1,13 @@
+struct list {
+  value: string;
+  next: union(list, void);
+}
+fun singleton(v: string) {
+  make list(v, null as void in union(list, void))
+}
+fun cons(v: string, l: list) {
+  make list(v, l as list in union(list, void))
+}
+main = fun() {
+  cons("first", singleton("second"))
+}
