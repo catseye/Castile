@@ -10,8 +10,8 @@ from optparse import OptionParser
 
 from castile.parser import Parser
 from castile.eval import Program
-from castile.types import TypeChecker
-from castile.compiler import Compiler
+from castile.checker import TypeChecker
+from castile.backends.javascript import Compiler
 
 
 def main(argv):
