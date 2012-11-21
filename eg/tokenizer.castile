@@ -33,7 +33,7 @@ fun scan(s: string) {
     i = i + 1
   }
   var r = substr(s, i-1, len(s)-i+1);
-  make result(t, r)
+  make result(token:t, remainder:r)
 }
 
 fun main() {

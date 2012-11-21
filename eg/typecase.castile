@@ -10,7 +10,7 @@ fun foo(a, b: union(integer, string)) {
 }
 main = fun() {
   var a = 0;
-  a = foo(a, 333 as union(integer, string));
-  a = foo(a, "hiya" as union(integer, string));
+  a = foo(a, 333 as integer in union(integer, string));
+  a = foo(a, "hiya" as string in union(integer, string));
   a
 }

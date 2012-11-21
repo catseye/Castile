@@ -44,7 +44,7 @@ class Parser(object):
         if self.scan_pattern(r'and|or', 'boolean operator'):
             return
         if self.scan_pattern(r'(if|else|while|make|struct|'
-                             r'typecase|is|as|do|return)(?!\w)',
+                             r'typecase|is|as|return)(?!\w)',
                              'keyword', token_group=2, rest_group=3):
             return
         if self.scan_pattern(r'\d+', 'integer literal'):

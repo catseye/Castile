@@ -1,9 +1,9 @@
 factorial: function(integer): integer
 fun factorial(a) {
   if (a == 0) {
-    1
+    return 1
   } else {
-    a * factorial(a - 1)
+    return a * factorial(a - 1)
   }
 }
 
