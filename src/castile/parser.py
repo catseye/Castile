@@ -118,8 +118,8 @@ class Parser(object):
                 while self.consume(","):
                     args.append(self.arg())
             self.expect(")")
-            block = self.block()
-            funlit = AST('FunLit', [AST('Args', args), block])
+            body = self.body()
+            funlit = AST('FunLit', [AST('Args', args), body])
             return AST('Defn', [funlit], value=id)
         elif self.consume('struct'):
             id = self.expect_type('identifier')
@@ -183,6 +183,23 @@ class Parser(object):
         while not self.on('}'):
             stmts.append(self.stmt())
             self.consume(';')
+        self.expect('}')
+        return AST('Block', stmts)
+
+    STMT_TYPES = ('VarDecl', 'If', 'While', 'TypeCase', 'Do', 'Return')
+
+    def body(self):
+        # block for a function body -- automatically promotes the
+        # last expression to a 'return' if it's not a statement
+        self.expect('{')
+        stmts = []
+        last = None
+        while not self.on('}'):
+            last = self.stmt()
+            stmts.append(last)
+            self.consume(';')
+        if last is not None and last.type not in self.STMT_TYPES:
+            stmts[-1] = AST('Return', [stmts[-1]])
         self.expect('}')
         return AST('Block', stmts)
 
@@ -329,5 +346,5 @@ class Parser(object):
                 while self.consume(","):
                     args.append(self.arg())
             self.expect(")")
-            block = self.block()
-            return AST('FunLit', [AST('Args', args), block])
+            body = self.body()
+            return AST('FunLit', [AST('Args', args), body])

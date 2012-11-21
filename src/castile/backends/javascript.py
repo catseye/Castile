@@ -77,33 +77,9 @@ print(repr(result));
             # typechecker assigned ast.t the type of this block
             # typechecker assigned value 'function body' if it is a fn bd
             self.out.write('{')
-            if not ast.children:
-                if ast.value == 'function body':
-                    self.out.write('return undefined;')
-            elif ast.t == Void():
-                for child in ast.children:
-                    self.compile(child)
-                    self.out.write(';\n')
-                if ast.value == 'function body':
-                    self.out.write('return undefined;')
-            elif ast.children[-1].type == 'If':
-                for child in ast.children:
-                    self.compile(child)
-                    self.out.write(';\n')
-                if ast.value == 'function body':
-                    self.out.write('return result;')
-            else:
-                for child in ast.children[:-1]:
-                    self.compile(child)
-                    self.out.write(';\n')
-                if ast.value == 'function body':
-                    self.out.write('return ')
-                    self.compile(ast.children[-1])
-                    self.out.write(';\n')
-                else:
-                    self.out.write('result = ')
-                    self.compile(ast.children[-1])
-                    self.out.write(';\n')
+            for child in ast.children:
+                self.compile(child)
+                self.out.write(';\n')
             self.out.write('}')
         elif ast.type == 'VarDecl':
             self.out.write('var %s = ' % ast.value)
@@ -127,27 +103,15 @@ print(repr(result));
             self.commas(ast.children[1:])
             self.out.write(')')
         elif ast.type == 'If':
-            if ast.children[1].t == Void():
-                self.out.write('if(')
-                self.compile(ast.children[0])
-                self.out.write(')')
-                if len(ast.children) == 3:  # if-else
-                    self.compile(ast.children[1])
-                    self.out.write(' else ')
-                    self.compile(ast.children[2])
-                else:  # just-if
-                    self.compile(ast.children[1])
-            else:
-                # this assumes you return the result from the current
-                # function, but this assumption is safe, because if you
-                # didn't, it wouldn't typecheck.
-                self.out.write('{ var result; if(')
-                self.compile(ast.children[0])
-                self.out.write(')')
+            self.out.write('if(')
+            self.compile(ast.children[0])
+            self.out.write(')')
+            if len(ast.children) == 3:  # if-else
                 self.compile(ast.children[1])
                 self.out.write(' else ')
                 self.compile(ast.children[2])
-                self.out.write('return result; }')
+            else:  # just-if
+                self.compile(ast.children[1])
         elif ast.type == 'Return':
             self.out.write('return ')
             self.compile(ast.children[0])

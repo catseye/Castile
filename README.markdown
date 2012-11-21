@@ -55,11 +55,11 @@ which includes the possibility of assignment, even though that can really
 only happen in a Stmt.)
 
     Program ::= {Defn [";"]}.
-    Defn    ::= "fun" ident "(" [Arg {"," Arg}] ")" Block
+    Defn    ::= "fun" ident "(" [Arg {"," Arg}] ")" Body
               | "struct" ident "{" {ident ":" TExpr [";"]} "}"
               | ident (":" TExpr | "=" Literal).
     Arg     ::= ident [":" TExpr].
-    Block   ::= "{" {Stmt [";"]} "}".
+    Body    ::= "{" {Stmt [";"]} "}".
     Stmt    ::= "var" ident "=" Expr0
               | "while" Expr0 Block
               | "typecase" VarRef "is" TExpr Block
@@ -67,6 +67,7 @@ only happen in a Stmt.)
               | "return" Expr0
               | If
               | Expr0.
+    Block   ::= "{" {Stmt [";"]} "}".
     If      ::= "if" Expr0 Block ["else" (Block | If)].
     Expr0   ::= Expr1 {("and" | "or") Expr1} ["as" TExpr].
     Expr1   ::= Expr2 {(">" | ">=" | "<" | "<=" | "==" | "!=") Expr2}.
@@ -81,7 +82,7 @@ only happen in a Stmt.)
     VarRef  ::= ident ["=" Expr0].
     Literal ::= strlit
               | ["-"] intlit
-              | "fun" "(" [Arg {"," Arg}] ")" Block.
+              | "fun" "(" [Arg {"," Arg}] ")" Body.
     TExpr   ::= "string"
               | "integer"
               | "boolean"
@@ -199,11 +200,13 @@ Another way to get around this is `do`, which discards the result.
 An `if`/`else` lets you make decisions.
 
     | fun main() {
+    |   var a = 0;
     |   if 3 > 2 {
-    |     70
+    |     a = 70
     |   } else {
-    |     80
+    |     a = 80
     |   }
+    |   a
     | }
     = 70
 
@@ -218,7 +221,7 @@ An `if` need not have an `else`.
     | }
     = 70
 
-If an `if` does not have an `else`, it typechecks to void.
+`if` always typechecks to void, one branch or two.
 
     | fun main() {
     |   var a = 60
@@ -228,36 +231,26 @@ If an `if` does not have an `else`, it typechecks to void.
     | }
     = 
 
-If an `if` does have an `else`, the two branches must have same type.
-
     | fun main() {
+    |   var a = 60
     |   if 3 > 2 {
-    |     60
+    |     a = 70
     |   } else {
-    |     "what"
+    |     a = 90
     |   }
     | }
-    ? type mismatch
-
-    | fun main() {
-    |   if 3 < 2 {
-    |     60
-    |   } else {
-    |     70
-    |   }
-    | }
-    = 70
+    = 
 
 If an `if` does have an `else`, the part after `else` must be either a block
 (already shown) or another `if`.
 
     | fun main() {
     |   if 2 > 3 {
-    |     60
+    |     return 60
     |   } else if 4 > 5 {
-    |     0
+    |     return 0
     |   } else {
-    |     1
+    |     return 1
     |   }
     | }
     = 1
@@ -266,11 +259,11 @@ No dangling else problem.
 
     | fun main() {
     |   if 2 > 3 {
-    |     60
+    |     return 60
     |   } else if 4 < 5 {
-    |     0
+    |     return 0
     |   } else {
-    |     1
+    |     return 1
     |   }
     | }
     = 0
@@ -336,9 +329,9 @@ Unary not.
 Precedence of unary not.
 
     | fun main() {
-    |   not true or false
+    |   not true or true
     | }
-    = False
+    = True
 
     | fun main() {
     |   not 3 > 4
@@ -529,9 +522,9 @@ Factorial can be computed.
     | factorial : function(integer): integer
     | fun factorial(a) {
     |   if a == 0 {
-    |     1
+    |     return 1
     |   } else {
-    |     a * factorial(a - 1)
+    |     return a * factorial(a - 1)
     |   }
     | }
     | fun main() {
@@ -564,7 +557,7 @@ Functions can be passed to functions and returned from functions.
     | fun double(x) { x * 2 }
     | fun triple(x) { x * 3 }
     | fun apply_and_add_one(f:function(integer):integer, x) { f(x) + 1 }
-    | fun select(a) { if a > 10 { double } else { triple } }
+    | fun select(a) { if a > 10 { return double } else { return triple } }
     | fun main() {
     |   var t = select(5);
     |   var d = select(15);

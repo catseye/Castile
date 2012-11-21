@@ -1,7 +1,8 @@
 class AST(object):
     def __init__(self, type, children=None, value=None):
-        self.type = type  # TODO should be 'tag' or 'kind' or smth
-        self.t = None  # TODO should be 'type'.  argh.
+        # TODO 'type' should be 'tag' or 'kind' or smth; 'type' should be
+        # the type, in the type system, of the value this node evaluates to
+        self.type = type
         self.value = value
         if children is not None:
             self.children = children

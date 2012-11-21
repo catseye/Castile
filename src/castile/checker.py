@@ -89,11 +89,13 @@ class TypeChecker(object):
             self.context = ScopedContext({}, self.context)
             self.return_type = None
             arg_types = self.type_of(ast.children[0])  # args
-            return_type = self.type_of(ast.children[1])  # body
-            if self.return_type is not None:
-                self.assert_eq(return_type, self.return_type)
+            t = self.type_of(ast.children[1])  # body
+            self.assert_eq(t, Void())
             self.context = self.context.parent
+            return_type = self.return_type
             self.return_type = None
+            if return_type is None:
+                return_type = Void()
             # modify AST for compiler's benefit
             ast.children[1].value = 'function body'
             return Function(arg_types, return_type)
@@ -169,16 +171,10 @@ class TypeChecker(object):
             return Void()
         elif ast.type == 'Block':
             self.context = ScopedContext({}, self.context)
-            if len(ast.children) == 0:
-                ast.t = Void()
-                return Void()
-            for child in ast.children[:-1]:
+            for child in ast.children:
                 self.assert_eq(self.type_of(child), Void())
-            last = self.type_of(ast.children[-1])
             self.context = self.context.parent
-            # modify the AST for the compiler's benefit
-            ast.t = last
-            return ast.t
+            return Void()
         elif ast.type == 'Assignment':
             t1 = self.type_of(ast.children[0])
             if not self.is_assignable(ast.children[0]):

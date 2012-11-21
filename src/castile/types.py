@@ -4,6 +4,9 @@ class Type(object):
     def __eq__(self, other):
         return str(self) == str(other)
 
+    def __ne__(self, other):
+        return str(self) != str(other)
+
 
 class Void(Type):
     def __str__(self):
