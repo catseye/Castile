@@ -189,14 +189,6 @@ result of that expression is the value of the block.
     | }
     ? type mismatch
 
-Another way to get around this is `do`, which discards the result.
-
-    | fun main() {
-    |   do 20 + 3 * 8;
-    |   20 * 8
-    | }
-    = 160
-
 An `if`/`else` lets you make decisions.
 
     | fun main() {
@@ -646,14 +638,9 @@ The builtin toplevels are functions and functions need parens.
     | }
     ? type mismatch
 
-Note that the above was the motivation for `do`.  If non-void exprs could be
-used anywhere, that would just throw away the function value `print` (b/c
-semicolons are optional) and return 'hi'.  Observe:
-
-    | fun main() {
-    |   do print "hi"
-    | }
-    = 'hi'
+Note that the above was the motivation for requiring statements to have void
+type; if non-void exprs could be used anywhere, that would just throw away
+the function value `print` (b/c semicolons are optional) and return 'hi'.
 
 ### Struct Types ###
 

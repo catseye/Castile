@@ -144,9 +144,6 @@ class TypeChecker(object):
                 self.assert_eq(self.type_of(child), t1.arg_types[i])
                 i += 1
             return t1.return_type
-        elif ast.type == 'Do':
-            t1 = self.type_of(ast.children[0])
-            return Void()
         elif ast.type == 'Return':
             t1 = self.type_of(ast.children[0])
             if self.return_type is None:

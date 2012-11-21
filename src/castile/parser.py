@@ -186,7 +186,7 @@ class Parser(object):
         self.expect('}')
         return AST('Block', stmts)
 
-    STMT_TYPES = ('VarDecl', 'If', 'While', 'TypeCase', 'Do', 'Return')
+    STMT_TYPES = ('VarDecl', 'If', 'While', 'TypeCase', 'Return')
 
     def body(self):
         # block for a function body -- automatically promotes the
@@ -221,8 +221,6 @@ class Parser(object):
             te = self.texpr()
             b = self.block()
             return AST('TypeCase', [e, te, b])
-        elif self.consume('do'):
-            return AST('Do', [self.expr0()])
         elif self.consume('return'):
             return AST('Return', [self.expr0()])
         else:

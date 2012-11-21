@@ -65,8 +65,6 @@ class Closure(object):
             for stmt in ast.children:
                 v1 = self.eval(stmt)
             return v1
-        elif ast.type == 'Do':
-            return self.eval(ast.children[0])
         elif ast.type == 'If':
             v1 = self.eval(ast.children[0])
             if len(ast.children) == 3:  # if-else

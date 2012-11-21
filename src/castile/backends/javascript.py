@@ -115,8 +115,6 @@ print(repr(result));
         elif ast.type == 'Return':
             self.out.write('return ')
             self.compile(ast.children[0])
-        elif ast.type == 'Do':
-            self.compile(ast.children[0])
         elif ast.type == 'Not':
             self.out.write('!(')
             self.compile(ast.children[0])

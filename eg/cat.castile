@@ -1,7 +1,9 @@
+fun do(x) {}
+
 fun main() {
   var c = read(1);
   while (len(c) == 1) {
-    do write(c);
+    do(write(c));
     c = read(1)
   }
 }
