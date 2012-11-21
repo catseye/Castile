@@ -1,0 +1,16 @@
+fun foo(a, b: union(integer, string)) {
+  var r = a;
+  typecase b is integer {
+    r = r + b;
+  };
+  typecase b is string {
+    r = r + len(b);
+  };
+  r
+}
+main = fun() {
+  var a = 0;
+  a = foo(a, 333 as union(integer, string));
+  a = foo(a, "hiya" as union(integer, string));
+  a
+}

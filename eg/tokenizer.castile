@@ -1,0 +1,46 @@
+fun instr(c: string, s: string) {
+  var i = 0;
+  while i < len(s) {
+    if c == substr(s, i, 1) { return true; }
+    i = i + 1
+  }
+  false
+}
+
+alpha = "abcdefghijklmnopqrstuvwxyz"
+
+struct result {
+  token: string;
+  remainder: string;
+}
+
+fun scan(s: string) {
+  var i = 0;
+  var t = "";
+  var go = true;
+  while go {
+    var c = substr(s, i, 1);
+    if c != " " {
+      if instr(c, alpha) {
+        while instr(c, alpha) {
+          t = concat(t, c);
+          i = i + 1
+          c = substr(s, i, 1);
+        }
+        go = false;
+      }
+    }
+    i = i + 1
+  }
+  var r = substr(s, i-1, len(s)-i+1);
+  make result(t, r)
+}
+
+fun main() {
+  var s = "token ize this string"
+  while len(s) > 0 {
+    var r = scan(s);
+    print(r.token);
+    s = r.remainder;
+  }
+}

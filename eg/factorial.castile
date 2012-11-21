@@ -1,0 +1,12 @@
+factorial: function(integer): integer
+fun factorial(a) {
+  if (a == 0) {
+    1
+  } else {
+    a * factorial(a - 1)
+  }
+}
+
+fun main() {
+  factorial(6)
+}
