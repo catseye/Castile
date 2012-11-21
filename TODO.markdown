@@ -7,14 +7,14 @@ Tests for all the edge cases for function literals (closure variable return uggh
 
 Lack of `break` is annoying.
 
+Make evaluator independent of typechecker.  The few places the typechecker
+modifies the AST -- find another way (have parser do it / find way to not need it.)
+
 ### Implementation ###
 
 Better use of exceptions (don't use Python's SyntaxError.)
 
 AST nodes should have source line numbers, it would be really nice.
-
-Make evaluator independent of typechecker?  The few places the typechecker
-modifies the AST -- find another way (have parser do it / find way to not need it.)
 
 ### Design ###
 

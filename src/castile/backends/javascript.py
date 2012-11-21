@@ -37,6 +37,8 @@ var repr = function(o) {
     return "False";
   } else if (o === undefined) {
     return "";
+  } else if (o === null) {
+    return "None";
   } else if (typeof o === "object") {
     var s = "(";
     for (var i = 0; i < o.length; i++) {
@@ -138,15 +140,13 @@ print(repr(result));
             # ast.value was converted from a field name to an index by
             # the typechecker.
             self.out.write('[%d]' % ast.value)
-        elif ast.type == 'Cast':
-            # ast.value was added by the typechecker.
+        elif ast.type == 'TypeCast':
             self.out.write("['%s'," % ast.value)
             self.compile(ast.children[0])
             self.out.write(']')
         elif ast.type == 'TypeCase':
             self.out.write('if (')
             self.compile(ast.children[0])
-            # ast.value was added by the typechecker.
             self.out.write("[0] == '%s')" % ast.value)
             self.out.write('{ var save=')
             self.compile(ast.children[0])

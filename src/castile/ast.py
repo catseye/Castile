@@ -21,6 +21,12 @@ class AST(object):
             return 'AST(%r,value=%r)' % (self.type, self.value)
         return 'AST(%r,%r,value=%r)' % (self.type, self.children, self.value)
 
+    def minirepr(self):
+        return '%s(%s:%s)' % (
+            self.type, self.value,
+            ','.join([c.minirepr() for c in self.children])
+        )
+
     def pprint(self, indent):
         h = ('  ' * indent) + self.type
         if self.value is not None:

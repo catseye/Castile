@@ -206,14 +206,10 @@ class TypeChecker(object):
         elif ast.type == 'TypeCase':
             t1 = self.type_of(ast.children[0])
             t2 = self.type_of(ast.children[1])
-
             if not isinstance(t1, Union):
                 raise SyntaxError('bad typecase, %s not a union' % t1)
             if not t1.contains(t2):
                 raise SyntaxError('bad typecase, %s not in %s' % (t2, t1))
-            # modify the AST for the evaluator's benefit
-            ast.value = str(t2)
-
             # typecheck t3 with variable in children[0] having type t2
             assert ast.children[0].type == 'VarRef'
             self.context = ScopedContext({}, self.context)
@@ -246,16 +242,16 @@ class TypeChecker(object):
             return self.set(ast.value, t)
         elif ast.type == 'StructDefn':
             pass
-        elif ast.type == 'Cast':
+        elif ast.type == 'TypeCast':
             t1 = self.type_of(ast.children[0])
-            t2 = self.type_of(ast.children[1])
-            if not isinstance(t2, Union):
-                raise SyntaxError('bad cast, not a union: %s' % t2)
-            if not t2.contains(t1):
+            val_t = self.type_of(ast.children[1])
+            uni_t = self.type_of(ast.children[2])
+            self.assert_eq(t1, val_t)
+            if not isinstance(uni_t, Union):
+                raise SyntaxError('bad cast, not a union: %s' % uni_t)
+            if not uni_t.contains(val_t):
                 raise SyntaxError('bad cast, %s does not include %s' %
-                                  (t2, t1))
-            # we modify the ast here for the evaluator's benefit.
-            ast.value = str(t1)
-            return t2
+                                  (uni_t, val_t))
+            return uni_t
         else:
             raise NotImplementedError(repr(ast))

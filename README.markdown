@@ -69,7 +69,7 @@ only happen in a Stmt.)
               | Expr0.
     Block   ::= "{" {Stmt [";"]} "}".
     If      ::= "if" Expr0 Block ["else" (Block | If)].
-    Expr0   ::= Expr1 {("and" | "or") Expr1} ["as" TExpr].
+    Expr0   ::= Expr1 {("and" | "or") Expr1} ["as" TExpr "in" TExpr].
     Expr1   ::= Expr2 {(">" | ">=" | "<" | "<=" | "==" | "!=") Expr2}.
     Expr2   ::= Expr3 {("+" | "-") Expr3}.
     Expr3   ::= Expr4 {("*" | "/") Expr4}.
@@ -804,28 +804,45 @@ But you can't actually make one of these infinite structs.
 
 ### Union Types ###
 
-Type promotion has a very low precedence, and can be applied to any expression.
+Values of union type are created with the type promotion operator,
+`as ... in ...`.  Type promotion has a very low precedence, and can be
+applied to any expression.
+
+The type after the `in` must be a union.
 
     | fun main() {
     |   var a = 20;
     |   var b = 30;
-    |   a + b as integer
+    |   a + b as integer in string
     | }
     ? bad cast
 
-    | fun main() {
-    |   var a = 20;
-    |   var b = 30;
-    |   a + b as union(string, void)
-    | }
-    ? bad cast
+The type after the `as` must be one of the types in the union.
 
     | fun main() {
     |   var a = 20;
     |   var b = 30;
-    |   a + b as union(integer, string)
+    |   a + b as integer in union(string, void)
     | }
-    = ('integer', 50)
+    ? bad cast
+
+The type after the `as` must be the type of the expression.
+
+    | fun main() {
+    |   var a = 20;
+    |   var b = 30;
+    |   a + b as integer in union(integer, string)
+    | }
+    = ('Type(integer:)', 50)
+
+All good looks like this:
+
+    | fun main() {
+    |   var a = 20;
+    |   var b = 30;
+    |   a + b as integer in union(integer, string)
+    | }
+    = ('Type(integer:)', 50)
 
 Union types.
 
@@ -834,8 +851,8 @@ Union types.
     | }
     | main = fun() {
     |   var a = 0;
-    |   a = foo(a, 333 as union(integer, string));
-    |   a = foo(a, "hiya" as union(integer, string));
+    |   a = foo(a, 333 as integer in union(integer, string));
+    |   a = foo(a, "hiya" as string in union(integer, string));
     |   a
     | }
     = 2
@@ -854,8 +871,8 @@ The `typecase` construct can operate on the "right" type of a union.
     | }
     | main = fun() {
     |   var a = 0;
-    |   a = foo(a, 333 as union(integer, string));
-    |   a = foo(a, "hiya" as union(integer, string));
+    |   a = foo(a, 333 as integer in union(integer, string));
+    |   a = foo(a, "hiya" as string in union(integer, string));
     |   a
     | }
     = 337
@@ -868,12 +885,12 @@ typechecks as void, without any automatic promotion to the union type...
     |   typecase a is integer {
     |     print("yes it's an integer");
     |   }
-    |   typecase a = 7 as union(integer, void) is void {
+    |   typecase a = 7 as integer in union(integer, void) is void {
     |     print("yes it's void too");
     |   }
     | }
     | main = fun() {
-    |   foo(7 as union(integer, void))
+    |   foo(7 as integer in union(integer, void))
     | }
     ? void not a union
 
@@ -887,6 +904,26 @@ you can actually make finite, recursive data types.
     |   next: union(list, integer);
     | }
     | main = fun() {
-    |   make list("first", make list("second", 0 as union(list, integer)) as union(list, integer))
+    |   make list("first",
+    |     make list("second",
+    |               0 as integer in union(list, integer)
+    |              ) as list in union(list, integer))
     | }
-    = ('first', ('struct list', ('second', ('integer', 0))))
+    = ('first', ('StructType(list:)', ('second', ('Type(integer:)', 0))))
+
+You may want to use helper functions to hide this ugliness.
+
+    | struct list {
+    |   value: string;
+    |   next: union(list, void);
+    | }
+    | fun singleton(v: string) {
+    |   make list(v, null as void in union(list, void))
+    | }
+    | fun cons(v: string, l: list) {
+    |   make list(v, l as list in union(list, void))
+    | }
+    | main = fun() {
+    |   cons("first", singleton("second"))
+    | }
+    = ('first', ('StructType(list:)', ('second', ('Type(void:)', None))))

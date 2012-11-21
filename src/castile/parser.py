@@ -220,7 +220,7 @@ class Parser(object):
             self.expect('is')
             te = self.texpr()
             b = self.block()
-            return AST('TypeCase', [e, te, b])
+            return AST('TypeCase', [e, te, b], value=te.minirepr())
         elif self.consume('return'):
             return AST('Return', [self.expr0()])
         else:
@@ -246,8 +246,10 @@ class Parser(object):
             e2 = self.expr1()
             e = AST('Op', [e, e2], value=op)
         if self.consume('as'):
-            te = self.texpr()
-            e = AST('Cast', [e, te])
+            val_te = self.texpr()
+            self.expect('in')
+            union_te = self.texpr()
+            e = AST('TypeCast', [e, val_te, union_te], value=val_te.minirepr())
         return e
 
     def expr1(self):

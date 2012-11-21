@@ -126,13 +126,11 @@ class Closure(object):
             return v[index]
         elif ast.type == 'Make':
             return tuple([self.eval(arg) for arg in ast.children[1:]])
-        elif ast.type == 'Cast':
-            # ast.value was added by the typechecker.
+        elif ast.type == 'TypeCast':
             return TaggedValue(ast.value, self.eval(ast.children[0]))
         elif ast.type == 'TypeCase':
             r = self.eval(ast.children[0])
             assert isinstance(r, TaggedValue)
-            # ast.value was added by the typechecker.
             if r.tag == ast.value:
                 var_ref = ast.children[0]
                 name = var_ref.value
