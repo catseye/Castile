@@ -7,13 +7,21 @@ import sys
 from castile.builtins import BUILTINS
 
 
+def boo(b):
+    if b:
+        return -1
+    else:
+        return 0
+
+
 def run(program):
     ip = 0
+    iter = 0
     stack = []
     callstack = []
-    while ip <= len(program):
+    while ip < len(program):
         (op, arg) = program[ip]
-        print ip, op, arg
+        # print ip, op, arg, stack, callstack
         if op == 'push':
             stack.append(arg)
         elif op == 'jmp':
@@ -23,9 +31,33 @@ def run(program):
             ip = stack.pop() - 1
         elif op == 'rts':
             ip = callstack.pop()
+        elif op == 'mul':
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(a * b)
+        elif op == 'add':
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(a + b)
+        elif op == 'gt':
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(boo(a > b))
+        elif op == 'lt':
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(boo(a < b))
+        elif op == 'bzero':
+            a = stack.pop()
+            if a == 0:
+                ip = arg - 1
         else:
             raise NotImplementedError((op, arg))
         ip += 1
+        iter += 1
+        if iter > 10000:
+            raise ValueError("infinite loop?")
+    print repr(stack.pop())
 
 
 def main(args):
@@ -71,6 +103,8 @@ def main(args):
         if arg in labels:
             p.append((op, labels[arg]))
         else:
+            if arg is not None:
+                arg = int(arg)
             p.append((op, arg))
 
     run(p)

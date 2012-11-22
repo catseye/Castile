@@ -37,11 +37,11 @@ class Compiler(object):
                 self.compile(child)
             self.out.write("""\
 ; call main
-push main
+; pick main_index
 call
 """)
         elif ast.type == 'Defn':
-            self.out.write('%s:\n' % ast.value)
+            self.out.write('; define %s_index <count>\n' % ast.value)
             self.compile(ast.children[0])
         elif ast.type in ('StructDefn', 'Forward'):
             pass
@@ -72,7 +72,7 @@ call
             self.current_loop_end = end
             self.out.write('%s:\n' % start)
             self.compile(ast.children[0])
-            self.out.write('beq %s\n' % end)
+            self.out.write('bzero %s\n' % end)
             self.compile(ast.children[1])
             self.out.write('jmp %s\n' % start)
             self.out.write('%s:\n' % end)
@@ -94,7 +94,7 @@ call
             else_part = self.get_label('else_part')
             end_if = self.get_label('end_if')
             self.compile(ast.children[0])
-            self.out.write('beq %s\n' % else_part)
+            self.out.write('bzero %s\n' % else_part)
             self.compile(ast.children[1])
             self.out.write('jmp %s\n' % end_if)
             self.out.write('%s:\n' % else_part)

@@ -196,6 +196,7 @@ class Parser(object):
     def body(self):
         # block for a function body -- automatically promotes the
         # last expression to a 'return' if it's not a statement
+        # (and inserts a 'return' if the block is empty
         self.expect('{')
         stmts = []
         last = None
@@ -203,7 +204,9 @@ class Parser(object):
             last = self.stmt()
             stmts.append(last)
             self.consume(';')
-        if last is not None and last.type not in self.STMT_TYPES:
+        if len(stmts) == 0:
+            stmts = [AST('Return', [AST('None')])]
+        elif last is not None and last.type not in self.STMT_TYPES:
             stmts[-1] = AST('Return', [stmts[-1]])
         self.expect('}')
         return AST('Block', stmts)
