@@ -20,8 +20,8 @@ class Compiler(object):
         self.out = out
         self.labels = {}
         self.current_loop_end = None
+        self.current_fun_lit = None
         self.global_pos = 0     # globals at the bottom of the stack
-        self.fcount = 0         # uniquely id current function
 
     def get_label(self, pref):
         count = self.labels.get(pref, 0)
@@ -51,20 +51,23 @@ call
         elif ast.type == 'FunLit':
             l = self.get_label('past_fun')
             self.out.write('jmp %s\n' % l)
-            f = self.get_label('fun_lit')
+            save = self.current_fun_lit
+            self.current_fun_lit = self.get_label('fun_lit')
+            f = self.current_fun_lit
             self.out.write('%s:\n' % f)
             self.compile(ast.children[0])
             self.compile(ast.children[1])
             self.out.write('%s:\n' % l)
             self.out.write('push %s\n' % f)
-            # TODO this will break on nested funs
-            self.fcount += 1
+            self.current_fun_lit = save
         elif ast.type == 'Args':
-            pos = 0
+            # first arg passed is DEEPEST, so go backwards.
+            pos = len(ast.children) - 1
             for child in ast.children:
                 assert child.type == 'Arg'
-                self.out.write('fun_%d_local_%s=%s\n' % (self.fcount, child.value, pos))
-                pos += 1
+                self.out.write('%s_local_%s=%s\n' %
+                    (self.current_fun_lit, child.value, pos))
+                pos -= 1
         elif ast.type == 'Block':
             for child in ast.children:
                 self.compile(child)
@@ -88,7 +91,8 @@ call
             self.compile(ast.children[1])
             self.out.write('%s\n' % OPS.get(ast.value, ast.value))
         elif ast.type == 'VarRef':
-            self.out.write('getvar %s\n' % ast.value)
+            # TODO determine whether global or local!
+            self.out.write('pick %s_local_%s\n' % (self.current_fun_lit, ast.value))
         elif ast.type == 'FunCall':
             for child in ast.children[1:]:
                 self.out.write('; push argument\n')

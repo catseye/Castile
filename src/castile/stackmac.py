@@ -53,6 +53,9 @@ def run(program):
                 ip = arg - 1
         elif op == 'global':
             stack.append(stack[arg])
+        elif op == 'pick':
+            # TODO should be relative to baseptr
+            stack.append(stack[-(arg+1)])
         else:
             raise NotImplementedError((op, arg))
         ip += 1
