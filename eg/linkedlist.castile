@@ -2,12 +2,32 @@ struct list {
   value: string;
   next: union(list, void);
 }
-fun singleton(v: string) {
-  make list(value:v, next:null as void in union(list, void))
+
+fun empty() {
+  return null as void in union(list, void)
 }
-fun cons(v: string, l: list) {
-  make list(value:v, next:l as list in union(list, void))
+
+fun cons(v: string, l: union(list, void)) {
+  make list(value:v, next:l) as list in union(list, void)
 }
+
 main = fun() {
-  cons("first", singleton("second"))
+  var l = cons("first", cons("second", cons("third", empty())));
+  
+  var h = l;
+  var next = empty();
+
+  /*
+   * Note that we cannot say "h = h.next" in the following loop,
+   * as inside the typecase, h has a different type from h.next.
+   * So we do the next best thing.  (Pun not intended.)
+   */
+  while true {
+    typecase h is void { break; }
+    typecase h is list {
+      print(h.value);
+      next = h.next;
+    }
+    h = next;
+  }
 }
