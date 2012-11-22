@@ -1,5 +1,3 @@
-from castile.types import Void
-
 OPS = {
     'and': '&&',
     'or': '||',

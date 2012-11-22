@@ -1,7 +1,3 @@
-# Not yet in a good way
-
-from castile.types import Void
-
 OPS = {
 }
 
@@ -99,7 +95,7 @@ end
             self.out.write('\n')
         elif ast.type in ('Forward'):
             self.out.write('%s = nil\n' % ast.value)
-        elif ast.type in ('StructDefn', 'Forward'):
+        elif ast.type in ('StructDefn'):
             pass
         elif ast.type == 'FunLit':
             self.out.write('lambda { |')
