@@ -102,7 +102,9 @@ class TypeChecker(object):
             self.return_type = None
             if return_type is None:
                 return_type = Void()
-            return Function(arg_types, return_type)
+            t = Function(arg_types, return_type)
+            ast.aux = t
+            return t
         elif ast.type == 'Args':
             types = []
             for child in ast.children:

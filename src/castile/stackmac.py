@@ -20,6 +20,7 @@ def run(program):
     stack = []
     callstack = []
     baseptr = 0
+    returnsize = 0
     while ip < len(program):
         (op, arg) = program[ip]
         #print ip, op, arg, stack, callstack
@@ -69,14 +70,24 @@ def run(program):
             a = stack.pop()
             stack.append(a | b)
         elif op == 'set_baseptr':
-            baseptr = len(stack)
+            stack.append(baseptr)
+            baseptr = len(stack) - 1
+        elif op == 'set_returnsize':
+            returnsize = arg
         elif op == 'clear_baseptr':
-            # TODO assumes only one value returned on stack
-            a = stack.pop()
-            target = baseptr + arg
+            rs = []
+            x = 0
+            while x < returnsize:
+                rs.append(stack.pop())
+                x += 1
+            target = baseptr + arg + 1
+            baseptr = stack[baseptr]
             while len(stack) > target:
                 stack.pop()
-            stack.append(a)
+            x = 0
+            while x < returnsize:
+                stack.append(rs.pop())
+                x += 1
         elif op == 'get_global':
             stack.append(stack[arg])
         elif op == 'get_local':

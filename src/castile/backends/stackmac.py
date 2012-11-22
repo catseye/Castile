@@ -1,3 +1,5 @@
+from castile.types import Void
+
 # Compile to some hypothetical stack-based machine.
 # Not yet in a good way.
 
@@ -12,8 +14,9 @@
 # x is at baseptr - 3
 # y is at baseptr - 2
 # z is at baseptr - 1
-# a is at baseptr + 0
-# b is at baseptr + 1
+# old baseptr is saved at baseptr + 0
+# a is at baseptr + 1
+# b is at baseptr + 2
 
 # callee is responsible for popping its locals and the given arguments
 # off the stack, and pushing its return value(S) in the space that the
@@ -74,17 +77,25 @@ call
             save_fun = self.fun_lit
             save_argcount = self.fun_argcount
             self.fun_lit = self.get_label('fun_lit')
-            f = self.fun_lit
-            self.local_pos = 0
-            self.out.write('%s:\n' % f)
+            self.local_pos = 1
+            self.out.write('%s:\n' % self.fun_lit)
+            # also saves the old baseptr right here
             self.out.write('set_baseptr\n')
             self.compile(ast.children[0])
             self.compile(ast.children[1])
             # TODO copy the result value(S) to the first arg position
             # (for now the opcode handles that)
+            # TODO must happen before every return!
+            self.out.write('exeunt_%s:\n' % self.fun_lit)
+            # base this on return type: void = 0, int = 1, union = 2, etc
+            returnsize = 1
+            if ast.aux.return_type == Void():
+                returnsize = 0
+            self.out.write('set_returnsize %d\n' % returnsize)
             self.out.write('clear_baseptr %d\n' % (0 - self.fun_argcount))
+            self.out.write('rts\n')
             self.out.write('%s:\n' % past_fun)
-            self.out.write('push %s\n' % f)
+            self.out.write('push %s\n' % self.fun_lit)
             self.fun_argcount = save_argcount
             self.fun_lit = save_fun
         elif ast.type == 'Args':
@@ -145,14 +156,14 @@ call
             self.out.write('%s:\n' % end_if)
         elif ast.type == 'Return':
             self.compile(ast.children[0])
-            self.out.write('rts\n')
+            self.out.write('jmp exeunt_%s:\n' % self.fun_lit)
         elif ast.type == 'Break':
             self.out.write('jmp %s\n' % self.loop_end)
         elif ast.type == 'Not':
             self.compile(ast.children[0])
             self.out.write('not\n')
         elif ast.type == 'None':
-            self.out.write('push 0\n')
+            pass  # sizeof(void) == 0
         elif ast.type == 'BoolLit':
             if ast.value:
                 self.out.write("push -1\n")
