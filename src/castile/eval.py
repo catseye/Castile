@@ -29,6 +29,20 @@ class TaggedValue(object):
         return '(%r, %r)' % (self.tag, self.value)
 
 
+class StructDict(dict):
+    def __init__(self, fields):
+        dict.__init__(self)
+        self.fields = fields
+
+    def __repr__(self):
+        h = '{'
+        if self.fields:
+            for key in self.fields[:-1]:
+                h += '%r: %r, ' % (key, self[key])
+            h += '%r: %r' % (self.fields[-1], self[self.fields[-1]])
+        return h + '}'
+
+
 class FunctionReturn(Exception):
     pass
 
@@ -122,9 +136,8 @@ class Closure(object):
             v = self.eval(ast.children[0])
             return v[ast.value]
         elif ast.type == 'Make':
-            v = {}
+            v = StructDict([arg.value for arg in ast.children[1:]])
             for arg in ast.children[1:]:
-                assert arg.type == 'FieldInit'
                 v[arg.value] = self.eval(arg.children[0])
             return v
         elif ast.type == 'TypeCast':

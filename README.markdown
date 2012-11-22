@@ -657,7 +657,7 @@ And make them:
     |   var j = make person(name:"Jake", age:23);
     |   j
     | }
-    = {'age': 23, 'name': 'Jake'}
+    = {'name': 'Jake', 'age': 23}
 
 Structs must be defined somewhere.
 
@@ -674,7 +674,7 @@ Structs need not be defined before use.
     |   j
     | }
     | struct person { name: string; age: integer }
-    = {'age': 23, 'name': 'Jake'}
+    = {'name': 'Jake', 'age': 23}
 
 Structs may contain structs which don't exist.  (Surprisingly.  Might just leave this in.)
 
@@ -716,7 +716,7 @@ Structs can be passed to functions.
     |   var j = make person(name:"Jake", age:23);
     |   wat(j)
     | }
-    = {'age': 23, 'name': 'Jake'}
+    = {'name': 'Jake', 'age': 23}
 
 Structs have name equivalence, not structural.
 
