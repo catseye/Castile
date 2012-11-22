@@ -60,8 +60,23 @@ def run(program):
             a = stack.pop()
             if a == 0:
                 ip = arg - 1
+        elif op == 'and':
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(a & b)
+        elif op == 'or':
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(a | b)
         elif op == 'set_baseptr':
             baseptr = len(stack)
+        elif op == 'clear_baseptr':
+            # TODO assumes only one value returned on stack
+            a = stack.pop()
+            target = baseptr + arg
+            while len(stack) > target:
+                stack.pop()
+            stack.append(a)
         elif op == 'get_global':
             stack.append(stack[arg])
         elif op == 'get_local':

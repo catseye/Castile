@@ -15,6 +15,10 @@
 # a is at baseptr + 0
 # b is at baseptr + 1
 
+# callee is responsible for popping its locals and the given arguments
+# off the stack, and pushing its return value(S) in the space that the
+# first argument(S) were occupying
+
 OPS = {
     '+': 'add',
     '-': 'sub',
@@ -33,8 +37,9 @@ class Compiler(object):
     def __init__(self, out):
         self.out = out
         self.labels = {}
-        self.current_loop_end = None
-        self.current_fun_lit = None
+        self.loop_end = None
+        self.fun_lit = None
+        self.fun_argcount = 0
         self.global_pos = 0     # globals at the bottom of the stack
         self.local_pos = 0      # locals after the passed arguments
 
@@ -64,26 +69,32 @@ call
         elif ast.type in ('StructDefn', 'Forward'):
             pass
         elif ast.type == 'FunLit':
-            l = self.get_label('past_fun')
-            self.out.write('jmp %s\n' % l)
-            save = self.current_fun_lit
-            self.current_fun_lit = self.get_label('fun_lit')
-            f = self.current_fun_lit
-            self.local_pos = 0  # XXX not quite.  arguments?
+            past_fun = self.get_label('past_fun')
+            self.out.write('jmp %s\n' % past_fun)
+            save_fun = self.fun_lit
+            save_argcount = self.fun_argcount
+            self.fun_lit = self.get_label('fun_lit')
+            f = self.fun_lit
+            self.local_pos = 0
             self.out.write('%s:\n' % f)
             self.out.write('set_baseptr\n')
             self.compile(ast.children[0])
             self.compile(ast.children[1])
-            self.out.write('%s:\n' % l)
+            # TODO copy the result value(S) to the first arg position
+            # (for now the opcode handles that)
+            self.out.write('clear_baseptr %d\n' % (0 - self.fun_argcount))
+            self.out.write('%s:\n' % past_fun)
             self.out.write('push %s\n' % f)
-            self.current_fun_lit = save
+            self.fun_argcount = save_argcount
+            self.fun_lit = save_fun
         elif ast.type == 'Args':
             # first arg passed is DEEPEST, so go backwards.
-            pos = 0 - len(ast.children)
+            self.fun_argcount = len(ast.children)
+            pos = 0 - self.fun_argcount
             for child in ast.children:
                 assert child.type == 'Arg'
                 self.out.write('%s_local_%s=%d\n' %
-                    (self.current_fun_lit, child.value, pos))
+                    (self.fun_lit, child.value, pos))
                 pos += 1
         elif ast.type == 'Block':
             for child in ast.children:
@@ -91,20 +102,20 @@ call
         elif ast.type == 'VarDecl':
             self.compile(ast.children[0])
             self.out.write('%s_local_%s=%s\n' %
-                (self.current_fun_lit, ast.value, self.local_pos))
+                (self.fun_lit, ast.value, self.local_pos))
             self.local_pos += 1
         elif ast.type == 'While':
             start = self.get_label('loop_start')
             end = self.get_label('loop_end')
-            save = self.current_loop_end
-            self.current_loop_end = end
+            save = self.loop_end
+            self.loop_end = end
             self.out.write('%s:\n' % start)
             self.compile(ast.children[0])
             self.out.write('bzero %s\n' % end)
             self.compile(ast.children[1])
             self.out.write('jmp %s\n' % start)
             self.out.write('%s:\n' % end)
-            self.current_loop_end = self.current_loop_end
+            self.loop_end = self.loop_end
         elif ast.type == 'Op':
             self.compile(ast.children[0])
             self.compile(ast.children[1])
@@ -113,7 +124,7 @@ call
             if ast.aux == 'toplevel':
                 self.out.write('get_global %s_index\n' % (ast.value))
             else:
-                self.out.write('get_local %s_local_%s\n' % (self.current_fun_lit, ast.value))
+                self.out.write('get_local %s_local_%s\n' % (self.fun_lit, ast.value))
         elif ast.type == 'FunCall':
             for child in ast.children[1:]:
                 self.out.write('; push argument\n')
@@ -136,7 +147,7 @@ call
             self.compile(ast.children[0])
             self.out.write('rts\n')
         elif ast.type == 'Break':
-            self.out.write('jmp %s\n' % self.current_loop_end)
+            self.out.write('jmp %s\n' % self.loop_end)
         elif ast.type == 'Not':
             self.compile(ast.children[0])
             self.out.write('not\n')
@@ -155,7 +166,7 @@ call
             self.compile(ast.children[1])
             self.out.write('; assign to...\n')
             assert ast.children[0].type == 'VarRef'
-            self.out.write('set_local %s_local_%s\n' % (self.current_fun_lit, ast.children[0].value))
+            self.out.write('set_local %s_local_%s\n' % (self.fun_lit, ast.children[0].value))
         elif ast.type == 'Make':
             #~ self.out.write('{')
             #~ self.commas(ast.children[1:])
