@@ -1,4 +1,4 @@
 import castile.backends.javascript
-import castile.backends.stack
+import castile.backends.stackmac
 import castile.backends.ruby
 

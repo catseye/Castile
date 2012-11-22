@@ -1,0 +1,7 @@
+fun main() {
+  if 4 > 5 {
+    return 2 * 3 + 4
+  } else {
+    return 0
+  }
+}

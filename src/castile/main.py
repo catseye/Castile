@@ -23,7 +23,7 @@ def main(argv):
                          dest="compile_to", default=None,
                          help="compile to given backend code instead "
                               "of evaluating directly (available backends: "
-                              "javascript, ruby, stack)")
+                              "javascript, ruby, stackmac)")
     optparser.add_option("-p", "--parse-only",
                          action="store_true", dest="parse_only",
                          default=False,
