@@ -34,14 +34,16 @@ the language it happens to accept, I called Castile.
 I wrote the interpreter in a very short span of time; most of it was done
 within 24 hours of starting (but consider that I ripped off some of the
 scanning/parsing code from ALPACA.)  A few days later, I extended the
-implementation to also allow compiling to Javascript.
+implementation to also allow compiling to Javascript, and a few days after
+that, I added a Ruby backend (why not, eh?)
 
 This document contains what is as close as there is to a specification of
-the language, in the form of a Falderal test suite.  The interpreter and
-compiler both pass all the tests, but there are known shortcomings in both
-implementations (trying to use function values as closures is not prohibited
-and the result is undefined.)  The `eg` directory contains a few example
-Castile programs, including a string tokenizer.
+the language, in the form of a Falderal test suite.  The interpreter and all
+compilers pass all the tests, but there are known shortcomings in at least
+the compilers (no name mangling, etc.)
+
+The `eg` directory contains a few example Castile programs, including a
+string tokenizer.
 
 One area where the Castile implementation is not entirely unremarkable is
 that the typechecker is not required to be run.  Unchecked Castile is

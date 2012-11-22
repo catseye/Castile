@@ -35,7 +35,7 @@ concat = lambda { |s1, s2|
 }
 
 substr = lambda { |s, p, k|
-  s[p..p+k]
+  s[p..p+(k-1)]
 }
 
 def repr o
@@ -43,8 +43,26 @@ def repr o
     return "True"
   elsif o == false
     return "False"
+  elsif o == nil
+    return "None"
   elsif o.is_a? String
     return "'" + o + "'"
+  elsif o.is_a? Array
+    if o.length == 0 then return "()" end
+    h = "("
+    for c in o[0..o.length-2] do
+      h += repr(c) + ", "
+    end
+    return h + repr(o[o.length-1]) + ")"
+  elsif o.is_a? Hash
+      s = "{"
+      fn = o["_fieldnames"]
+      for field in fn[0..fn.length-2] do
+        s += repr(field) + ": " + repr(o[field]) + ", "
+      end
+      s += repr(fn[fn.length-1]) + ": " + repr(o[fn[fn.length-1]])
+      s += "}"
+      return s
   else
     return o.to_s
   end
@@ -64,6 +82,8 @@ end
             self.out.write('%s = ' % ast.value)
             self.compile(ast.children[0])
             self.out.write('\n')
+        elif ast.type in ('Forward'):
+            self.out.write('%s = nil\n' % ast.value)
         elif ast.type in ('StructDefn', 'Forward'):
             pass
         elif ast.type == 'FunLit':
@@ -150,7 +170,7 @@ end
             self.compile(ast.children[0])
         elif ast.type == 'Index':
             self.compile(ast.children[0])
-            self.out.write('.%s' % ast.value)
+            self.out.write('["%s"]' % ast.value)
         elif ast.type == 'TypeCast':
             self.out.write("['%s'," % ast.value)
             self.compile(ast.children[0])
@@ -159,13 +179,13 @@ end
             self.out.write('if (')
             self.compile(ast.children[0])
             self.out.write("[0] == '%s')" % ast.value)
-            self.out.write('begin save=')
+            self.out.write('then save=')
             self.compile(ast.children[0])
-            self.out.write('; ')
+            self.out.write('\n')
             self.compile(ast.children[0])
             self.out.write('=')
             self.compile(ast.children[0])
-            self.out.write('[1]; ')
+            self.out.write('[1]\n')
             self.compile(ast.children[2])
             self.compile(ast.children[0])
             self.out.write(' = save end')
