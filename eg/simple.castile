@@ -1,7 +1,9 @@
 fun main() {
+  var x = 12;
   if 4 < 5 {
-    return 2 * 3 + 4
+    x = 2 * 3 + 4
   } else {
-    return 0
+    x = 0
   }
+  return x
 }

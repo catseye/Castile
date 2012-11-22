@@ -12,8 +12,8 @@ class TypeChecker(object):
         global_context = {}
         for (name, (value, type)) in BUILTINS.iteritems():
             global_context[name] = type
-        self.context = ScopedContext(global_context)
-        self.toplevel_context = ScopedContext({}, self.context)
+        self.context = ScopedContext(global_context, level='global')
+        self.toplevel_context = ScopedContext({}, self.context, level='toplevel')
         self.context = self.toplevel_context
 
         self.forwards = {}
@@ -134,7 +134,9 @@ class TypeChecker(object):
             self.set(name, self.type_of(ast.children[0]))
             return Void()
         elif ast.type == 'VarRef':
-            return self.context[ast.value]
+            v = self.context[ast.value]
+            ast.aux = self.context.level(ast.value)
+            return v
         elif ast.type == 'None':
             return Void()
         elif ast.type == 'FunCall':

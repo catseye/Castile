@@ -16,9 +16,15 @@ class ScopedContext(object):
     False
 
     """
-    def __init__(self, dict, parent=None):
+    def __init__(self, dict, parent=None, level=None):
         self._dict = dict
         self.parent = parent
+        self._level = level
+
+    def level(self, key):
+        if key in self._dict:
+            return self._level
+        return self.parent.level(key)
 
     def __getitem__(self, key):
         if key in self._dict:

@@ -19,9 +19,10 @@ def run(program):
     iter = 0
     stack = []
     callstack = []
+    baseptr = 0
     while ip < len(program):
         (op, arg) = program[ip]
-        # print ip, op, arg, stack, callstack
+        #print ip, op, arg, stack, callstack
         if op == 'push':
             stack.append(arg)
         elif op == 'jmp':
@@ -39,6 +40,10 @@ def run(program):
             b = stack.pop()
             a = stack.pop()
             stack.append(a + b)
+        elif op == 'sub':
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(a - b)
         elif op == 'gt':
             b = stack.pop()
             a = stack.pop()
@@ -47,15 +52,22 @@ def run(program):
             b = stack.pop()
             a = stack.pop()
             stack.append(boo(a < b))
+        elif op == 'eq':
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(boo(a == b))
         elif op == 'bzero':
             a = stack.pop()
             if a == 0:
                 ip = arg - 1
-        elif op == 'global':
+        elif op == 'set_baseptr':
+            baseptr = len(stack)
+        elif op == 'get_global':
             stack.append(stack[arg])
-        elif op == 'pick':
-            # TODO should be relative to baseptr
-            stack.append(stack[-(arg+1)])
+        elif op == 'get_local':
+            stack.append(stack[baseptr + arg])
+        elif op == 'set_local':
+            stack[baseptr + arg] = stack.pop()
         else:
             raise NotImplementedError((op, arg))
         ip += 1
@@ -89,7 +101,7 @@ def main(args):
                 # print label, address
                 labels[label] = address
                 continue
-            match = re.match(r'^(.*?)\=(\d+)$', line)
+            match = re.match(r'^(.*?)\=(-?\d+)$', line)
             if match:
                 label = match.group(1)
                 pos = int(match.group(2))

@@ -12,6 +12,7 @@ class AST(object):
         for child in self.children:
             assert isinstance(child, AST), \
               "child %r of %r is not an AST node" % (child, self)
+        self.aux = None  # typechecker may populate this
         #print "created %r" % self
 
     @property
