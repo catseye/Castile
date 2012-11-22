@@ -18,6 +18,14 @@ OPS = {
 class Compiler(object):
     def __init__(self, out):
         self.out = out
+        self.labels = {}
+        self.current_loop_end = None
+
+    def get_label(self, pref):
+        count = self.labels.get(pref, 0)
+        label = '%s_%d' % (pref, count)
+        self.labels[pref] = count + 1
+        return label
 
     def compile(self, ast):
         if ast.type == 'Program':
@@ -28,6 +36,9 @@ class Compiler(object):
             for child in ast.children:
                 self.compile(child)
             self.out.write("""\
+; call main
+push main
+call
 """)
         elif ast.type == 'Defn':
             self.out.write('%s:\n' % ast.value)
@@ -35,12 +46,14 @@ class Compiler(object):
         elif ast.type in ('StructDefn', 'Forward'):
             pass
         elif ast.type == 'FunLit':
-            self.out.write('jmp next\n')
-            self.out.write('funlit:\n')
+            l = self.get_label('past_fun')
+            self.out.write('jmp %s\n' % l)
+            f = self.get_label('fun_lit')
+            self.out.write('%s:\n' % f)
             self.compile(ast.children[0])
             self.compile(ast.children[1])
-            self.out.write('push nil\n')
-            self.out.write('rts\n')
+            self.out.write('%s:\n' % l)
+            self.out.write('push %s\n' % f)
         elif ast.type == 'Args':
             for child in ast.children:
                 self.compile(child)
@@ -53,12 +66,17 @@ class Compiler(object):
             self.out.write('; push variable %s onto stack\n' % ast.value)
             self.compile(ast.children[0])
         elif ast.type == 'While':
-            self.out.write('loop_start:\n')
+            start = self.get_label('loop_start')
+            end = self.get_label('loop_end')
+            save = self.current_loop_end
+            self.current_loop_end = end
+            self.out.write('%s:\n' % start)
             self.compile(ast.children[0])
-            self.out.write('beq loop_end\n')
+            self.out.write('beq %s\n' % end)
             self.compile(ast.children[1])
-            self.out.write('jmp loop_start\n')
-            self.out.write('loop_end:\n')
+            self.out.write('jmp %s\n' % start)
+            self.out.write('%s:\n' % end)
+            self.current_loop_end = self.current_loop_end
         elif ast.type == 'Op':
             self.compile(ast.children[0])
             self.compile(ast.children[1])
@@ -73,22 +91,21 @@ class Compiler(object):
             self.compile(ast.children[0])
             self.out.write('call\n')
         elif ast.type == 'If':
-            #~ self.out.write('if (')
-            #~ self.compile(ast.children[0])
-            #~ self.out.write(') then\n')
-            #~ if len(ast.children) == 3:  # if-else
-                #~ self.compile(ast.children[1])
-                #~ self.out.write(' else\n')
-                #~ self.compile(ast.children[2])
-            #~ else:  # just-if
-                #~ self.compile(ast.children[1])
-            #~ self.out.write('end\n')
-            pass
+            else_part = self.get_label('else_part')
+            end_if = self.get_label('end_if')
+            self.compile(ast.children[0])
+            self.out.write('beq %s\n' % else_part)
+            self.compile(ast.children[1])
+            self.out.write('jmp %s\n' % end_if)
+            self.out.write('%s:\n' % else_part)
+            if len(ast.children) == 3:
+                self.compile(ast.children[2])
+            self.out.write('%s:\n' % end_if)
         elif ast.type == 'Return':
             self.compile(ast.children[0])
             self.out.write('rts\n')
         elif ast.type == 'Break':
-            self.out.write('jmp loop_end\n')
+            self.out.write('jmp %s\n' % self.current_loop_end)
         elif ast.type == 'Not':
             self.compile(ast.children[0])
             self.out.write('not\n')
@@ -96,17 +113,18 @@ class Compiler(object):
             self.out.write('push nil\n')
         elif ast.type == 'BoolLit':
             if ast.value:
-                self.out.write("push true\n")
+                self.out.write("push -1\n")
             else:
-                self.out.write("push false\n")
+                self.out.write("push 0\n")
         elif ast.type == 'IntLit':
             self.out.write('push %s\n' % ast.value)
         elif ast.type == 'StrLit':
             self.out.write('push %r\n' % ast.value)
         elif ast.type == 'Assignment':
             self.compile(ast.children[1])
-            self.out.write('; assign to...')
+            self.out.write('; assign to...\n')
             self.compile(ast.children[0])
+            self.out.write('assign\n')
         elif ast.type == 'Make':
             #~ self.out.write('{')
             #~ self.commas(ast.children[1:])
