@@ -20,6 +20,8 @@ class Compiler(object):
         self.out = out
         self.labels = {}
         self.current_loop_end = None
+        self.global_pos = 0     # globals at the bottom of the stack
+        self.fcount = 0         # uniquely id current function
 
     def get_label(self, pref):
         count = self.labels.get(pref, 0)
@@ -37,11 +39,12 @@ class Compiler(object):
                 self.compile(child)
             self.out.write("""\
 ; call main
-; pick main_index
+global main_index
 call
 """)
         elif ast.type == 'Defn':
-            self.out.write('; define %s_index <count>\n' % ast.value)
+            self.out.write('%s_index=%d\n' % (ast.value, self.global_pos))
+            self.global_pos += 1
             self.compile(ast.children[0])
         elif ast.type in ('StructDefn', 'Forward'):
             pass
@@ -54,11 +57,14 @@ call
             self.compile(ast.children[1])
             self.out.write('%s:\n' % l)
             self.out.write('push %s\n' % f)
+            # TODO this will break on nested funs
+            self.fcount += 1
         elif ast.type == 'Args':
+            pos = 0
             for child in ast.children:
-                self.compile(child)
-        elif ast.type == 'Arg':
-            self.out.write('getarg %s\n' % ast.value)
+                assert child.type == 'Arg'
+                self.out.write('fun_%d_local_%s=%s\n' % (self.fcount, child.value, pos))
+                pos += 1
         elif ast.type == 'Block':
             for child in ast.children:
                 self.compile(child)
@@ -110,7 +116,7 @@ call
             self.compile(ast.children[0])
             self.out.write('not\n')
         elif ast.type == 'None':
-            self.out.write('push nil\n')
+            self.out.write('push 0\n')
         elif ast.type == 'BoolLit':
             if ast.value:
                 self.out.write("push -1\n")

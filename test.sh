@@ -26,7 +26,7 @@ if [ "x$1" = "xruby" -o "x$1" = "xall" ]; then
 EOF
 fi
 
-if [ "x$1" = "xstackmac" -o "x$1" = "xall" ]; then
+if [ "x$1" = "xstackmac" ]; then
   cat >>test_config <<EOF
     -> Functionality "Run Castile Program" is implemented by shell command
     -> "bin/castile -c stackmac %(test-file) > foo.stack && bin/stackmac foo.stack"

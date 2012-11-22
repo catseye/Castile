@@ -51,13 +51,18 @@ def run(program):
             a = stack.pop()
             if a == 0:
                 ip = arg - 1
+        elif op == 'global':
+            stack.append(stack[arg])
         else:
             raise NotImplementedError((op, arg))
         ip += 1
         iter += 1
         if iter > 10000:
             raise ValueError("infinite loop?")
-    print repr(stack.pop())
+
+    result = stack.pop()
+    if result != 0:
+        print repr(result)
 
 
 def main(args):
@@ -80,6 +85,13 @@ def main(args):
                 label = match.group(1)
                 # print label, address
                 labels[label] = address
+                continue
+            match = re.match(r'^(.*?)\=(\d+)$', line)
+            if match:
+                label = match.group(1)
+                pos = int(match.group(2))
+                # print label, '=', pos
+                labels[label] = pos
                 continue
             op = None
             arg = None

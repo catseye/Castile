@@ -2,6 +2,7 @@ TODO
 ----
 
 Canonical representation of values that's not Python's or Javascript's.
+(And the representation issue for the typeless stack machine is its own can of worms)
 
 Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)
 

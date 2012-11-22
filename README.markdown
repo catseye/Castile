@@ -263,12 +263,12 @@ No dangling else problem.
     |   if 2 > 3 {
     |     return 60
     |   } else if 4 < 5 {
-    |     return 0
+    |     return 99
     |   } else {
     |     return 1
     |   }
     | }
-    = 0
+    = 99
 
 `while` loops.
 
