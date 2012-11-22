@@ -9,7 +9,8 @@ class TypeChecker(object):
         for (name, (value, type)) in BUILTINS.iteritems():
             global_context[name] = type
         self.context = ScopedContext(global_context)
-        self.context = ScopedContext({}, self.context)
+        self.toplevel_context = ScopedContext({}, self.context)
+        self.context = self.toplevel_context
 
         self.forwards = {}
         self.structs = {}  # struct name -> StructDefinition
@@ -84,14 +85,13 @@ class TypeChecker(object):
         elif ast.type == 'StrLit':
             return String()
         elif ast.type == 'FunLit':
-            # TODO: should not be able to see anything but globals in here...
-            # unless it's a closure.  Oh, joy.
-            self.context = ScopedContext({}, self.context)
+            save_context = self.context
+            self.context = ScopedContext({}, self.toplevel_context)
             self.return_type = None
             arg_types = self.type_of(ast.children[0])  # args
             t = self.type_of(ast.children[1])  # body
             self.assert_eq(t, Void())
-            self.context = self.context.parent
+            self.context = save_context
             return_type = self.return_type
             self.return_type = None
             if return_type is None:

@@ -4,26 +4,28 @@ Castile
 This is the reference distribution for Castile, an unremarkable programming
 language.
 
-The current version of Castile is 0.1.  It is not only subject to change,
-it is pretty much *guaranteed* to change.  I'm only releasing this version
-because it came to a certain plateau which I wanted to mark as a reference
-point.
+The current version of Castile is 0.2-PRE.  It is not only subject to change,
+it is pretty much *guaranteed* to change.
 
 Unlike most of my programming languages, there is nothing that could really
 be described as innovative or experimental or even particularly unusual
-about Castile.
+about Castile.  It is influenced by:
 
-Castile is similar, in some ways, to C.  It has a type system which can be
-applied statically, and it has function values, but not closures.
+*   **C**: Most of Castile's syntax follows C, but it is generally more
+    permissive (semicolons are optional, types of local variables and return
+    types for functions do not have to be declared, etc.)  It has a type
+    system which can be applied statically, and it has function values, but
+    not closures.
 
-In other ways, it is not so similar.  Expressions (statements) within a
-block must have void type, except the final expression, which is returned
-as the result of the block.  Types of local variables, and return types for
-functions, do not have to be declared.  There is a union type, to which
-values must be explicitly promoted (with `as`) and extracted (with
-`typecase ... is`.)  Local variables are mutable, but arguments and globals
-are not, and neither are the fields of structs.  There are no pointers.
-Some of these choices were probably influenced in part by Rust.
+*   **Rust**: There is a union type, to which values must be explicitly
+    promoted (with `as`) and extracted (with `typecase ... is`.)
+    Expressions (statements) within a block must have void type,
+    except the final expression, which is returned as the result of the
+    block.  Local variables are mutable, but arguments and globals
+    are not, and neither are the fields of structs.  There are no pointers.
+    (Although, granted, many of these features are not precisely *from* Rust,
+    they seem to be a result of me coming to some kind of C/Rust/functional
+    language compromise.)
 
 Also unlike most of my programming languages (with the exceptions of ILLGOL
 and Bhuna), it was "designed by building" -- I wrote an interpreter, and
@@ -41,11 +43,16 @@ implementations (trying to use function values as closures is not prohibited
 and the result is undefined.)  The `eg` directory contains a few example
 Castile programs, including a string tokenizer.
 
-Future versions of Castile will probably be even more unremarkable, with
-the "last expression in block" rule disappearing and probably a `break`
-statement being added.  One avenue that I'd like to explore is making the
-typechecking phase completely optional (currently the interpreter and
-compiler rely on some information that the typechecker adds to the AST.)
+One area where the Castile implementation is not entirely unremarkable is
+that the typechecker is not required to be run.  Unchecked Castile is
+technically a different language from Castile; there are Castile programs
+which would result in an error, where the Unchecked Castile program would
+*not* (because it never executes the part of the program with a bad type.)
+However, Unchecked Castile programs should be otherwise well-behaved;
+any attempt to execute code which would have resulted in a type failure,
+will result in a crash.  Note, however, that this only applies to the
+evaluator, not any of the compiler backends.  Compiling Unchecked Castile
+can result in a compiled program with undefined behaviour.
 
 Grammar
 -------
@@ -556,6 +563,51 @@ Literal functions.
     |   a
     | }
     = 10
+
+Literal functions can have local variables, loops, etc.
+
+    | fun main() {
+    |   var z = 99;
+    |   z = fun(x) {
+    |     var a = x;  var b = x;
+    |     while a > 0 {
+    |       b = b + a; a = a - 1;
+    |     }
+    |     return b
+    |   }(9);
+    |   z
+    | }
+    = 54
+
+Literal functions can define other literal functions...
+
+    | fun main() {
+    |   fun(x){ fun(y){ fun(z){ z + 1 } } }(4)(4)(10)
+    | }
+    = 11
+
+Literal functions can access globals.
+
+    | oid = 19
+    | fun main() {
+    |   fun(x){ x + oid }(11);
+    | }
+    = 30
+
+Literal functions cannot access variables declared in enclosing scopes.
+
+    | fun main() {
+    |   var oid = 19;
+    |   fun(x){ x + oid }(11);
+    | }
+    ? undefined
+
+Literal functions cannot access arguments declared in enclosing scopes.
+
+    | fun main() {
+    |   fun(x){ fun(y){ fun(z){ y + 1 } } }(4)(4)(10)
+    | }
+    ? undefined
 
 Functions can be passed to functions and returned from functions.
 
