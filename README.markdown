@@ -89,6 +89,7 @@ only happen in a Stmt.)
     VarRef  ::= ident ["=" Expr0].
     Literal ::= strlit
               | ["-"] intlit
+              | "true" | "false" | "null"
               | "fun" "(" [Arg {"," Arg}] ")" Body.
     TExpr   ::= "string"
               | "integer"

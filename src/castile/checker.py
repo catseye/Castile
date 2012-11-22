@@ -84,6 +84,8 @@ class TypeChecker(object):
             return Integer()
         elif ast.type == 'StrLit':
             return String()
+        elif ast.type == 'BoolLit':
+            return Boolean()
         elif ast.type == 'FunLit':
             save_context = self.context
             self.context = ScopedContext({}, self.toplevel_context)

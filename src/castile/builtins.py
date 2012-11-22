@@ -35,7 +35,4 @@ BUILTINS = {
     'substr': (builtin_substr,
                Function([String(), Integer(), Integer()], String())),
     'concat': (builtin_concat, Function([String(), String()], String())),
-    'true': (True, Boolean()),
-    'false': (False, Boolean()),
-    'null': (None, Void()),
 }

@@ -125,7 +125,7 @@ class Closure(object):
             if name in self.locals:
                 return self.locals[name]
             return self.program.stab[name]
-        elif ast.type in ['IntLit', 'StrLit']:
+        elif ast.type in ['IntLit', 'StrLit', 'BoolLit']:
             return ast.value
         elif ast.type in ['None']:
             return None

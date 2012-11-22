@@ -1,9 +1,8 @@
+# Not yet in a good way
+
 from castile.types import Void
 
 OPS = {
-    'and': '&&',
-    'or': '||',
-    '==': '===',
 }
 
 
@@ -21,86 +20,75 @@ class Compiler(object):
     def compile(self, ast):
         if ast.type == 'Program':
             self.out.write("""\
-/* AUTOMATICALLY GENERATED EDIT AT OWN RISK */
+# AUTOMATICALLY GENERATED -- EDIT AT OWN RISK
 
-var print = function(s) { console.log(s); }
-var len = function(s) { return s.length; }
-var concat = function(s1,s2) { return s1 + s2; }
-var substr = function(s,p,k) { return s.substr(p, k); }
-
-var repr = function(o) {
-  if (typeof o === "string") {
-    return "'" + o + "'";
-  } else if (o === true) {
-    return "True";
-  } else if (o === false) {
-    return "False";
-  } else if (o === undefined) {
-    return "";
-  } else if (o === null) {
-    return "None";
-  } else if (typeof o === "object") {
-    if (o._fieldnames === undefined) {
-      var s = "(";
-      for (var i = 0; i < o.length; i++) {
-        s += repr(o[i]);
-        if (i != o.length - 1) { s += ', '; }
-      }
-      s += ")";
-      return s;
-    } else {
-      var s = "{";
-      for (var i = 0; i < o._fieldnames.length; i++) {
-        s += repr(o._fieldnames[i]);
-        s += ': ';
-        s += repr(o[o._fieldnames[i]]);
-        if (i != o._fieldnames.length - 1) { s += ', '; }
-      }
-      s += "}";
-      return s;
-    }
-  } else {
-    return o;
-  }
+print = lambda { |s|
+  puts s
 }
+
+len = lambda { |s|
+  s.length
+}
+
+concat = lambda { |s1, s2|
+  s1 + s2
+}
+
+substr = lambda { |s, p, k|
+  s[p..p+k]
+}
+
+def repr o
+  if o == true
+    return "True"
+  elsif o == false
+    return "False"
+  elsif o.is_a? String
+    return "'" + o + "'"
+  else
+    return o.to_s
+  end
+end
 
 """)
             for child in ast.children:
                 self.compile(child)
             self.out.write("""\
 
-var result = main();
-print(repr(result));
+result = main.call()
+if result != nil
+  puts(repr(result))
+end
 """)
         elif ast.type == 'Defn':
             self.out.write('%s = ' % ast.value)
             self.compile(ast.children[0])
-            self.out.write(';\n')
+            self.out.write('\n')
         elif ast.type in ('StructDefn', 'Forward'):
             pass
         elif ast.type == 'FunLit':
-            self.out.write('function(')
+            self.out.write('lambda { |')
             self.compile(ast.children[0])
-            self.out.write(')\n')
+            self.out.write('|\n')
             self.compile(ast.children[1])
+            self.out.write('return nil }')
         elif ast.type == 'Args':
             self.commas(ast.children)
         elif ast.type == 'Arg':
             self.out.write(ast.value)
         elif ast.type == 'Block':
-            self.out.write('{')
             for child in ast.children:
                 self.compile(child)
-                self.out.write(';\n')
-            self.out.write('}')
+                self.out.write('\n')
         elif ast.type == 'VarDecl':
-            self.out.write('var %s = ' % ast.value)
+            self.out.write('%s = ' % ast.value)
             self.compile(ast.children[0])
         elif ast.type == 'While':
             self.out.write('while (')
             self.compile(ast.children[0])
-            self.out.write(')')
+            self.out.write(') do\n')
             self.compile(ast.children[1])
+            self.out.write('end\n')
         elif ast.type == 'Op':
             self.out.write('(')
             self.compile(ast.children[0])
@@ -111,19 +99,20 @@ print(repr(result));
             self.out.write(ast.value)
         elif ast.type == 'FunCall':
             self.compile(ast.children[0])
-            self.out.write('(')
+            self.out.write('.call(')
             self.commas(ast.children[1:])
             self.out.write(')')
         elif ast.type == 'If':
-            self.out.write('if(')
+            self.out.write('if (')
             self.compile(ast.children[0])
-            self.out.write(')')
+            self.out.write(') then\n')
             if len(ast.children) == 3:  # if-else
                 self.compile(ast.children[1])
-                self.out.write(' else ')
+                self.out.write(' else\n')
                 self.compile(ast.children[2])
             else:  # just-if
                 self.compile(ast.children[1])
+            self.out.write('end\n')
         elif ast.type == 'Return':
             self.out.write('return ')
             self.compile(ast.children[0])
@@ -134,16 +123,16 @@ print(repr(result));
             self.compile(ast.children[0])
             self.out.write(')')
         elif ast.type == 'None':
-            self.out.write('null')
-        elif ast.type == 'IntLit':
-            self.out.write(str(ast.value))
-        elif ast.type == 'StrLit':
-            self.out.write("'%s'" % ast.value)
+            self.out.write('nil')
         elif ast.type == 'BoolLit':
             if ast.value:
                 self.out.write("true")
             else:
                 self.out.write("false")
+        elif ast.type == 'IntLit':
+            self.out.write(str(ast.value))
+        elif ast.type == 'StrLit':
+            self.out.write("'%s'" % ast.value)
         elif ast.type == 'Assignment':
             self.compile(ast.children[0])
             self.out.write(' = ')
@@ -151,13 +140,13 @@ print(repr(result));
         elif ast.type == 'Make':
             self.out.write('{')
             self.commas(ast.children[1:])
-            self.out.write(", '_fieldnames': [")
+            self.out.write(", '_fieldnames', [")
             for fieldinit in ast.children[1:-1]:
                 self.out.write("'%s', " % fieldinit.value)
             self.out.write("'%s'" % ast.children[-1].value)
             self.out.write(']}')
         elif ast.type == 'FieldInit':
-            self.out.write("'%s':" % ast.value)
+            self.out.write("'%s'," % ast.value)
             self.compile(ast.children[0])
         elif ast.type == 'Index':
             self.compile(ast.children[0])
@@ -170,7 +159,7 @@ print(repr(result));
             self.out.write('if (')
             self.compile(ast.children[0])
             self.out.write("[0] == '%s')" % ast.value)
-            self.out.write('{ var save=')
+            self.out.write('begin save=')
             self.compile(ast.children[0])
             self.out.write('; ')
             self.compile(ast.children[0])
@@ -179,6 +168,6 @@ print(repr(result));
             self.out.write('[1]; ')
             self.compile(ast.children[2])
             self.compile(ast.children[0])
-            self.out.write(' =save; }')
+            self.out.write(' = save end')
         else:
             raise NotImplementedError(repr(ast))

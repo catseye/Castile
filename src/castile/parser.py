@@ -44,7 +44,8 @@ class Parser(object):
         if self.scan_pattern(r'and|or', 'boolean operator'):
             return
         if self.scan_pattern(r'(if|else|while|make|struct|'
-                             r'typecase|is|as|return|break)(?!\w)',
+                             r'typecase|is|as|return|break|'
+                             r'true|false|null)(?!\w)',
                              'keyword', token_group=2, rest_group=3):
             return
         if self.scan_pattern(r'\d+', 'integer literal'):
@@ -299,7 +300,8 @@ class Parser(object):
 
     def expr5(self):
         if (self.on_type('string literal') or self.on('-') or
-            self.on_type('integer literal') or self.on('fun')):
+            self.on_type('integer literal') or self.on('fun')
+            or self.on('true') or self.on('false') or self.on('null')):
             return self.literal()
         elif self.consume('not'):
             return AST('Not', [self.expr1()])
@@ -346,6 +348,12 @@ class Parser(object):
         elif self.consume('-'):
             v = 0 - int(self.expect_type('integer literal'))
             return AST('IntLit', value=v)
+        elif self.consume('true'):
+            return AST('BoolLit', value=True)
+        elif self.consume('false'):
+            return AST('BoolLit', value=False)
+        elif self.consume('null'):
+            return AST('None')
         else:
             self.expect('fun')
             self.expect("(")

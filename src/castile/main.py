@@ -11,7 +11,7 @@ from optparse import OptionParser
 from castile.parser import Parser
 from castile.eval import Program
 from castile.checker import TypeChecker
-from castile.backends.javascript import Compiler
+from castile import backends
 
 
 def main(argv):
@@ -19,10 +19,11 @@ def main(argv):
     optparser.add_option("-a", "--show-ast",
                          action="store_true", dest="show_ast", default=False,
                          help="show parsed AST instead of evaluating")
-    optparser.add_option("-c", "--compile",
-                         action="store_true", dest="compile",
-                         default=False,
-                         help="compile the input program only and exit")
+    optparser.add_option("-c", "--compile-to", metavar='BACKEND',
+                         dest="compile_to", default=None,
+                         help="compile to given backend code instead "
+                              "of evaluating directly (available backends: "
+                              "javascript, ruby)")
     optparser.add_option("-p", "--parse-only",
                          action="store_true", dest="parse_only",
                          default=False,
@@ -54,8 +55,8 @@ def main(argv):
             t = TypeChecker()
             t.collect_structs(ast)
             t.type_of(ast)
-        if options.compile:
-            c = Compiler(sys.stdout)
+        if options.compile_to is not None:
+            c = getattr(backends, options.compile_to).Compiler(sys.stdout)
             c.compile(ast)
             sys.exit(0)
         e = Program()
