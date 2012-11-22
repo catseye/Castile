@@ -5,6 +5,7 @@ import re
 import sys
 
 from castile.builtins import BUILTINS
+from castile.eval import TaggedValue
 
 
 labels = {}
@@ -18,7 +19,7 @@ def boo(b):
         return 0
 
 
-def run(program):
+def run(program, strings):
     global labels
     ip = 0
     iter = 0
@@ -78,6 +79,9 @@ def run(program):
         elif op == 'not':
             a = stack.pop()
             stack.append(boo(a == 0))
+        elif op == 'tag':
+            a = stack.pop()
+            stack.append(TaggedValue(arg, a))
         elif op == 'set_baseptr':
             stack.append(baseptr)
             baseptr = len(stack) - 1
@@ -103,6 +107,17 @@ def run(program):
             stack.append(stack[baseptr + arg])
         elif op == 'set_local':
             stack[baseptr + arg] = stack.pop()
+        elif op == 'make_struct':
+            size = stack.pop()
+            struct = []
+            x = 0
+            while x < size:
+                struct.append(stack.pop())
+                x += 1
+            stack.append(struct)
+        elif op == 'sys_print':
+            str_id = stack.pop()
+            print strings[str_id]
         else:
             raise NotImplementedError((op, arg))
         ip += 1
@@ -170,12 +185,19 @@ def main(args):
 
     # resolve labels
     p = []
+    strings = []
     for (op, arg) in program:
         if arg in labels:
             p.append((op, labels[arg]))
+        elif arg is None:
+            p.append((op, arg))
         else:
-            if arg is not None:
+            match = re.match(r"^'(.*?)'$", arg)
+            if match:
+                strings.append(match.group(1))
+                arg = len(strings) - 1
+            else:
                 arg = int(arg)
             p.append((op, arg))
 
-    run(p)
+    run(p, strings)

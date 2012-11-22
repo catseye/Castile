@@ -670,6 +670,13 @@ Type of value returned must jibe with other return statements.
 
 ### Builtins ###
 
+The usual.
+
+    | fun main() {
+    |   print("Hello, world!")
+    | }
+    = Hello, world!
+
 Some standard functions are builtin and available as toplevels.
 
     | fun main() {
