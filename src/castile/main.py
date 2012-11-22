@@ -10,6 +10,7 @@ from optparse import OptionParser
 
 from castile.parser import Parser
 from castile.eval import Program
+from castile.transformer import Transformer
 from castile.checker import TypeChecker
 from castile import backends
 
@@ -51,6 +52,8 @@ def main(argv):
             print "-----"
         if options.parse_only:
             sys.exit(0)
+        x = Transformer()
+        ast = x.lift_functions(ast)
         if options.typecheck:
             t = TypeChecker()
             t.collect_structs(ast)
