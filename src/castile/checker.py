@@ -149,6 +149,8 @@ class TypeChecker(object):
             else:
                 self.assert_eq(t1, self.return_type)
             return Void()
+        elif ast.type == 'Break':
+            return Void()
         elif ast.type == 'If':
             t1 = self.type_of(ast.children[0])
             assert t1 == Boolean()

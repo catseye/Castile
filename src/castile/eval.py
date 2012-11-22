@@ -47,6 +47,10 @@ class FunctionReturn(Exception):
     pass
 
 
+class WhileBreak(Exception):
+    pass
+
+
 # TODO not really a closure
 class Closure(object):
     def __init__(self, program, ast):
@@ -93,11 +97,16 @@ class Closure(object):
         elif ast.type == 'Return':
             v1 = self.eval(ast.children[0])
             raise FunctionReturn(v1)
+        elif ast.type == 'Break':
+            raise WhileBreak()
         elif ast.type == 'While':
             v1 = self.eval(ast.children[0])
-            while v1:
-                self.eval(ast.children[1])
-                v1 = self.eval(ast.children[0])
+            try:
+                while v1:
+                    self.eval(ast.children[1])
+                    v1 = self.eval(ast.children[0])
+            except WhileBreak:
+                pass
             return None
         elif ast.type == 'Op':
             v1 = self.eval(ast.children[0])

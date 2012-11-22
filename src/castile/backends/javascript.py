@@ -127,6 +127,8 @@ print(repr(result));
         elif ast.type == 'Return':
             self.out.write('return ')
             self.compile(ast.children[0])
+        elif ast.type == 'Break':
+            self.out.write('break')
         elif ast.type == 'Not':
             self.out.write('!(')
             self.compile(ast.children[0])

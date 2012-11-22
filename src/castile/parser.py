@@ -44,7 +44,7 @@ class Parser(object):
         if self.scan_pattern(r'and|or', 'boolean operator'):
             return
         if self.scan_pattern(r'(if|else|while|make|struct|'
-                             r'typecase|is|as|return)(?!\w)',
+                             r'typecase|is|as|return|break)(?!\w)',
                              'keyword', token_group=2, rest_group=3):
             return
         if self.scan_pattern(r'\d+', 'integer literal'):
@@ -186,7 +186,7 @@ class Parser(object):
         self.expect('}')
         return AST('Block', stmts)
 
-    STMT_TYPES = ('VarDecl', 'If', 'While', 'TypeCase', 'Return')
+    STMT_TYPES = ('VarDecl', 'If', 'While', 'TypeCase', 'Return', 'Break')
 
     def body(self):
         # block for a function body -- automatically promotes the
@@ -223,6 +223,8 @@ class Parser(object):
             return AST('TypeCase', [e, te, b], value=te.minirepr())
         elif self.consume('return'):
             return AST('Return', [self.expr0()])
+        elif self.consume('break'):
+            return AST('Break')
         else:
             return self.expr0()
 

@@ -7,8 +7,6 @@ Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?
 
 Tests for all the edge cases for function literals (closure variable return ugghness.)
 
-Lack of `break` is annoying.
-
 ### Implementation ###
 
 Better use of exceptions (don't use Python's SyntaxError.)

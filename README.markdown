@@ -272,7 +272,7 @@ No dangling else problem.
     | }
     = 10
 
-A `while` itself evaluates to null.
+A `while` itself has void type.
 
     | fun main() {
     |   var a = 0; var b = 4;
@@ -282,6 +282,19 @@ A `while` itself evaluates to null.
     |   }
     | }
     = 
+
+`break` may be used to prematurely exit a `while`.
+
+    | fun main() {
+    |   var a = 0; var b = 0;
+    |   while true {
+    |     a = a + b;
+    |     b = b + 1;
+    |     if (b > 4) { break; }
+    |   }
+    |   a
+    | }
+    = 10
 
 ### Expressions ###
 
