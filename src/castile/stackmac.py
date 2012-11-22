@@ -6,6 +6,7 @@ import sys
 
 from castile.builtins import BUILTINS
 from castile.eval import TaggedValue
+from castile.types import Void
 
 
 labels = {}
@@ -36,8 +37,17 @@ def run(program, strings):
         elif op == 'jmp':
             ip = arg - 1
         elif op == 'call':
-            callstack.append(ip)
-            ip = stack.pop() - 1
+            if isinstance(stack[-1], int):
+                callstack.append(ip)
+                ip = stack.pop() - 1
+            else:  # builtin
+                # TODO arity, convert strings... rrrrhhhh.
+                (builtin, type) = stack.pop()
+                a = stack.pop()
+                a = strings[a]
+                result = builtin(a)
+                if type.return_type != Void():
+                    stack.append(result)
         elif op == 'rts':
             ip = callstack.pop()
         elif op == 'mul':
@@ -115,9 +125,9 @@ def run(program, strings):
                 struct.append(stack.pop())
                 x += 1
             stack.append(struct)
-        elif op == 'sys_print':
-            str_id = stack.pop()
-            print strings[str_id]
+        elif op.startswith('builtin_'):
+            (builtin, type) = BUILTINS[op[8:]]
+            stack.append((builtin, type))
         else:
             raise NotImplementedError((op, arg))
         ip += 1

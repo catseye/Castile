@@ -43,8 +43,7 @@ class Compiler(object):
         self.loop_end = None
         self.fun_lit = None
         self.fun_argcount = 0
-        # 0 = print, 
-        self.global_pos = 1     # globals at the bottom of the stack
+        self.global_pos = 0     # globals at the bottom of the stack
         self.local_pos = 0      # locals after the passed arguments
 
     def get_label(self, pref):
@@ -57,15 +56,6 @@ class Compiler(object):
         if ast.type == 'Program':
             self.out.write("""\
 ; AUTOMATICALLY GENERATED -- EDIT AT OWN RISK
-
-print_index=0
-
-jmp past_print
-print:
-sys_print
-rts
-past_print:
-push print
 
 """)
             for child in ast.children:
@@ -144,8 +134,10 @@ call
             self.compile(ast.children[1])
             self.out.write('%s\n' % OPS.get(ast.value, ast.value))
         elif ast.type == 'VarRef':
-            if ast.aux in ('toplevel', 'global'):
-                self.out.write('get_global %s_index\n' % (ast.value))
+            if ast.aux == 'global':
+                self.out.write('builtin_%s\n' % ast.value)
+            elif ast.aux == 'toplevel':
+                self.out.write('get_global %s_index\n' % ast.value)
             else:
                 self.out.write('get_local %s_local_%s\n' % (self.fun_lit, ast.value))
         elif ast.type == 'FunCall':
