@@ -61,10 +61,12 @@ class Compiler(object):
             for child in ast.children:
                 self.compile(child)
             self.out.write("""\
+; ...
+global_pos=%d
 ; call main
 get_global main_index
 call
-""")
+""" % self.global_pos)
         elif ast.type == 'Defn':
             self.out.write('%s_index=%d\n' % (ast.value, self.global_pos))
             self.global_pos += 1

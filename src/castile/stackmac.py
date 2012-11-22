@@ -7,6 +7,10 @@ import sys
 from castile.builtins import BUILTINS
 
 
+labels = {}
+debug = False
+
+
 def boo(b):
     if b:
         return -1
@@ -15,6 +19,7 @@ def boo(b):
 
 
 def run(program):
+    global labels
     ip = 0
     iter = 0
     stack = []
@@ -23,7 +28,8 @@ def run(program):
     returnsize = 0
     while ip < len(program):
         (op, arg) = program[ip]
-        #print ip, op, arg, stack, callstack
+        if debug:
+            print ip, op, arg, stack, callstack
         if op == 'push':
             stack.append(arg)
         elif op == 'jmp':
@@ -69,6 +75,9 @@ def run(program):
             b = stack.pop()
             a = stack.pop()
             stack.append(a | b)
+        elif op == 'not':
+            a = stack.pop()
+            stack.append(boo(a == 0))
         elif op == 'set_baseptr':
             stack.append(baseptr)
             baseptr = len(stack) - 1
@@ -80,7 +89,7 @@ def run(program):
             while x < returnsize:
                 rs.append(stack.pop())
                 x += 1
-            target = baseptr + arg + 1
+            target = baseptr + arg
             baseptr = stack[baseptr]
             while len(stack) > target:
                 stack.pop()
@@ -101,16 +110,25 @@ def run(program):
         if iter > 10000:
             raise ValueError("infinite loop?")
 
-    result = stack.pop()
-    if result != 0:
-        print repr(result)
+    if len(stack) > labels['global_pos']:
+        result = stack.pop()
+        if result == 0:
+            result = 'False'
+        if result == -1:
+            result = 'True'
+        print result
 
 
 def main(args):
     address = 0
     program = []
-    labels = {}
-    
+    global labels
+    global debug
+
+    if args[1] == '-d':
+        args[1] = args[2]
+        debug = True
+
     # load program
     with open(args[1], 'r') as f:
         for line in f:
