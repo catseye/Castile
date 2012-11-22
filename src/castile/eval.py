@@ -180,8 +180,6 @@ class Program(object):
         toplevel = Closure(self, lambda x: x)
         for child in ast.children:
             if child.type == 'Defn':
-                if child.value in self.stab:
-                    raise SyntaxError('duplicate definition %s' % child.value)
                 self.stab[child.value] = toplevel.eval(child.children[0])
 
     def run(self):

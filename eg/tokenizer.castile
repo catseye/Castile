@@ -17,8 +17,7 @@ struct result {
 fun scan(s: string) {
   var i = 0;
   var t = "";
-  var go = true;
-  while go {
+  while true {
     var c = substr(s, i, 1);
     if c != " " {
       if instr(c, alpha) {
@@ -27,20 +26,23 @@ fun scan(s: string) {
           i = i + 1
           c = substr(s, i, 1);
         }
-        go = false;
+        break;
       }
     }
     i = i + 1
   }
-  var r = substr(s, i-1, len(s)-i+1);
+  var r = substr(s, i, len(s)-i);
   make result(token:t, remainder:r)
 }
 
 fun main() {
-  var s = "token ize this string"
+  var s = input(">> ")
   while len(s) > 0 {
-    var r = scan(s);
-    print(r.token);
-    s = r.remainder;
+    while len(s) > 0 {
+      var r = scan(s);
+      print(r.token);
+      s = r.remainder;
+    }
+    s = input(">> ")
   }
 }

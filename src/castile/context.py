@@ -1,3 +1,7 @@
+class CastileContextError(ValueError):
+    pass
+
+
 class ScopedContext(object):
     """
     >>> d = ScopedContext({ 'a': 2, 'b': 3 })
@@ -20,12 +24,12 @@ class ScopedContext(object):
         if key in self._dict:
             return self._dict[key]
         if self.parent is None:
-            raise SyntaxError('undefined identifier %s' % key)
+            raise CastileContextError('undefined identifier %s' % key)
         return self.parent[key]
 
     def __setitem__(self, key, value):
         if key in self._dict:
-            raise SyntaxError('duplicate defined identifier %s' % key)
+            raise CastileContextError('duplicate defined identifier %s' % key)
         self._dict[key] = value
 
     def __contains__(self, key):

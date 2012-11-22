@@ -3,6 +3,10 @@ from castile.context import ScopedContext
 from castile.types import *
 
 
+class CastileTypeError(ValueError):
+    pass
+
+
 class TypeChecker(object):
     def __init__(self):
         global_context = {}
@@ -28,7 +32,7 @@ class TypeChecker(object):
     def assert_eq(self, t1, t2):
         if t1 == t2:
             return
-        raise SyntaxError("type mismatch: %s != %s" % (t1, t2))
+        raise CastileTypeError("type mismatch: %s != %s" % (t1, t2))
 
     def is_assignable(self, ast):
         assert ast.type == 'VarRef'
@@ -43,7 +47,7 @@ class TypeChecker(object):
     def collect_struct(self, ast):
         name = ast.value
         if name in self.structs:
-            raise SyntaxError('duplicate struct %s' % name)
+            raise CastileTypeError('duplicate struct %s' % name)
         struct_fields = {}
         self.struct_fields[name] = struct_fields
         te = []
@@ -52,7 +56,7 @@ class TypeChecker(object):
             assert child.type == 'FieldDefn'
             field_name = child.value
             if field_name in struct_fields:
-                raise SyntaxError('already-defined field %s' % field_name)
+                raise CastileTypeError('already-defined field %s' % field_name)
             struct_fields[field_name] = i
             i += 1
             te.append(self.type_of(child.children[0]))
@@ -125,7 +129,7 @@ class TypeChecker(object):
         elif ast.type == 'VarDecl':
             name = ast.value
             if name in self.context:
-                raise SyntaxError('declaration of %s shadows previous' % name)
+                raise CastileTypeError('declaration of %s shadows previous' % name)
             self.assignable[name] = True
             self.set(name, self.type_of(ast.children[0]))
             return Void()
@@ -138,7 +142,7 @@ class TypeChecker(object):
             assert isinstance(t1, Function), \
               '%r is not a function' % t1
             if len(t1.arg_types) != len(ast.children) - 1:
-                raise SyntaxError("argument mismatch")
+                raise CastileTypeError("argument mismatch")
             i = 0
             for child in ast.children[1:]:
                 self.assert_eq(self.type_of(child), t1.arg_types[i])
@@ -177,17 +181,17 @@ class TypeChecker(object):
         elif ast.type == 'Assignment':
             t1 = self.type_of(ast.children[0])
             if not self.is_assignable(ast.children[0]):
-                raise SyntaxError('cannot assign to non-local')
+                raise CastileTypeError('cannot assign to non-local')
             t2 = self.type_of(ast.children[1])
             self.assert_eq(t1, t2)
             return Void()
         elif ast.type == 'Make':
             t = self.type_of(ast.children[0])
             if t.name not in self.structs:
-                raise SyntaxError("undefined struct %s" % t.name)
+                raise CastileTypeError("undefined struct %s" % t.name)
             struct_defn = self.structs[t.name]
             if len(struct_defn.content_types) != len(ast.children) - 1:
-                raise SyntaxError("argument mismatch")
+                raise CastileTypeError("argument mismatch")
             i = 0
             for defn in ast.children[1:]:
                 t1 = self.type_of(defn)
@@ -201,7 +205,7 @@ class TypeChecker(object):
             field_name = ast.value
             struct_fields = self.struct_fields[t.name]
             if field_name not in struct_fields:
-                raise SyntaxError("undefined field")
+                raise CastileTypeError("undefined field")
             # TODO: for some compiler backends, we might
             # want to make this value available to them:
             index = struct_fields[field_name]
@@ -211,9 +215,9 @@ class TypeChecker(object):
             t1 = self.type_of(ast.children[0])
             t2 = self.type_of(ast.children[1])
             if not isinstance(t1, Union):
-                raise SyntaxError('bad typecase, %s not a union' % t1)
+                raise CastileTypeError('bad typecase, %s not a union' % t1)
             if not t1.contains(t2):
-                raise SyntaxError('bad typecase, %s not in %s' % (t2, t1))
+                raise CastileTypeError('bad typecase, %s not in %s' % (t2, t1))
             # typecheck t3 with variable in children[0] having type t2
             assert ast.children[0].type == 'VarRef'
             self.context = ScopedContext({}, self.context)
@@ -252,9 +256,9 @@ class TypeChecker(object):
             uni_t = self.type_of(ast.children[2])
             self.assert_eq(t1, val_t)
             if not isinstance(uni_t, Union):
-                raise SyntaxError('bad cast, not a union: %s' % uni_t)
+                raise CastileTypeError('bad cast, not a union: %s' % uni_t)
             if not uni_t.contains(val_t):
-                raise SyntaxError('bad cast, %s does not include %s' %
+                raise CastileTypeError('bad cast, %s does not include %s' %
                                   (uni_t, val_t))
             return uni_t
         else:

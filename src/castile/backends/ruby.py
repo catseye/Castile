@@ -22,8 +22,23 @@ class Compiler(object):
             self.out.write("""\
 # AUTOMATICALLY GENERATED -- EDIT AT OWN RISK
 
+input = lambda { |s|
+  print(s)
+  STDIN.gets.chomp
+}
+
 print = lambda { |s|
   puts s
+}
+
+read = lambda { |n|
+  s = STDIN.read(n)
+  if s == nil then s = "" end
+  return s
+}
+
+write = lambda { |s|
+  STDOUT.write(s)
 }
 
 len = lambda { |s|

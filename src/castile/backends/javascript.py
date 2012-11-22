@@ -21,12 +21,22 @@ class Compiler(object):
     def compile(self, ast):
         if ast.type == 'Program':
             self.out.write("""\
-/* AUTOMATICALLY GENERATED EDIT AT OWN RISK */
+/* AUTOMATICALLY GENERATED -- EDIT AT OWN RISK */
 
-var print = function(s) { console.log(s); }
-var len = function(s) { return s.length; }
-var concat = function(s1,s2) { return s1 + s2; }
-var substr = function(s,p,k) { return s.substr(p, k); }
+/*
+var stdin = process.openStdin();
+// node.js does not make this easy.  forgetting about it for now.
+var input = function(s) {
+  var answer = undefined;
+  stdin.on('data', function(chunk) { answer = chunk; });
+  return answer;
+};
+*/
+
+var print = function(s) { console.log(s); };
+var len = function(s) { return s.length; };
+var concat = function(s1,s2) { return s1 + s2; };
+var substr = function(s,p,k) { return s.substr(p, k); };
 
 var repr = function(o) {
   if (typeof o === "string") {
@@ -62,7 +72,7 @@ var repr = function(o) {
   } else {
     return o;
   }
-}
+};
 
 """)
             for child in ast.children:
@@ -70,7 +80,8 @@ var repr = function(o) {
             self.out.write("""\
 
 var result = main();
-print(repr(result));
+if (result !== undefined && result !== null)
+  print(repr(result));
 """)
         elif ast.type == 'Defn':
             self.out.write('%s = ' % ast.value)

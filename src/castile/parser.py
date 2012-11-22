@@ -3,6 +3,10 @@ import re
 from castile.ast import AST
 
 
+class CastileSyntaxError(ValueError):
+    pass
+
+
 class Parser(object):
     def __init__(self, text):
         self.text = text
@@ -65,7 +69,7 @@ class Parser(object):
         if self.token == token:
             self.scan()
         else:
-            raise SyntaxError("Expected '%s', but found '%s'" %
+            raise CastileSyntaxError("Expected '%s', but found '%s'" %
                               (token, self.token))
 
     def expect_type(self, type):
@@ -82,7 +86,7 @@ class Parser(object):
 
     def check_type(self, type):
         if not self.type == type:
-            raise SyntaxError("Expected %s, but found %s ('%s')" %
+            raise CastileSyntaxError("Expected %s, but found %s ('%s')" %
                               (type, self.type, self.token))
 
     def consume(self, token):

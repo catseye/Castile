@@ -7,13 +7,9 @@ Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?
 
 Name mangling for compilers (prepend with `_` most likely.)
 
-input, read, write in all implementations.
-
-Example program with input.  Document it.  print, read, write too.
+Figure out a way to do `input`, `read`, and `write` with node.js backend.
 
 ### Implementation ###
-
-Better use of exceptions (don't use Python's SyntaxError.)
 
 AST nodes should have source line numbers, it would be really nice.
 
