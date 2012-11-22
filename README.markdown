@@ -323,9 +323,9 @@ Unary negation.
     = -3
 
     | fun main() {
-    |   2+-3
+    |   2+-5
     | }
-    = -1
+    = -3
 
 Minus sign must be right in front of a number.
 

@@ -210,9 +210,9 @@ class TypeChecker(object):
             struct_fields = self.struct_fields[t.name]
             if field_name not in struct_fields:
                 raise CastileTypeError("undefined field")
-            # TODO: for some compiler backends, we might
-            # want to make this value available to them:
             index = struct_fields[field_name]
+            # we make this value available to compiler backends
+            ast.aux = index
             # we look up the type from the StructDefinition
             return self.structs[t.name].content_types[index]
         elif ast.type == 'TypeCase':

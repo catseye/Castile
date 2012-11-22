@@ -181,41 +181,30 @@ call
             assert ast.children[0].type == 'VarRef'
             self.out.write('set_local %s_local_%s\n' % (self.fun_lit, ast.children[0].value))
         elif ast.type == 'Make':
-            #~ self.out.write('{')
-            #~ self.commas(ast.children[1:])
-            #~ self.out.write(", '_fieldnames', [")
-            #~ for fieldinit in ast.children[1:-1]:
-                #~ self.out.write("'%s', " % fieldinit.value)
-            #~ self.out.write("'%s'" % ast.children[-1].value)
-            #~ self.out.write(']}')
-            pass
+            for child in ast.children[1:]:
+                self.compile(child)
+            self.out.write('push %d\n' % (len(ast.children) - 1))
+            self.out.write('make_struct\n')  # sigh
         elif ast.type == 'FieldInit':
-            #~ self.out.write("'%s'," % ast.value)
-            #~ self.compile(ast.children[0])
-            pass
+            self.compile(ast.children[0])
         elif ast.type == 'Index':
-            #~ self.compile(ast.children[0])
-            #~ self.out.write('["%s"]' % ast.value)
-            pass
+            self.compile(ast.children[0])
+            self.out.write('get_field %d\n' % ast.aux)
         elif ast.type == 'TypeCast':
-            #~ self.out.write("['%s'," % ast.value)
-            #~ self.compile(ast.children[0])
-            #~ self.out.write(']')
-            pass
+            self.compile(ast.children[0])
+            self.out.write('; tag with "%s"\n' % ast.value)
+            self.out.write('tag 42\n')
         elif ast.type == 'TypeCase':
-            #~ self.out.write('if (')
-            #~ self.compile(ast.children[0])
-            #~ self.out.write("[0] == '%s')" % ast.value)
-            #~ self.out.write('then save=')
-            #~ self.compile(ast.children[0])
-            #~ self.out.write('\n')
-            #~ self.compile(ast.children[0])
-            #~ self.out.write('=')
-            #~ self.compile(ast.children[0])
-            #~ self.out.write('[1]\n')
-            #~ self.compile(ast.children[2])
-            #~ self.compile(ast.children[0])
-            #~ self.out.write(' = save end')
-            pass
+            end_typecase = self.get_label('end_typecase')
+            self.compile(ast.children[0])
+            self.out.write('get_tag\n')
+            self.out.write('push 42\n')
+            self.out.write('eq\n')
+            self.out.write('bzero %s\n' % end_typecase)
+            # TODO save the value
+            # TODO set the value to the untagged value of the value
+            self.compile(ast.children[2])
+            # TODO restore the value
+            self.out.write('%s:\n' % end_typecase)
         else:
             raise NotImplementedError(repr(ast))
