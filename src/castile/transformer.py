@@ -1,11 +1,5 @@
 """General AST manipulations.
 
-TODO:
-
-*   rearrange all toplevels so that non-function defns come before function defns.
-*   rename all occurrences of a local variable (for the following)
-*   bring all variable declarations up to the function body block
-    (this may require renaming; the same name may be used in two non-nested blocks)
 """
 
 from castile.ast import AST
@@ -31,7 +25,17 @@ class FunctionLifter(object):
             lifted_defns = []
             for (name, lf) in self.lifted_functions:
                 lifted_defns.append(AST('Defn', [lf], value=name))
-            return AST(ast.type, lifted_defns + children, value=ast.value)
+            # rearrange toplevels so that non-function defns come
+            # before function defns
+            non_fun_defns = []
+            non_lifted_defns = []
+            for child in ast.children:
+                if child.children[0].type == 'FunLit':
+                    non_lifted_defns.append(child)
+                else:
+                    non_fun_defns.append(child)
+            children = non_fun_defns + lifted_defns + non_lifted_defns
+            return AST(ast.type, children, value=ast.value)
         elif ast.type == 'Defn':
             # skip toplevel funlits; they don't have to be lifted.
             children = []
@@ -49,6 +53,7 @@ class FunctionLifter(object):
             for child in ast.children:
                 children.append(self.lift_functions(child))
             new_ast = AST(ast.type, children, value=ast.value)
+            new_ast.aux = ast.aux   # TODO i wish there was a nicer way
             name = self.make_name()
             self.lifted_functions.append((name, new_ast))
             return AST('VarRef', value=name)

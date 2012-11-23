@@ -9,7 +9,8 @@ it is pretty much *guaranteed* to change.
 
 Unlike most of my programming languages, there is nothing that could really
 be described as innovative or experimental or even particularly unusual
-about Castile.  It is influenced by:
+about Castile.  It is not a particularly comfortable programming experience,
+often forcing the programmer to be explicit and verbose.  It is influenced by:
 
 *   **C**: Most of Castile's syntax follows C, but it is generally more
     permissive (semicolons are optional, types of local variables and return

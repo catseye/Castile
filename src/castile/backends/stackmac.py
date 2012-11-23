@@ -3,6 +3,11 @@ from castile.types import Void, String
 # Compile to some hypothetical stack-based machine.
 # Not yet in a good way.
 
+# A big difference between this and the higher-level backends is that
+# values of type void have size zero, i.e. nothing is pushed onto the
+# stack for them.  (Giving them a nominal value would possibly make
+# this easier.)
+
 # In a function like this:
 #
 # fun(x,y,z) {
@@ -109,7 +114,10 @@ call
                 self.out.write('%s_local_%s=%d\n' %
                     (self.fun_lit, child.value, pos))
                 pos += 1
-        elif ast.type == 'Block':
+        elif ast.type == 'Body':
+            self.compile(ast.children[0])
+            self.compile(ast.children[1])
+        elif ast.type == 'VarDecls':
             for child in ast.children:
                 self.compile(child)
         elif ast.type == 'VarDecl':
@@ -117,6 +125,9 @@ call
             self.out.write('%s_local_%s=%s\n' %
                 (self.fun_lit, ast.value, self.local_pos))
             self.local_pos += 1
+        elif ast.type == 'Block':
+            for child in ast.children:
+                self.compile(child)
         elif ast.type == 'While':
             start = self.get_label('loop_start')
             end = self.get_label('loop_end')

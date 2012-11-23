@@ -57,8 +57,8 @@ def main(argv):
             t.collect_structs(ast)
             t.type_of(ast)
         if options.compile_to is not None:
-            #x = FunctionLifter()
-            #ast = x.lift_functions(ast)
+            x = FunctionLifter()
+            ast = x.lift_functions(ast)
             c = getattr(backends, options.compile_to).Compiler(sys.stdout)
             c.compile(ast)
             sys.exit(0)

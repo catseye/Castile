@@ -10,6 +10,8 @@ Name mangling for compilers (prepend with `_` most likely.)
 
 Figure out a way to do `input`, `read`, and `write` with node.js backend.
 
+Builtins: `int`, `str`, `chr`, `ord`.
+
 ### Implementation ###
 
 AST nodes should have source line numbers, it would be really nice.
