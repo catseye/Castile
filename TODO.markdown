@@ -14,6 +14,8 @@ Builtins: `int`, `str`, `chr`, `ord`.
 
 Tests for empty structs.  Demo of "typed enum" (union of empty structs.)
 
+Type promotion with higher precedence?  So that it can be used at toplevel.
+
 ### Implementation ###
 
 TaggedValue -> just a tuple.

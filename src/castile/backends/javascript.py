@@ -23,7 +23,8 @@ class Compiler(object):
 
 /*
 var stdin = process.openStdin();
-// node.js does not make this easy.  forgetting about it for now.
+// node.js does not make this easy -- not unless I want to
+// generate code in cps!  forgetting about it for now.
 var input = function(s) {
   var answer = undefined;
   stdin.on('data', function(chunk) { answer = chunk; });
@@ -47,14 +48,6 @@ var repr = function(o) {
     return "";
   } else if (o === null) {
     return "None";
-  } else if (typeof o === "object") {
-    var s = "(";
-    for (var i = 0; i < o.length; i++) {
-      s += repr(o[i]);
-      if (i != o.length - 1) { s += ', '; }
-    }
-    s += ")";
-    return s;
   } else {
     return o;
   }

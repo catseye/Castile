@@ -925,20 +925,12 @@ The type after the `as` must be the type of the expression.
     | fun main() {
     |   var a = 20;
     |   var b = 30;
-    |   a + b as integer in union(integer, string)
+    |   var c = a + b as integer in union(integer, string)
+    |   print("ok")
     | }
-    = ('Type(integer:)', 50)
+    = ok
 
-All good looks like this:
-
-    | fun main() {
-    |   var a = 20;
-    |   var b = 30;
-    |   a + b as integer in union(integer, string)
-    | }
-    = ('Type(integer:)', 50)
-
-Union types.
+Values of union type can be passed to functions.
 
     | fun foo(a, b: union(integer, string)) {
     |   a + 1
@@ -971,6 +963,32 @@ The `typecase` construct can operate on the "right" type of a union.
     | }
     = 337
 
+The expression in a `typecase` must be a variable.
+
+    | main = fun() {
+    |   var a = 333 as integer in union(integer, string);
+    |   typecase 333 is integer {
+    |     print("what?")
+    |   };
+    | }
+    ? identifier
+
+The expression in a `typecase` can be an argument.
+
+    | fun wat(j: union(integer, string)) {
+    |   typecase j is integer {
+    |     print("integer")
+    |   };
+    | }
+    | main = fun() {
+    |   wat(444 as integer in union(integer, string))
+    | }
+    = integer
+
+The expression in a `typecase` cannot effectively be a global, as globals
+must be literals and there is no way (right now) to make a literal of union
+type.
+
 This is a very strange case in the language.  Thankfully, assignment
 typechecks as void, without any automatic promotion to the union type...
 
@@ -990,8 +1008,8 @@ typechecks as void, without any automatic promotion to the union type...
 
 ### Struct Types + Union Types ###
 
-Union types may be used to make fields "nullable", so that
-you can actually make finite, recursive data types.
+Union types may be used to make fields of a struct "nullable", so that
+you can in actuality create recursive, but finite, data structures.
 
     | struct list {
     |   value: string;

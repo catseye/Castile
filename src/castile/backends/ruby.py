@@ -58,13 +58,6 @@ def repr o
     return "None"
   elsif o.is_a? String
     return "'" + o + "'"
-  elsif o.is_a? Array
-    if o.length == 0 then return "()" end
-    h = "("
-    for c in o[0..o.length-2] do
-      h += repr(c) + ", "
-    end
-    return h + repr(o[o.length-1]) + ")"
   else
     return o.to_s
   end
@@ -169,11 +162,7 @@ end
         elif ast.type == 'Make':
             self.out.write('{')
             self.commas(ast.children[1:])
-            self.out.write(", '_fieldnames', [")
-            for fieldinit in ast.children[1:-1]:
-                self.out.write("'%s', " % fieldinit.value)
-            self.out.write("'%s'" % ast.children[-1].value)
-            self.out.write(']}')
+            self.out.write('}')
         elif ast.type == 'FieldInit':
             self.out.write("'%s'," % ast.value)
             self.compile(ast.children[0])
