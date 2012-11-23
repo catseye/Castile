@@ -732,14 +732,28 @@ Record types.  You can define them:
     | main = fun() {}
     = 
 
-And make them:
+And make them.
 
     | struct person { name: string; age: integer }
     | main = fun() {
     |   var j = make person(name:"Jake", age:23);
-    |   j
     | }
-    = {'name': 'Jake', 'age': 23}
+    = 
+
+And extract the fields from them.
+
+    | struct person { name: string; age: integer }
+    | main = fun() {
+    |   var j = make person(name:"Jake", age:23);
+    |   print(j.name)
+    |   if j.age > 20 {
+    |     print("Older than twenty")
+    |   } else {
+    |     print("Underage")
+    |   }
+    | }
+    = Jake
+    = Older than twenty
 
 Structs must be defined somewhere.
 
@@ -753,10 +767,10 @@ Structs need not be defined before use.
 
     | main = fun() {
     |   var j = make person(name:"Jake", age:23);
-    |   j
+    |   j.age
     | }
     | struct person { name: string; age: integer }
-    = {'name': 'Jake', 'age': 23}
+    = 23
 
 Structs may contain structs which don't exist.  (Surprisingly.  Might just leave this in.)
 
@@ -793,12 +807,12 @@ Types must match when making a struct.
 Structs can be passed to functions.
 
     | struct person { name: string; age: integer }
-    | fun wat(bouncer: person) { bouncer }
+    | fun wat(bouncer: person) { bouncer.age }
     | main = fun() {
     |   var j = make person(name:"Jake", age:23);
     |   wat(j)
     | }
-    = {'name': 'Jake', 'age': 23}
+    = 23
 
 Structs have name equivalence, not structural.
 
@@ -984,12 +998,18 @@ you can actually make finite, recursive data types.
     |   next: union(list, integer);
     | }
     | main = fun() {
-    |   make list(value:"first", next:
-    |     make list(value:"second",
-    |               next:0 as integer in union(list, integer)
-    |              ) as list in union(list, integer))
+    |   var l = make list(
+    |     value: "first",
+    |     next: make list(
+    |       value: "second",
+    |       next:0 as integer in union(list, integer)
+    |     ) as list in union(list, integer))
+    |   var s = l.next
+    |   typecase s is list {
+    |     print(s.value)
+    |   }
     | }
-    = {'value': 'first', 'next': ('StructType(list:)', {'value': 'second', 'next': ('Type(integer:)', 0)})}
+    = second
 
 You may want to use helper functions to hide this ugliness.
 
@@ -1003,7 +1023,21 @@ You may want to use helper functions to hide this ugliness.
     | fun cons(v: string, l: list) {
     |   make list(value:v, next:l as list in union(list, void))
     | }
-    | main = fun() {
-    |   cons("first", singleton("second"))
+    | fun nth(n, l: list) {
+    |   var u = l as list in union(list, void);
+    |   var v = u;
+    |   var k = n;
+    |   while k > 1 {
+    |     typecase u is void { break; }
+    |     typecase u is list { v = u.next; }
+    |     u = v;
+    |     k = k - 1;
+    |   }
+    |   return u
     | }
-    = {'value': 'first', 'next': ('StructType(list:)', {'value': 'second', 'next': ('Type(void:)', None)})}
+    | main = fun() {
+    |   var l = cons("first", singleton("second"));
+    |   var g = nth(2, l);
+    |   typecase g is list { print(g.value); }
+    | }
+    = second

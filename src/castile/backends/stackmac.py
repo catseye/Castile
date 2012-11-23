@@ -47,9 +47,21 @@ class Compiler(object):
         self.labels = {}
         self.loop_end = None
         self.fun_lit = None
-        self.fun_argcount = 0
+        self.fun_argsize = 0    # number of stack slots taken by args
         self.global_pos = 0     # globals at the bottom of the stack
         self.local_pos = 0      # locals after the passed arguments
+
+    def size_of(self, ast):
+        if ast.type == 'Type':
+            if ast.value == 'void':
+                return 0
+            else:
+                return 1
+        elif ast.type in ('FunType', 'StructType', 'UnionType'):
+            # TODO might be unboxed, all on stack, in future
+            return 1
+        else:
+            raise NotImplementedError(ast)
 
     def get_label(self, pref):
         count = self.labels.get(pref, 0)
@@ -82,7 +94,7 @@ call
             past_fun = self.get_label('past_fun')
             self.out.write('jmp %s\n' % past_fun)
             save_fun = self.fun_lit
-            save_argcount = self.fun_argcount
+            save_argsize = self.fun_argsize
             self.fun_lit = self.get_label('fun_lit')
             self.local_pos = 1
             self.out.write('%s:\n' % self.fun_lit)
@@ -99,21 +111,24 @@ call
             if ast.aux.return_type == Void():
                 returnsize = 0
             self.out.write('set_returnsize %d\n' % returnsize)
-            self.out.write('clear_baseptr %d\n' % (0 - self.fun_argcount))
+            self.out.write('clear_baseptr %d\n' % (0 - self.fun_argsize))
             self.out.write('rts\n')
             self.out.write('%s:\n' % past_fun)
             self.out.write('push %s\n' % self.fun_lit)
-            self.fun_argcount = save_argcount
+            self.fun_argsize = save_argsize
             self.fun_lit = save_fun
         elif ast.type == 'Args':
-            # first arg passed is DEEPEST, so go backwards.
-            self.fun_argcount = len(ast.children)
-            pos = 0 - self.fun_argcount
+            argsize = 0
             for child in ast.children:
                 assert child.type == 'Arg'
+                argsize += self.size_of(child.children[0])
+            self.fun_argsize = argsize
+            # first arg passed is DEEPEST, so go backwards.
+            pos = 0 - self.fun_argsize
+            for child in ast.children:
                 self.out.write('%s_local_%s=%d\n' %
                     (self.fun_lit, child.value, pos))
-                pos += 1
+                pos += self.size_of(child.children[0])
         elif ast.type == 'Body':
             self.compile(ast.children[0])
             self.compile(ast.children[1])

@@ -48,25 +48,13 @@ var repr = function(o) {
   } else if (o === null) {
     return "None";
   } else if (typeof o === "object") {
-    if (o._fieldnames === undefined) {
-      var s = "(";
-      for (var i = 0; i < o.length; i++) {
-        s += repr(o[i]);
-        if (i != o.length - 1) { s += ', '; }
-      }
-      s += ")";
-      return s;
-    } else {
-      var s = "{";
-      for (var i = 0; i < o._fieldnames.length; i++) {
-        s += repr(o._fieldnames[i]);
-        s += ': ';
-        s += repr(o[o._fieldnames[i]]);
-        if (i != o._fieldnames.length - 1) { s += ', '; }
-      }
-      s += "}";
-      return s;
+    var s = "(";
+    for (var i = 0; i < o.length; i++) {
+      s += repr(o[i]);
+      if (i != o.length - 1) { s += ', '; }
     }
+    s += ")";
+    return s;
   } else {
     return o;
   }
@@ -173,11 +161,7 @@ if (result !== undefined && result !== null)
         elif ast.type == 'Make':
             self.out.write('{')
             self.commas(ast.children[1:])
-            self.out.write(", '_fieldnames': [")
-            for fieldinit in ast.children[1:-1]:
-                self.out.write("'%s', " % fieldinit.value)
-            self.out.write("'%s'" % ast.children[-1].value)
-            self.out.write(']}')
+            self.out.write('}')
         elif ast.type == 'FieldInit':
             self.out.write("'%s':" % ast.value)
             self.compile(ast.children[0])

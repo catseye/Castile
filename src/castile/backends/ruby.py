@@ -65,15 +65,6 @@ def repr o
       h += repr(c) + ", "
     end
     return h + repr(o[o.length-1]) + ")"
-  elsif o.is_a? Hash
-      s = "{"
-      fn = o["_fieldnames"]
-      for field in fn[0..fn.length-2] do
-        s += repr(field) + ": " + repr(o[field]) + ", "
-      end
-      s += repr(fn[fn.length-1]) + ": " + repr(o[fn[fn.length-1]])
-      s += "}"
-      return s
   else
     return o.to_s
   end

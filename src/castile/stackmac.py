@@ -41,11 +41,28 @@ def run(program, strings):
                 callstack.append(ip)
                 ip = stack.pop() - 1
             else:  # builtin
-                # TODO arity, convert strings... rrrrhhhh.
-                (builtin, type) = stack.pop()
-                a = stack.pop()
-                a = strings[a]
-                result = builtin(a)
+                # forget being elegant, let's just do this
+                (name, builtin, type) = stack.pop()
+                if name == 'print':
+                    builtin(strings[stack.pop()])
+                elif name == 'concat':
+                    b = strings[stack.pop()]
+                    a = strings[stack.pop()]
+                    strings.append(builtin(a, b))
+                    stack.append(len(strings) - 1)
+                elif name == 'concat':
+                    b = strings[stack.pop()]
+                    a = strings[stack.pop()]
+                    strings.append(builtin(a, b))
+                    stack.append(len(strings) - 1)
+                elif name == 'substr':
+                    k = stack.pop()
+                    p = stack.pop()
+                    s = strings[stack.pop()]
+                    strings.append(builtin(s, p, k))
+                    stack.append(len(strings) - 1)
+                else:
+                    raise NotImplementedError(name)
                 if type.return_type != Void():
                     stack.append(result)
         elif op == 'rts':
@@ -119,15 +136,15 @@ def run(program, strings):
             stack[baseptr + arg] = stack.pop()
         elif op == 'make_struct':
             size = stack.pop()
-            struct = []
-            x = 0
-            while x < size:
-                struct.append(stack.pop())
-                x += 1
+            struct = stack[-size:]
+            stack = stack[:-size]
             stack.append(struct)
+        elif op == 'get_field':
+            obj = stack.pop()
+            stack.append(obj[arg])
         elif op.startswith('builtin_'):
             (builtin, type) = BUILTINS[op[8:]]
-            stack.append((builtin, type))
+            stack.append((op[8:], builtin, type))
         else:
             raise NotImplementedError((op, arg))
         ip += 1
