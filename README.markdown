@@ -14,18 +14,35 @@ about Castile.  It is influenced by:
 *   **C**: Most of Castile's syntax follows C, but it is generally more
     permissive (semicolons are optional, types of local variables and return
     types for functions do not have to be declared, etc.)  It has a type
-    system which can be applied statically, and it has function values, but
-    not closures.
+    system (where `struct`s are the only types with name equivalence) which
+    can be applied statically.  It has function values, but not closures.
+
+*   **Pascal**: All local variables used in a function must be declared at
+    the start of the function body.
 
 *   **Rust**: There is a union type, to which values must be explicitly
-    promoted (with `as`) and extracted (with `typecase ... is`.)
-    Expressions (statements) within a block must have void type,
+    promoted (with `as`) and extracted (with `typecase ... is`.)  This is
+    like Rust's `Enum`, which is (to quote its tutorial) "much like the
+    'tagged union' pattern in C, but with better static guarantees."  Along
+    with structs, this provides something similar to algebraic data typing,
+    as seen in languages such as Haskell, Scala, etc.
+
+*   **Eightebed**: A few years back I realized that pointers that can
+    assume a null value are really a variant type, like Haskell's `Maybe`.
+    Of course, in most languages, the property of being null isn't
+    captured by the type; you can dereference a pointer in C whether it's
+    valid or not.  In Castile, this is captured with a union type which
+    includes `void`, and `typecase` generalizes Eightebed's `ifvalid`.
+
+*   **?**: Expressions (statements) within a block must have void type,
     except the final expression, which is returned as the result of the
     block.  Local variables are mutable, but arguments and globals
     are not, and neither are the fields of structs.  There are no pointers.
-    (Although, granted, many of these features are not precisely *from* Rust,
-    they seem to be a result of me coming to some kind of C/Rust/functional
-    language compromise.)
+    (These features are not really original, but it's hard to say what
+    languages I'm taking them from.  Many of them seem to be a result of me
+    coming to some kind of C/Rust/functional language compromise.  I'll
+    say more when I have a more developed idea of what type/memory safety
+    in Castile should be.)
 
 Also unlike most of my programming languages (with the exceptions of ILLGOL
 and Bhuna), it was "designed by building" -- I wrote an interpreter, and
@@ -68,9 +85,9 @@ only happen in a Stmt.)
               | "struct" ident "{" {ident ":" TExpr [";"]} "}"
               | ident (":" TExpr | "=" Literal).
     Arg     ::= ident [":" TExpr].
-    Body    ::= "{" {Stmt [";"]} "}".
-    Stmt    ::= "var" ident "=" Expr0
-              | "while" Expr0 Block
+    Body    ::= "{" {VarDecl [";"]} {Stmt [";"]} "}".
+    VarDecl ::= "var" ident "=" Expr0.
+    Stmt    ::= "while" Expr0 Block
               | "typecase" VarRef "is" TExpr Block
               | "do" Expr0
               | "return" Expr0
@@ -420,7 +437,7 @@ void, so it can only really happen at the statement level.
     | }
     ? type mismatch
 
-Locals may not be shadowed in an inner block.
+Variables may only be declared in a function body, not an inner block.
 
     | fun main() {
     |   var a = 0;
@@ -429,17 +446,19 @@ Locals may not be shadowed in an inner block.
     |   }
     |   a
     | }
-    ? shadows
+    ? keyword
 
-Blocks have block scope.
+Variables must be declared at the start of a function body.
 
     | fun main() {
+    |   print("Hi");
+    |   var a = 1;
     |   if 3 > 2 {
-    |     var a = 7;
+    |     a = 7;
     |   }
     |   a
     | }
-    ? undefined
+    ? keyword
 
 Variables in upper scopes may be modified.
 
@@ -451,19 +470,6 @@ Variables in upper scopes may be modified.
     |   a
     | }
     = 4
-
-Two scopes, same name, different types.
-
-    | fun main() {
-    |   if 3 > 2 {
-    |     var a = 4;
-    |   }
-    |   if 3 > 2 {
-    |     var a = "hello";
-    |   }
-    |   61;
-    | }
-    = 61
 
 ### Non-local Values ###
 

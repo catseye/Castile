@@ -78,7 +78,19 @@ class Closure(object):
     def eval(self, ast=None):
         if ast is None:
             ast = self.ast.children[1]
-        if ast.type == 'Block':
+        if ast.type == 'Body':
+            self.eval(ast.children[0])  # to collect locals
+            return self.eval(ast.children[1])
+        elif ast.type == 'VarDecls':
+            for child in ast.children:
+                self.eval(child)
+            return None
+        elif ast.type == 'VarDecl':
+            name = ast.value
+            v = self.eval(ast.children[0])
+            self.locals[name] = v
+            return None
+        elif ast.type == 'Block':
             v1 = None
             for stmt in ast.children:
                 v1 = self.eval(stmt)
@@ -115,11 +127,6 @@ class Closure(object):
             return op(v1, v2)
         elif ast.type == 'Not':
             return not self.eval(ast.children[0])
-        elif ast.type == 'VarDecl':
-            name = ast.value
-            v = self.eval(ast.children[0])
-            self.locals[name] = v
-            return v
         elif ast.type == 'VarRef':
             name = ast.value
             if name in self.locals:

@@ -1,7 +1,4 @@
-"""General AST manipulations:
-
-*   bring all function definitions up to the toplevel
-    (for languages like C)
+"""General AST manipulations.
 
 TODO:
 
@@ -13,7 +10,11 @@ TODO:
 
 from castile.ast import AST
 
-class Transformer(object):
+class FunctionLifter(object):
+    """Bring all function definitions up to the toplevel (for target
+    languages like C).
+
+    """
     def __init__(self):
         self.lifted_functions = []
         self.count = 0

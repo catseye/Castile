@@ -120,6 +120,23 @@ class TypeChecker(object):
                 'void': Void(),
             }
             return map[ast.value]
+        elif ast.type == 'Body':
+            self.context = ScopedContext({}, self.context)
+            for child in ast.children:
+                self.assert_eq(self.type_of(child), Void())
+            self.context = self.context.parent
+            return Void()
+        elif ast.type == 'VarDecls':
+            for child in ast.children:
+                self.assert_eq(self.type_of(child), Void())
+            return Void()
+        elif ast.type == 'VarDecl':
+            name = ast.value
+            if name in self.context:
+                raise CastileTypeError('declaration of %s shadows previous' % name)
+            self.assignable[name] = True
+            self.set(name, self.type_of(ast.children[0]))
+            return Void()
         elif ast.type == 'FunType':
             return_type = self.type_of(ast.children[0])
             return Function([self.type_of(c) for c in ast.children[1:]],
@@ -128,13 +145,6 @@ class TypeChecker(object):
             return Union([self.type_of(c) for c in ast.children])
         elif ast.type == 'StructType':
             return Struct(ast.value)
-        elif ast.type == 'VarDecl':
-            name = ast.value
-            if name in self.context:
-                raise CastileTypeError('declaration of %s shadows previous' % name)
-            self.assignable[name] = True
-            self.set(name, self.type_of(ast.children[0]))
-            return Void()
         elif ast.type == 'VarRef':
             v = self.context[ast.value]
             ast.aux = self.context.level(ast.value)
@@ -177,10 +187,8 @@ class TypeChecker(object):
             t2 = self.type_of(ast.children[1])
             return Void()
         elif ast.type == 'Block':
-            self.context = ScopedContext({}, self.context)
             for child in ast.children:
                 self.assert_eq(self.type_of(child), Void())
-            self.context = self.context.parent
             return Void()
         elif ast.type == 'Assignment':
             t1 = self.type_of(ast.children[0])

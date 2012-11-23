@@ -8,11 +8,26 @@ class CastileSyntaxError(ValueError):
 
 
 class Parser(object):
+    """Parse a Castile program into an AST.
+
+    The parser includes the scanner as part of it.  (Delegating to an external
+    scanner is rather verbose ("self.scanner.expect(...)"; inheriting from a
+    Scanner class, even if it's just a mixin, seems rather weird.)
+
+    The parser mainly just constructs the AST.  It does few other analyses
+    or transformations itself.  However, there are a few:
+
+    * It inserts a final `return` in a block where the last statement is a
+      non-void expression.
+
+    """
     def __init__(self, text):
         self.text = text
         self.token = None
         self.type = None
         self.scan()
+
+    ### SCANNER ###
 
     def scan_pattern(self, pattern, type, token_group=1, rest_group=2):
         pattern = r'^(' + pattern + r')(.*?)$'
@@ -47,7 +62,7 @@ class Parser(object):
             return
         if self.scan_pattern(r'and|or', 'boolean operator'):
             return
-        if self.scan_pattern(r'(if|else|while|make|struct|'
+        if self.scan_pattern(r'(var|if|else|while|make|struct|'
                              r'typecase|is|as|return|break|'
                              r'true|false|null)(?!\w)',
                              'keyword', token_group=2, rest_group=3):
@@ -191,13 +206,20 @@ class Parser(object):
         self.expect('}')
         return AST('Block', stmts)
 
-    STMT_TYPES = ('VarDecl', 'If', 'While', 'TypeCase', 'Return', 'Break')
+    STMT_TYPES = ('If', 'While', 'TypeCase', 'Return', 'Break')
 
     def body(self):
         # block for a function body -- automatically promotes the
         # last expression to a 'return' if it's not a statement
-        # (and inserts a 'return' if the block is empty
+        # (and inserts a 'return' if the block is empty)
         self.expect('{')
+        vardecls = []
+        while self.consume('var'):
+            id = self.expect_type('identifier')
+            self.expect('=')
+            e = self.expr0()
+            vardecls.append(AST('VarDecl', [e], value=id))
+            self.consume(';')
         stmts = []
         last = None
         while not self.on('}'):
@@ -209,15 +231,12 @@ class Parser(object):
         elif last is not None and last.type not in self.STMT_TYPES:
             stmts[-1] = AST('Return', [stmts[-1]])
         self.expect('}')
-        return AST('Block', stmts)
+        vardecls = AST('VarDecls', vardecls)
+        stmts = AST('Block', stmts)
+        return AST('Body', [vardecls, stmts])
 
     def stmt(self):
-        if self.consume('var'):
-            id = self.expect_type('identifier')
-            self.expect('=')
-            e = self.expr0()
-            return AST('VarDecl', [e], value=id)
-        elif self.on('if'):
+        if self.on('if'):
             return self.ifstmt()
         elif self.consume('while'):
             t = self.expr0()

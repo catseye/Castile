@@ -107,13 +107,20 @@ end
             self.commas(ast.children)
         elif ast.type == 'Arg':
             self.out.write(ast.value)
+        elif ast.type == 'Body':
+            self.compile(ast.children[0])
+            self.compile(ast.children[1])
+        elif ast.type == 'VarDecls':
+            for child in ast.children:
+                self.compile(child)
+        elif ast.type == 'VarDecl':
+            self.out.write('%s = ' % ast.value)
+            self.compile(ast.children[0])
+            self.out.write('\n')
         elif ast.type == 'Block':
             for child in ast.children:
                 self.compile(child)
                 self.out.write('\n')
-        elif ast.type == 'VarDecl':
-            self.out.write('%s = ' % ast.value)
-            self.compile(ast.children[0])
         elif ast.type == 'While':
             self.out.write('while (')
             self.compile(ast.children[0])
