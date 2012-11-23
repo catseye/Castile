@@ -50,11 +50,9 @@ def run(program, strings):
                     a = strings[stack.pop()]
                     strings.append(builtin(a, b))
                     stack.append(len(strings) - 1)
-                elif name == 'concat':
-                    b = strings[stack.pop()]
+                elif name == 'len':
                     a = strings[stack.pop()]
-                    strings.append(builtin(a, b))
-                    stack.append(len(strings) - 1)
+                    strings.append(builtin(a))
                 elif name == 'substr':
                     k = stack.pop()
                     p = stack.pop()
@@ -63,8 +61,6 @@ def run(program, strings):
                     stack.append(len(strings) - 1)
                 else:
                     raise NotImplementedError(name)
-                if type.return_type != Void():
-                    stack.append(result)
         elif op == 'rts':
             ip = callstack.pop()
         elif op == 'mul':
@@ -142,6 +138,8 @@ def run(program, strings):
         elif op == 'get_field':
             obj = stack.pop()
             stack.append(obj[arg])
+        elif op == 'get_tag':
+            stack.append(stack[-1].tag)
         elif op.startswith('builtin_'):
             (builtin, type) = BUILTINS[op[8:]]
             stack.append((op[8:], builtin, type))

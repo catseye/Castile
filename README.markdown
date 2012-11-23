@@ -704,14 +704,14 @@ Some standard functions are builtin and available as toplevels.
 The `+` operator is not string concatenation.  `concat` is.
 
     | fun main() {
-    |   "hello " + "world"
+    |   print("hello " + "world")
     | }
     ? type mismatch
 
     | fun main() {
-    |   concat("hello ", "world")
+    |   print(concat("hello ", "world"))
     | }
-    = 'hello world'
+    = hello world
 
 The builtin toplevels are functions and functions need parens.
 

@@ -12,7 +12,15 @@ Figure out a way to do `input`, `read`, and `write` with node.js backend.
 
 Builtins: `int`, `str`, `chr`, `ord`.
 
+Tests for empty structs.  Demo of "typed enum" (union of empty structs.)
+
 ### Implementation ###
+
+TaggedValue -> just a tuple.
+
+stackmac: store tagged values as two values on the stack.
+and void types in unions of (void, X) should only be one value.
+(structs are still boxed though)
 
 AST nodes should have source line numbers, it would be really nice.
 
