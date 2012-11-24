@@ -8,5 +8,14 @@ fun factorial(a) {
 }
 
 fun main() {
-  factorial(6)
+  var n = 0 as integer in union(integer, void);
+  var s = "";
+  print("Enter integer to obtain factorial of it, or 'q' to quit.");
+  while true {
+    s = input(">> ");
+    if s == "q" { break; }
+    n = int(s);
+    typecase n is integer { print(str(factorial(n))); }
+    typecase n is void { print("Integer needed"); }
+  }
 }

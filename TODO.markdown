@@ -8,15 +8,15 @@ Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?
 
 Name mangling for compilers (prepend with `_` most likely.)
 
-Figure out a way to do `input`, `read`, and `write` with node.js backend.
-
-Builtins: `int`, `str`, `chr`, `ord`.
-
 Tests for empty structs.  Demo of "typed enum" (union of empty structs.)
 
-Type promotion with higher precedence?  So that it can be used at toplevel.
+Tests for struct equality, union value equality.
 
 ### Implementation ###
+
+Figure out a way to do `input`, `read`, and `write` with node.js backend.
+
+Implement `int`, `str`, `chr`, `ord` for Ruby, Javascript, stackmac.
 
 TaggedValue -> just a tuple.
 
@@ -27,6 +27,8 @@ and void types in unions of (void, X) should only be one value.
 AST nodes should have source line numbers, it would be really nice.
 
 ### Design ###
+
+Type promotion with higher precedence?  So that it can be used at toplevel.
 
 Should there be closures as well as function values?
 

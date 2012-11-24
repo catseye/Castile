@@ -1,4 +1,4 @@
-from castile.builtins import BUILTINS
+from castile.builtins import BUILTINS, TaggedValue
 
 
 ### Evaluator ###
@@ -18,15 +18,6 @@ OPS = {
     '>': (lambda x, y: x > y),
     '<': (lambda x, y: x < y),
 }
-
-
-class TaggedValue(object):
-    def __init__(self, tag, value):
-        self.tag = tag
-        self.value = value
-
-    def __repr__(self):
-        return '(%r, %r)' % (self.tag, self.value)
 
 
 class StructDict(dict):
