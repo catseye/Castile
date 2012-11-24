@@ -56,9 +56,13 @@ class FunctionLifter(object):
             new_ast.aux = ast.aux   # TODO i wish there was a nicer way
             name = self.make_name()
             self.lifted_functions.append((name, new_ast))
-            return AST('VarRef', value=name)
+            a = AST('VarRef', value=name)
+            a.aux = 'toplevel'
+            return a
         else:
             children = []
             for child in ast.children:
                 children.append(self.lift_functions(child))
-            return AST(ast.type, children, value=ast.value)
+            a = AST(ast.type, children, value=ast.value)
+            a.aux = ast.aux
+            return a
