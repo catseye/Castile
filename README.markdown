@@ -84,19 +84,19 @@ only happen in a Stmt.)
     Program ::= {Defn [";"]}.
     Defn    ::= "fun" ident "(" [Arg {"," Arg}] ")" Body
               | "struct" ident "{" {ident ":" TExpr [";"]} "}"
-              | ident (":" TExpr | "=" Literal).
-    Arg     ::= ident [":" TExpr].
+              | ident (":" TExpr0 | "=" Literal).
+    Arg     ::= ident [":" TExpr1].
     Body    ::= "{" {VarDecl [";"]} {Stmt [";"]} "}".
     VarDecl ::= "var" ident "=" Expr0.
     Stmt    ::= "while" Expr0 Block
-              | "typecase" VarRef "is" TExpr Block
+              | "typecase" VarRef "is" TExpr0 Block
               | "do" Expr0
               | "return" Expr0
               | If
               | Expr0.
     Block   ::= "{" {Stmt [";"]} "}".
     If      ::= "if" Expr0 Block ["else" (Block | If)].
-    Expr0   ::= Expr1 {("and" | "or") Expr1} ["as" TExpr].
+    Expr0   ::= Expr1 {("and" | "or") Expr1} ["as" TExpr0].
     Expr1   ::= Expr2 {(">" | ">=" | "<" | "<=" | "==" | "!=") Expr2}.
     Expr2   ::= Expr3 {("+" | "-") Expr3}.
     Expr3   ::= Expr4 {("*" | "/") Expr4}.
@@ -111,12 +111,12 @@ only happen in a Stmt.)
               | ["-"] intlit
               | "true" | "false" | "null"
               | "fun" "(" [Arg {"," Arg}] ")" Body.
-    TExpr   ::= "string"
-              | "integer"
+    TExpr0  ::= TExpr1 [{"," TExpr1} "->" TExpr1].
+    TExpr1  ::= TExpr2 {"|" TExpr2}.
+    TExpr2  ::= "integer"
               | "boolean"
               | "void"
-              | "function" "(" [TExpr {"," TExpr}] ")" ":" TExpr
-              | "union" "(" [TExpr {"," TExpr}] ")"
+              | "(" TExpr0 ")"
               | ident.
 
 Examples
@@ -177,14 +177,14 @@ Functions must be defined before they are referenced.
 
 Either that, or forward-declared.
 
-    | f : function(integer): integer
+    | f : integer -> integer
     | fun main() { f(7) }
     | fun f(g) { g * 2 }
     = 14
 
 If forward-declared, types must match.
 
-    | f : function(integer): string
+    | f : integer -> string
     | fun main() { f(7) }
     | fun f(g) { g * 2 }
     ? type mismatch
@@ -541,7 +541,7 @@ Function arguments may not be updated.
 
 Factorial can be computed.
 
-    | factorial : function(integer): integer
+    | factorial : integer -> integer
     | fun factorial(a) {
     |   if a == 0 {
     |     return 1
@@ -623,7 +623,7 @@ Functions can be passed to functions and returned from functions.
 
     | fun double(x) { x * 2 }
     | fun triple(x) { x * 3 }
-    | fun apply_and_add_one(f:function(integer):integer, x) { f(x) + 1 }
+    | fun apply_and_add_one(f: (integer -> integer), x) { f(x) + 1 }
     | fun select(a) { if a > 10 { return double } else { return triple } }
     | fun main() {
     |   var t = select(5);
@@ -632,6 +632,19 @@ Functions can be passed to functions and returned from functions.
     |   apply_and_add_one(d, p)
     | }
     = 61
+
+To overcome the syntactic ambiguity with commas, function types
+in function definitions must be in parens.
+
+    | fun add(x, y) { x + y }
+    | fun mul(x, y) { x * y }
+    | fun do_it(f: (integer, integer -> integer), g) {
+    |   f(3, g)
+    | }
+    | fun main() {
+    |   do_it(mul, 4) - do_it(add, 4)
+    | }
+    = 5
 
 `return` may be used to prematurely return a value from a function.
 
@@ -916,7 +929,7 @@ The type after the `as` must be one of the types in the union.
     | fun main() {
     |   var a = 20;
     |   var b = 30;
-    |   a + b as union(string, void)
+    |   a + b as string|void
     | }
     ? bad cast
 
@@ -925,27 +938,27 @@ The type after the `as` must be the type of the expression.
     | fun main() {
     |   var a = 20;
     |   var b = 30;
-    |   var c = a + b as union(integer, string)
+    |   var c = a + b as integer|string
     |   print("ok")
     | }
     = ok
 
 Values of union type can be passed to functions.
 
-    | fun foo(a, b: union(integer, string)) {
+    | fun foo(a, b: integer|string) {
     |   a + 1
     | }
     | main = fun() {
     |   var a = 0;
-    |   a = foo(a, 333 as union(integer, string));
-    |   a = foo(a, "hiya" as union(integer, string));
+    |   a = foo(a, 333 as integer|string);
+    |   a = foo(a, "hiya" as integer|string);
     |   a
     | }
     = 2
 
 The `typecase` construct can operate on the "right" type of a union.
 
-    | fun foo(a, b: union(integer, string)) {
+    | fun foo(a, b: integer|string) {
     |   var r = a;
     |   typecase b is integer {
     |     r = r + b;
@@ -957,8 +970,8 @@ The `typecase` construct can operate on the "right" type of a union.
     | }
     | main = fun() {
     |   var a = 0;
-    |   a = foo(a, 333 as union(integer, string));
-    |   a = foo(a, "hiya" as union(integer, string));
+    |   a = foo(a, 333 as integer|string);
+    |   a = foo(a, "hiya" as integer|string);
     |   a
     | }
     = 337
@@ -966,7 +979,7 @@ The `typecase` construct can operate on the "right" type of a union.
 The expression in a `typecase` must be a variable.
 
     | main = fun() {
-    |   var a = 333 as union(integer, string);
+    |   var a = 333 as integer|string;
     |   typecase 333 is integer {
     |     print("what?")
     |   };
@@ -975,13 +988,13 @@ The expression in a `typecase` must be a variable.
 
 The expression in a `typecase` can be an argument.
 
-    | fun wat(j: union(integer, string)) {
+    | fun wat(j: integer|string) {
     |   typecase j is integer {
     |     print("integer")
     |   };
     | }
     | main = fun() {
-    |   wat(444 as union(integer, string))
+    |   wat(444 as integer|string)
     | }
     = integer
 
@@ -992,17 +1005,17 @@ type.
 This is a very strange case in the language.  Thankfully, assignment
 typechecks as void, without any automatic promotion to the union type...
 
-    | fun foo(b: union(integer, void)) {
+    | fun foo(b: integer|void) {
     |   var a = b;
     |   typecase a is integer {
     |     print("yes it's an integer");
     |   }
-    |   typecase a = 7 as union(integer, void) is void {
+    |   typecase a = 7 as integer|void is void {
     |     print("yes it's void too");
     |   }
     | }
     | main = fun() {
-    |   foo(7 as union(integer, void))
+    |   foo(7 as integer|void)
     | }
     ? void not a union
 
@@ -1013,15 +1026,15 @@ you can in actuality create recursive, but finite, data structures.
 
     | struct list {
     |   value: string;
-    |   next: union(list, integer);
+    |   next: list|integer;
     | }
     | main = fun() {
     |   var l = make list(
     |     value: "first",
     |     next: make list(
     |       value: "second",
-    |       next:0 as union(list, integer)
-    |     ) as union(list, integer))
+    |       next:0 as list|integer
+    |     ) as list|integer)
     |   var s = l.next
     |   typecase s is list {
     |     print(s.value)
@@ -1033,16 +1046,16 @@ You may want to use helper functions to hide this ugliness.
 
     | struct list {
     |   value: string;
-    |   next: union(list, void);
+    |   next: list|void;
     | }
     | fun singleton(v: string) {
-    |   make list(value:v, next:null as union(list, void))
+    |   make list(value:v, next:null as list|void)
     | }
     | fun cons(v: string, l: list) {
-    |   make list(value:v, next:l as union(list, void))
+    |   make list(value:v, next:l as list|void)
     | }
     | fun nth(n, l: list) {
-    |   var u = l as union(list, void);
+    |   var u = l as list|void;
     |   var v = u;
     |   var k = n;
     |   while k > 1 {

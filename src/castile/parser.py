@@ -49,11 +49,13 @@ class Parser(object):
             self.token = None
             self.type = 'EOF'
             return
+        if self.scan_pattern(r'->', 'arrow'):
+            return
         if self.scan_pattern(r'>=|>|<=|<|==|!=', 'relational operator'):
             return
         if self.scan_pattern(r'\+|\-', 'additive operator'):
             return
-        if self.scan_pattern(r'\*|\/', 'multiplicative operator'):
+        if self.scan_pattern(r'\*|\/|\|', 'multiplicative operator'):
             return
         if self.scan_pattern(r'\.|\;|\,|\(|\)|\{|\}|\=', 'punctuation'):
             return
@@ -148,7 +150,7 @@ class Parser(object):
             while not self.on('}'):
                 name = self.expect_type('identifier')
                 self.expect(':')
-                texpr = self.texpr()
+                texpr = self.texpr0()
                 components.append(AST('FieldDefn', [texpr], value=name))
                 self.consume(';')
             self.expect("}")
@@ -160,37 +162,44 @@ class Parser(object):
                 return AST('Defn', [e], value=id)
             else:
                 self.expect(':')
-                e = self.texpr()
+                e = self.texpr0()
                 return AST('Forward', [e], value=id)
 
     def arg(self):
         id = self.expect_type('identifier')
         te = AST('Type', value='integer')
         if self.consume(':'):
-            te = self.texpr()
+            te = self.texpr1()
         return AST('Arg', [te], value=id)
 
-    def texpr(self):
-        if self.consume('function'):
-            self.expect('(')
-            args = []
-            if not self.on(")"):
-                args.append(self.texpr())
-                while self.consume(","):
-                    args.append(self.texpr())
+    def texpr0(self):
+        ast = self.texpr1()
+        if self.consume('->'):
+            r = self.texpr1()
+            return AST('FunType', [r, ast])
+        if self.on(','):
+            args = [ast]
+            while self.consume(','):
+                args.append(self.texpr1())
+            self.expect('->')
+            r = self.texpr1()
+            return AST('FunType', [r] + args)
+        return ast
+
+    def texpr1(self):
+        ast = self.texpr2()
+        if self.on('|'):
+            args = [ast]
+            while self.consume('|'):
+                args.append(self.texpr2())
+            ast = AST('UnionType', args)
+        return ast
+
+    def texpr2(self):
+        if self.consume('('):
+            ast = self.texpr0()
             self.expect(')')
-            self.expect(':')
-            rte = self.texpr()
-            return AST('FunType', [rte] + args)
-        elif self.consume('union'):
-            self.expect('(')
-            args = []
-            if not self.on(")"):
-                args.append(self.texpr())
-                while self.consume(","):
-                    args.append(self.texpr())
-            self.expect(')')
-            return AST('UnionType', args)
+            return ast
         elif self.on_type('identifier'):
             id = self.consume_type('identifier')
             return AST('StructType', [], value=id)
@@ -245,7 +254,7 @@ class Parser(object):
         elif self.consume('typecase'):
             e = self.var_ref()
             self.expect('is')
-            te = self.texpr()
+            te = self.texpr0()
             b = self.block()
             return AST('TypeCase', [e, te, b], value=te.minirepr())
         elif self.consume('return'):
@@ -275,7 +284,7 @@ class Parser(object):
             e2 = self.expr1()
             e = AST('Op', [e, e2], value=op)
         if self.consume('as'):
-            union_te = self.texpr()
+            union_te = self.texpr0()
             e = AST('TypeCast', [e, union_te])
         return e
 
@@ -330,7 +339,8 @@ class Parser(object):
         elif self.consume('not'):
             return AST('Not', [self.expr1()])
         elif self.consume('make'):
-            texpr = self.texpr()
+            # TODO I just accidentally any type.  Is that bad?
+            texpr = self.texpr0()
             self.expect('(')
             args = []
             if not self.on(')'):
