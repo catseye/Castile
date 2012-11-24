@@ -30,10 +30,11 @@ class FunctionLifter(object):
             non_fun_defns = []
             non_lifted_defns = []
             for child in ast.children:
-                if child.children[0].type == 'FunLit':
-                    non_lifted_defns.append(child)
-                else:
-                    non_fun_defns.append(child)
+                if child.children:
+                    if child.children[0].type == 'FunLit':
+                        non_lifted_defns.append(child)
+                    else:
+                        non_fun_defns.append(child)
             children = non_fun_defns + lifted_defns + non_lifted_defns
             return AST(ast.type, children, value=ast.value)
         elif ast.type == 'Defn':
