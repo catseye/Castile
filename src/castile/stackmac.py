@@ -34,6 +34,10 @@ def run(program, strings):
             print ip, op, arg, stack, callstack
         if op == 'push':
             stack.append(arg)
+        elif op == 'pop':
+            stack = stack[:-arg]
+        elif op == 'dup':
+            stack.append(stack[-1])
         elif op == 'jmp':
             ip = arg - 1
         elif op == 'call':
@@ -52,7 +56,7 @@ def run(program, strings):
                     stack.append(len(strings) - 1)
                 elif name == 'len':
                     a = strings[stack.pop()]
-                    strings.append(builtin(a))
+                    stack.append(builtin(a))
                 elif name == 'substr':
                     k = stack.pop()
                     p = stack.pop()
@@ -139,7 +143,11 @@ def run(program, strings):
             obj = stack.pop()
             stack.append(obj[arg])
         elif op == 'get_tag':
-            stack.append(stack[-1].tag)
+            v = stack.pop()
+            stack.append(v.tag)
+        elif op == 'get_value':
+            v = stack.pop()
+            stack.append(v.value)
         elif op.startswith('builtin_'):
             (builtin, type) = BUILTINS[op[8:]]
             stack.append((op[8:], builtin, type))

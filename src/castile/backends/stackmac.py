@@ -46,10 +46,12 @@ class Compiler(object):
         self.out = out
         self.labels = {}
         self.loop_end = None
-        self.fun_lit = None
+        self.fun_lit = None     # string id'ing current fun being gend
         self.fun_argsize = 0    # number of stack slots taken by args
         self.global_pos = 0     # globals at the bottom of the stack
         self.local_pos = 0      # locals after the passed arguments
+        self.tags = {}          # numeric tags established so far
+        self.tag_count = 0      # next tag to generate
 
     def size_of(self, ast):
         if ast.type == 'Type':
@@ -68,6 +70,12 @@ class Compiler(object):
         label = '%s_%d' % (pref, count)
         self.labels[pref] = count + 1
         return label
+
+    def get_tag(self, value):
+        if value not in self.tags:
+            self.tags[value] = self.tag_count
+            self.tag_count += 1
+        return self.tags[value]
 
     def compile(self, ast):
         if ast.type == 'Program':
@@ -104,9 +112,9 @@ call
             self.compile(ast.children[1])
             # TODO copy the result value(S) to the first arg position
             # (for now the opcode handles that)
-            # TODO must happen before every return!
             self.out.write('exeunt_%s:\n' % self.fun_lit)
             # base this on return type: void = 0, int = 1, union = 2, etc
+            # TODO use size_of, when it works on types
             returnsize = 1
             if ast.aux.return_type == Void():
                 returnsize = 0
@@ -186,7 +194,7 @@ call
             self.out.write('%s:\n' % end_if)
         elif ast.type == 'Return':
             self.compile(ast.children[0])
-            self.out.write('jmp exeunt_%s:\n' % self.fun_lit)
+            self.out.write('jmp exeunt_%s\n' % self.fun_lit)
         elif ast.type == 'Break':
             self.out.write('jmp %s\n' % self.loop_end)
         elif ast.type == 'Not':
@@ -221,18 +229,29 @@ call
         elif ast.type == 'TypeCast':
             self.compile(ast.children[0])
             self.out.write('; tag with "%s"\n' % ast.value)
-            self.out.write('tag 42\n')
+            tag = self.get_tag(ast.value)
+            self.out.write('tag %d\n' % tag)
         elif ast.type == 'TypeCase':
             end_typecase = self.get_label('end_typecase')
             self.compile(ast.children[0])
+            self.out.write('dup\n')
             self.out.write('get_tag\n')
-            self.out.write('push 42\n')
+            tag = self.get_tag(ast.value)
+            self.out.write('push %d\n' % tag)
             self.out.write('eq\n')
             self.out.write('bzero %s\n' % end_typecase)
-            # TODO save the value
-            # TODO set the value to the untagged value of the value
+            # set the value to the untagged value of the value
+            self.out.write('dup\n')
+            self.out.write('get_value\n')
+            assert ast.children[0].type == 'VarRef'
+            self.out.write('set_local %s_local_%s\n' % (self.fun_lit, ast.children[0].value))
+            
             self.compile(ast.children[2])
-            # TODO restore the value
+            # now restore the value, with what was saved on the stack
+            self.out.write('dup\n')
+            self.out.write('set_local %s_local_%s\n' % (self.fun_lit, ast.children[0].value))
+            
             self.out.write('%s:\n' % end_typecase)
+            self.out.write('pop 1\n')
         else:
             raise NotImplementedError(repr(ast))
