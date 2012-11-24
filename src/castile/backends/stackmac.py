@@ -228,7 +228,10 @@ call
             self.out.write('get_field %d\n' % ast.aux)
         elif ast.type == 'TypeCast':
             self.compile(ast.children[0])
-            self.out.write('; tag with "%s"\n' % ast.value)
+            self.out.write('; tag with "%s"\n' % ast.aux)
+            if ast.aux == 'void':
+                # special case.  there is nothing on the stack
+                self.out.write('push 0\n')
             tag = self.get_tag(ast.aux)
             self.out.write('tag %d\n' % tag)
         elif ast.type == 'TypeCase':

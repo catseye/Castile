@@ -998,9 +998,21 @@ The expression in a `typecase` can be an argument.
     | }
     = integer
 
+(But can it be updated?)
+
 The expression in a `typecase` cannot effectively be a global, as globals
 must be literals and there is no way (right now) to make a literal of union
 type.
+
+The union can include void.
+
+    | main = fun() {
+    |   var j = null as void|integer;
+    |   typecase j is void {
+    |     print("nothing there")
+    |   };
+    | }
+    = nothing there
 
 This is a very strange case in the language.  Thankfully, assignment
 typechecks as void, without any automatic promotion to the union type...
