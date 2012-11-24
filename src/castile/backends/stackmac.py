@@ -229,14 +229,14 @@ call
         elif ast.type == 'TypeCast':
             self.compile(ast.children[0])
             self.out.write('; tag with "%s"\n' % ast.value)
-            tag = self.get_tag(ast.value)
+            tag = self.get_tag(ast.aux)
             self.out.write('tag %d\n' % tag)
         elif ast.type == 'TypeCase':
             end_typecase = self.get_label('end_typecase')
             self.compile(ast.children[0])
             self.out.write('dup\n')
             self.out.write('get_tag\n')
-            tag = self.get_tag(ast.value)
+            tag = self.get_tag(ast.aux)
             self.out.write('push %d\n' % tag)
             self.out.write('eq\n')
             self.out.write('bzero %s\n' % end_typecase)

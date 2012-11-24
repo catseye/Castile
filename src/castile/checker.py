@@ -236,6 +236,7 @@ class TypeChecker(object):
             self.context[ast.children[0].value] = t2
             t3 = self.type_of(ast.children[2])
             self.context = self.context.parent
+            ast.aux = str(t2)
             return t3
         elif ast.type == 'Program':
             for defn in ast.children:
@@ -263,15 +264,15 @@ class TypeChecker(object):
         elif ast.type == 'StructDefn':
             pass
         elif ast.type == 'TypeCast':
-            t1 = self.type_of(ast.children[0])
-            val_t = self.type_of(ast.children[1])
-            uni_t = self.type_of(ast.children[2])
-            self.assert_eq(t1, val_t)
+            val_t = self.type_of(ast.children[0])
+            uni_t = self.type_of(ast.children[1])
             if not isinstance(uni_t, Union):
                 raise CastileTypeError('bad cast, not a union: %s' % uni_t)
             if not uni_t.contains(val_t):
                 raise CastileTypeError('bad cast, %s does not include %s' %
                                   (uni_t, val_t))
+            # for compiler's benefit
+            ast.aux = str(val_t)
             return uni_t
         else:
             raise NotImplementedError(repr(ast))

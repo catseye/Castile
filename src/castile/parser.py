@@ -275,10 +275,8 @@ class Parser(object):
             e2 = self.expr1()
             e = AST('Op', [e, e2], value=op)
         if self.consume('as'):
-            val_te = self.texpr()
-            self.expect('in')
             union_te = self.texpr()
-            e = AST('TypeCast', [e, val_te, union_te], value=val_te.minirepr())
+            e = AST('TypeCast', [e, union_te])
         return e
 
     def expr1(self):
@@ -346,7 +344,8 @@ class Parser(object):
                     e = self.expr0()
                     args.append(AST('FieldInit', [e], value=id))
             self.expect(")")
-            return AST('Make', [texpr] + args)
+            return AST('Make', [texpr] + args, value=texpr.minirepr())
+
         elif self.consume('('):
             e = self.expr0()
             self.expect(')')

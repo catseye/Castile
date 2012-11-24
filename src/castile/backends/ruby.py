@@ -170,13 +170,13 @@ end
             self.compile(ast.children[0])
             self.out.write('["%s"]' % ast.value)
         elif ast.type == 'TypeCast':
-            self.out.write("['%s'," % ast.value)
+            self.out.write("['%s'," % ast.aux)
             self.compile(ast.children[0])
             self.out.write(']')
         elif ast.type == 'TypeCase':
             self.out.write('if (')
             self.compile(ast.children[0])
-            self.out.write("[0] == '%s')" % ast.value)
+            self.out.write("[0] == '%s')" % ast.aux)
             self.out.write('then save=')
             self.compile(ast.children[0])
             self.out.write('\n')

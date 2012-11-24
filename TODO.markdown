@@ -10,7 +10,7 @@ Name mangling for compilers (prepend with `_` most likely.)
 
 Tests for empty structs.  Demo of "typed enum" (union of empty structs.)
 
-Tests for struct equality, union value equality.
+Tests for struct equality, union value equality, unions of unions.
 
 ### Implementation ###
 

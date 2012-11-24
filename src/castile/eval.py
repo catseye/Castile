@@ -21,8 +21,9 @@ OPS = {
 
 
 class StructDict(dict):
-    def __init__(self, fields):
+    def __init__(self, name, fields):
         dict.__init__(self)
+        self.name = name
         self.fields = fields
 
     def __repr__(self):
@@ -143,12 +144,13 @@ class Closure(object):
             v = self.eval(ast.children[0])
             return v[ast.value]
         elif ast.type == 'Make':
-            v = StructDict([arg.value for arg in ast.children[1:]])
+            v = StructDict(ast.value, [arg.value for arg in ast.children[1:]])
             for arg in ast.children[1:]:
                 v[arg.value] = self.eval(arg.children[0])
             return v
         elif ast.type == 'TypeCast':
-            return TaggedValue(ast.value, self.eval(ast.children[0]))
+            v = self.eval(ast.children[0])
+            return TaggedValue(typeof(v), v)
         elif ast.type == 'TypeCase':
             r = self.eval(ast.children[0])
             assert isinstance(r, TaggedValue)
@@ -162,6 +164,19 @@ class Closure(object):
             return None
         else:
             raise NotImplementedError(repr(ast))
+
+
+def typeof(x):
+    if x is None:
+        return "Type(void:)"
+    if isinstance(x, int):
+        return "Type(integer:)"
+    if isinstance(x, str):
+        return "Type(string:)"
+    elif isinstance(x, StructDict):
+        return x.name
+    else:
+        return "wtf"
 
 
 class Program(object):
