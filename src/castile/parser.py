@@ -252,7 +252,8 @@ class Parser(object):
             b = self.block()
             return AST('While', [t, b])
         elif self.consume('typecase'):
-            e = self.var_ref()
+            id = self.expect_type('identifier')
+            e = AST('VarRef', value=id)
             self.expect('is')
             te = self.texpr0()
             b = self.block()
@@ -361,17 +362,12 @@ class Parser(object):
             self.expect(')')
             return e
         else:
-            return self.var_ref()
-
-    def var_ref(self):
-        # Note: this production includes the possibility of assignment
-        # therefore slightly weird things can occur in the grammar
-        id = self.expect_type('identifier')
-        ast = AST('VarRef', value=id)
-        if self.consume('='):
-            e = self.expr0()
-            ast = AST('Assignment', [ast, e])
-        return ast
+            id = self.expect_type('identifier')
+            ast = AST('VarRef', value=id)
+            if self.consume('='):
+                e = self.expr0()
+                ast = AST('Assignment', [ast, e])
+            return ast
 
     def literal(self):
         if self.on_type('string literal'):

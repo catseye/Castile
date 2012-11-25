@@ -94,10 +94,6 @@ will simply not work (the backend will crash when it can't see any types.)
 Grammar
 -------
 
-The grammar is a little weird at points (especially the VarRef production,
-which includes the possibility of assignment, even though that can really
-only happen in a Stmt.)
-
     Program ::= {Defn [";"]}.
     Defn    ::= "fun" ident "(" [Arg {"," Arg}] ")" Body
               | "struct" ident "{" {ident ":" TExpr [";"]} "}"
@@ -106,7 +102,7 @@ only happen in a Stmt.)
     Body    ::= "{" {VarDecl [";"]} {Stmt [";"]} "}".
     VarDecl ::= "var" ident "=" Expr0.
     Stmt    ::= "while" Expr0 Block
-              | "typecase" VarRef "is" TExpr0 Block
+              | "typecase" ident "is" TExpr0 Block
               | "do" Expr0
               | "return" Expr0
               | If
@@ -122,8 +118,7 @@ only happen in a Stmt.)
               | "(" Expr0 ")"
               | "not" Expr1
               | Literal
-              | VarRef.
-    VarRef  ::= ident ["=" Expr0].
+              | ident ["=" Expr0].
     Literal ::= strlit
               | ["-"] intlit
               | "true" | "false" | "null"
@@ -1084,23 +1079,6 @@ The union can include void.
     |   };
     | }
     = nothing there
-
-This is a very strange case in the language.  Thankfully, assignment
-typechecks as void, without any automatic promotion to the union type...
-
-    | fun foo(b: integer|void) {
-    |   var a = b;
-    |   typecase a is integer {
-    |     print("yes it's an integer");
-    |   }
-    |   typecase a = 7 as integer|void is void {
-    |     print("yes it's void too");
-    |   }
-    | }
-    | main = fun() {
-    |   foo(7 as integer|void)
-    | }
-    ? void not a union
 
 ### Struct Types + Union Types ###
 
