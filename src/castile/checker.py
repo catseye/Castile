@@ -129,19 +129,8 @@ class TypeChecker(object):
         elif ast.tag == 'Body':
             self.context = ScopedContext({}, self.context,
                                          level='local')
-            for child in ast.children:
-                self.assert_eq(self.type_of(child), Void())
+            self.assert_eq(self.type_of(ast.children[1]), Void())
             self.context = self.context.parent
-            ast.type = Void()
-        elif ast.tag == 'VarDecls':
-            for child in ast.children:
-                self.assert_eq(self.type_of(child), Void())
-            ast.type = Void()
-        elif ast.tag == 'VarDecl':
-            name = ast.value
-            if name in self.context:
-                raise CastileTypeError('declaration of %s shadows previous' % name)
-            self.set(name, self.type_of(ast.children[0]))
             ast.type = Void()
         elif ast.tag == 'FunType':
             return_type = self.type_of(ast.children[0])
@@ -197,11 +186,22 @@ class TypeChecker(object):
                 self.assert_eq(self.type_of(child), Void())
             ast.type = Void()
         elif ast.tag == 'Assignment':
-            t1 = self.type_of(ast.children[0])
+            t2 = self.type_of(ast.children[1])
+            t1 = None
+            name = ast.children[0].value
+            if ast.aux == 'defining instance':
+                if name in self.context:
+                    raise CastileTypeError('definition of %s shadows previous' % name)
+                self.set(name, t2)
+                t1 = t2
+            else:
+                if name not in self.context:
+                    raise CastileTypeError('variable %s used before definition' % name)
+                t1 = self.type_of(ast.children[0])
+            self.assert_eq(t1, t2)
+            # not quite useless now (typecase still likes this)
             if self.context.level(ast.children[0].value) != 'local':
                 raise CastileTypeError('cannot assign to non-local')
-            t2 = self.type_of(ast.children[1])
-            self.assert_eq(t1, t2)
             ast.type = Void()
         elif ast.tag == 'Make':
             t = self.type_of(ast.children[0])

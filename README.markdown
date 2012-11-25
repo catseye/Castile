@@ -40,9 +40,8 @@ Castile's influences might include:
     with a union type which includes `void`, and `typecase` generalizes
     Eightebed's `ifvalid`.
 
-*   **Pascal**: All local variables used in a function must be declared at
-    the start of the function body.  (This may change to something more
-    Python-like in the near future.)
+*   **Python**: The first time a local variable is assigned counts as its
+    declaration as a local.
 
 *   **Ruby**: The last expression in a function body is the return value
     of that function; no explicit `return` is needed there.  (But unlike
@@ -99,8 +98,7 @@ Grammar
               | "struct" ident "{" {ident ":" TExpr [";"]} "}"
               | ident (":" TExpr0 | "=" Literal).
     Arg     ::= ident [":" TExpr1].
-    Body    ::= "{" {VarDecl [";"]} {Stmt [";"]} "}".
-    VarDecl ::= "var" ident "=" Expr0.
+    Body    ::= "{" {Stmt [";"]} "}".
     Stmt    ::= "while" Expr0 Block
               | "typecase" ident "is" TExpr0 Block
               | "do" Expr0
@@ -118,7 +116,7 @@ Grammar
               | "(" Expr0 ")"
               | "not" Expr1
               | Literal
-              | ident ["=" Expr0].
+              | ["var"] ident ["=" Expr0].
     Literal ::= strlit
               | ["-"] intlit
               | "true" | "false" | "null"
@@ -232,7 +230,7 @@ result of that expression is the value of the block.
 An `if`/`else` lets you make decisions.
 
     | fun main() {
-    |   var a = 0;
+    |   a = 0;
     |   if 3 > 2 {
     |     a = 70
     |   } else {
@@ -245,7 +243,7 @@ An `if`/`else` lets you make decisions.
 An `if` need not have an `else`.
 
     | fun main() {
-    |   var a = 60
+    |   a = 60
     |   if 3 > 2 {
     |     a = 70
     |   }
@@ -256,7 +254,7 @@ An `if` need not have an `else`.
 `if` always typechecks to void, one branch or two.
 
     | fun main() {
-    |   var a = 60
+    |   a = 60
     |   if 3 > 2 {
     |     a = 70
     |   }
@@ -264,7 +262,7 @@ An `if` need not have an `else`.
     = 
 
     | fun main() {
-    |   var a = 60
+    |   a = 60
     |   if 3 > 2 {
     |     a = 70
     |   } else {
@@ -303,7 +301,7 @@ No dangling else problem.
 `while` loops.
 
     | fun main() {
-    |   var a = 0 var b = 4
+    |   a = 0 b = 4
     |   while b > 0 {
     |     a = a + b
     |     b = b - 1
@@ -315,7 +313,7 @@ No dangling else problem.
 A `while` itself has void type.
 
     | fun main() {
-    |   var a = 0; var b = 4;
+    |   a = 0; b = 4;
     |   while b > 0 {
     |     a = a + b;
     |     b = b - 1;
@@ -326,7 +324,7 @@ A `while` itself has void type.
 `break` may be used to prematurely exit a `while`.
 
     | fun main() {
-    |   var a = 0; var b = 0;
+    |   a = 0; b = 0;
     |   while true {
     |     a = a + b;
     |     b = b + 1;
@@ -388,26 +386,17 @@ Precedence of unary not.
 Local variables.
 
     | fun main() {
-    |   var a = 6;
-    |   var b = 7;
+    |   a = 6;
+    |   b = 7;
     |   a + b
     | }
     = 13
-
-Local variable names must be unique.
-
-    | fun main() {
-    |   var a = 6;
-    |   var a = 7;
-    |   a + b
-    | }
-    ? shadows
 
 Local variables can be assigned functions.
 
     | fun ancillary(x) { x * 2 }
     | fun main() {
-    |   var a = ancillary;
+    |   a = ancillary;
     |   a(7)
     | }
     = 14
@@ -415,29 +404,55 @@ Local variables can be assigned functions.
 Local variables can be assigned.
 
     | fun main() {
-    |   var a = 6;
+    |   a = 6;
     |   a = a + 12;
     |   a
     | }
     = 18
 
     | fun main() {
-    |   var a = 6;
-    |   a = 99;
+    |   a = 6;
+    |   z = 99;
     |   a
     | }
-    = 99
+    = 6
 
     | fun main() {
-    |   var a = 6;
-    |   z = 99;
+    |   z = 6;
+    |   a
+    | }
+    ? undefined
+
+Local variables cannot occur in expressions until they are defined by an
+initial assignment.
+
+    | fun main() {
+    |   z = a * 10;
+    |   a = 10;
+    |   z
+    | }
+    ? undefined
+
+A local variables should not be defined inside an `if`... yeah, tricky, I don't
+think we're there yet.
+
+    | fun main() {
+    |   if (4 > 5) {
+    |     a = 10;
+    |   } else {
+    |     b = 11;
+    |   }
     |   a
     | }
     ? undefined
 
     | fun main() {
-    |   var z = 6;
-    |   a
+    |   if (4 > 5) {
+    |     a = 10;
+    |   } else {
+    |     b = 11;
+    |   }
+    |   b
     | }
     ? undefined
 
@@ -445,38 +460,15 @@ Assignment, though it syntactically may occur in expressions, has a type of
 void, so it can only really happen at the statement level.
 
     | fun main() {
-    |   var a = 0; var b = 0;
+    |   a = 0; b = 0;
     |   a = b = 9;
     | }
     ? type mismatch
 
-Variables may only be declared in a function body, not an inner block.
-
-    | fun main() {
-    |   var a = 0;
-    |   if 3 > 2 {
-    |     var a = 7;
-    |   }
-    |   a
-    | }
-    ? keyword
-
-Variables must be declared at the start of a function body.
-
-    | fun main() {
-    |   print("Hi");
-    |   var a = 1;
-    |   if 3 > 2 {
-    |     a = 7;
-    |   }
-    |   a
-    | }
-    ? keyword
-
 Variables in upper scopes may be modified.
 
     | fun main() {
-    |   var a = 0
+    |   a = 0
     |   if 3 > 2 {
     |     a = 4;
     |   }
@@ -494,20 +486,11 @@ Literals may appear at the toplevel.    Semicolons are optional at toplevel.
     | }
     = 30
 
-Toplevel literals may not be updated.
+Toplevel literals may not be updated.  (And thus
 
     | factor = 5
     | fun main() {
     |   factor = 7
-    | }
-    ? cannot assign
-
-Toplevel literals may not be shadowed.
-
-    | factor = 5;
-    | fun main() {
-    |   var factor = 7;
-    |   6 * factor
     | }
     ? shadows
 
@@ -549,7 +532,7 @@ Function arguments may not be updated.
     | fun main() {
     |   foo(7)
     | }
-    ? cannot assign
+    ? shadows
 
 Factorial can be computed.
 
@@ -569,7 +552,7 @@ Factorial can be computed.
 Literal functions.
 
     | fun main() {
-    |   var inc = fun(x) { x + 1 };
+    |   inc = fun(x) { x + 1 };
     |   inc(7)
     | }
     = 8
@@ -580,7 +563,7 @@ Literal functions.
     = 10
 
     | fun main() {
-    |   var a = 99;
+    |   a = 99;
     |   a = fun(x){ x + 1 }(9);
     |   a
     | }
@@ -589,9 +572,9 @@ Literal functions.
 Literal functions can have local variables, loops, etc.
 
     | fun main() {
-    |   var z = 99;
+    |   z = 99;
     |   z = fun(x) {
-    |     var a = x;  var b = x;
+    |     a = x;  b = x;
     |     while a > 0 {
     |       b = b + a; a = a - 1;
     |     }
@@ -619,7 +602,7 @@ Literal functions can access globals.
 Literal functions cannot access variables declared in enclosing scopes.
 
     | fun main() {
-    |   var oid = 19;
+    |   oid = 19;
     |   fun(x){ x + oid }(11);
     | }
     ? undefined
@@ -638,9 +621,9 @@ Functions can be passed to functions and returned from functions.
     | fun apply_and_add_one(f: (integer -> integer), x) { f(x) + 1 }
     | fun select(a) { if a > 10 { return double } else { return triple } }
     | fun main() {
-    |   var t = select(5);
-    |   var d = select(15);
-    |   var p = t(10);
+    |   t = select(5);
+    |   d = select(15);
+    |   p = t(10);
     |   apply_and_add_one(d, p)
     | }
     = 61
@@ -661,7 +644,7 @@ in function definitions must be in parens.
 `return` may be used to prematurely return a value from a function.
 
     | fun foo(y) {
-    |   var x = y
+    |   x = y
     |   while x > 0 {
     |     if x < 5 {
     |       return x;
@@ -712,8 +695,8 @@ The usual.
 Some standard functions are builtin and available as toplevels.
 
     | fun main() {
-    |   var a = "hello";
-    |   var b = len(a);
+    |   a = "hello";
+    |   b = len(a);
     |   while b > 0 {
     |     print(a);
     |     b = b - 1;
@@ -761,15 +744,16 @@ And make them.
 
     | struct person { name: string; age: integer }
     | main = fun() {
-    |   var j = make person(name:"Jake", age:23);
+    |   j = make person(name:"Jake", age:23);
+    |   print("ok")
     | }
-    = 
+    = ok
 
 And extract the fields from them.
 
     | struct person { name: string; age: integer }
     | main = fun() {
-    |   var j = make person(name:"Jake", age:23);
+    |   j = make person(name:"Jake", age:23);
     |   print(j.name)
     |   if j.age > 20 {
     |     print("Older than twenty")
@@ -783,7 +767,7 @@ And extract the fields from them.
 Structs must be defined somewhere.
 
     | main = fun() {
-    |   var j = make person(name:"Jake", age:23);
+    |   j = make person(name:"Jake", age:23);
     |   j
     | }
     ? undefined
@@ -791,7 +775,7 @@ Structs must be defined somewhere.
 Structs need not be defined before use.
 
     | main = fun() {
-    |   var j = make person(name:"Jake", age:23);
+    |   j = make person(name:"Jake", age:23);
     |   j.age
     | }
     | struct person { name: string; age: integer }
@@ -807,21 +791,21 @@ Types must match when making a struct.
 
     | struct person { name: string; age: integer }
     | main = fun() {
-    |   var j = make person(name:"Jake", age:"Old enough to know better");
+    |   j = make person(name:"Jake", age:"Old enough to know better");
     |   j.age
     | }
     ? type mismatch
 
     | struct person { name: string; age: integer }
     | main = fun() {
-    |   var j = make person(name:"Jake");
+    |   j = make person(name:"Jake");
     |   j.age
     | }
     ? argument mismatch
 
     | struct person { name: string }
     | main = fun() {
-    |   var j = make person(name:"Jake", age:23);
+    |   j = make person(name:"Jake", age:23);
     |   j.age
     | }
     ? argument mismatch
@@ -830,7 +814,7 @@ Order of field initialization when making a struct doesn't matter.
 
     | struct person { name: string; age: integer }
     | main = fun() {
-    |   var j = make person(age: 23, name:"Jake");
+    |   j = make person(age: 23, name:"Jake");
     |   j.age
     | }
     = 23
@@ -840,24 +824,24 @@ doesn't matter if this is structural equality or identity.)
 
     /| struct person { age: integer; name: string }
     /| main = fun() {
-    /|   var j = make person(age: 23, name:"Jake");
-    /|   var k = make person(age: 23, name:"Jake");
+    /|   j = make person(age: 23, name:"Jake");
+    /|   k = make person(age: 23, name:"Jake");
     /|   j == k
     /| }
     /= True
 
     /| struct person { name: string; age: integer }
     /| main = fun() {
-    /|   var j = make person(age: 23, name:"Jake");
-    /|   var k = make person(name:"Jake", age: 23);
+    /|   j = make person(age: 23, name:"Jake");
+    /|   k = make person(name:"Jake", age: 23);
     /|   j == k
     /| }
     /= True
 
     /| struct person { age: integer; name: string }
     /| main = fun() {
-    /|   var j = make person(age: 23, name:"Jake");
-    /|   var k = make person(age: 23, name:"John");
+    /|   j = make person(age: 23, name:"Jake");
+    /|   k = make person(age: 23, name:"John");
     /|   j == k
     /| }
     /= False
@@ -867,7 +851,7 @@ Structs can be passed to functions.
     | struct person { name: string; age: integer }
     | fun wat(bouncer: person) { bouncer.age }
     | main = fun() {
-    |   var j = make person(name:"Jake", age:23);
+    |   j = make person(name:"Jake", age:23);
     |   wat(j)
     | }
     = 23
@@ -878,7 +862,7 @@ Structs have name equivalence, not structural.
     | struct city { name: string; population: integer }
     | fun wat(hometown: city) { hometown }
     | main = fun() {
-    |   var j = make person(name:"Jake", age:23);
+    |   j = make person(name:"Jake", age:23);
     |   wat(j)
     | }
     ? type mismatch
@@ -887,7 +871,7 @@ Struct fields must all be unique.
 
     | struct person { name: string; name: string }
     | main = fun() {
-    |   var j = make person(name:"Jake", name:"Smith");
+    |   j = make person(name:"Jake", name:"Smith");
     | }
     ? defined
 
@@ -896,7 +880,7 @@ Values can be retrieved from structs.
     | struct person { name: string; age: integer }
     | fun age(bouncer: person) { bouncer.age }
     | main = fun() {
-    |   var j = make person(name:"Jake", age:23);
+    |   j = make person(name:"Jake", age:23);
     |   age(j)
     | }
     = 23
@@ -904,7 +888,7 @@ Values can be retrieved from structs.
     | struct person { name: string }
     | fun age(bouncer: person) { bouncer.age }
     | main = fun() {
-    |   var j = make person(name:"Jake");
+    |   j = make person(name:"Jake");
     |   age(j)
     | }
     ? undefined
@@ -914,8 +898,8 @@ Different structs may have the same field name in different positions.
     | struct person { name: string; age: integer }
     | struct city { population: integer; name: string }
     | main = fun() {
-    |   var j = make person(name:"Jake", age:23);
-    |   var w = make city(population:600000, name:"Winnipeg");
+    |   j = make person(name:"Jake", age:23);
+    |   w = make city(population:600000, name:"Winnipeg");
     |   print(j.name)
     |   print(w.name)
     | }
@@ -963,8 +947,8 @@ applied to any expression.
 The type after the `as` must be a union.
 
     | fun main() {
-    |   var a = 20;
-    |   var b = 30;
+    |   a = 20;
+    |   b = 30;
     |   a + b as integer
     | }
     ? bad cast
@@ -972,8 +956,8 @@ The type after the `as` must be a union.
 The type after the `as` must be one of the types in the union.
 
     | fun main() {
-    |   var a = 20;
-    |   var b = 30;
+    |   a = 20;
+    |   b = 30;
     |   a + b as string|void
     | }
     ? bad cast
@@ -981,9 +965,9 @@ The type after the `as` must be one of the types in the union.
 The type after the `as` must be the type of the expression.
 
     | fun main() {
-    |   var a = 20;
-    |   var b = 30;
-    |   var c = a + b as integer|string
+    |   a = 20;
+    |   b = 30;
+    |   c = a + b as integer|string
     |   print("ok")
     | }
     = ok
@@ -994,7 +978,7 @@ Values of union type can be passed to functions.
     |   a + 1
     | }
     | main = fun() {
-    |   var a = 0;
+    |   a = 0;
     |   a = foo(a, 333 as integer|string);
     |   a = foo(a, "hiya" as integer|string);
     |   a
@@ -1007,7 +991,7 @@ Order of types in a union doesn't matter.
     |   a + 1
     | }
     | main = fun() {
-    |   var a = 0;
+    |   a = 0;
     |   a = foo(a, 333 as integer|string);
     |   a = foo(a, "hiya" as string|integer);
     |   a
@@ -1017,7 +1001,7 @@ Order of types in a union doesn't matter.
 The `typecase` construct can operate on the "right" type of a union.
 
     | fun foo(a, b: integer|string) {
-    |   var r = a;
+    |   r = a;
     |   typecase b is integer {
     |     r = r + b;
     |   };
@@ -1027,7 +1011,7 @@ The `typecase` construct can operate on the "right" type of a union.
     |   r
     | }
     | main = fun() {
-    |   var a = 0;
+    |   a = 0;
     |   a = foo(a, 333 as integer|string);
     |   a = foo(a, "hiya" as integer|string);
     |   a
@@ -1037,7 +1021,7 @@ The `typecase` construct can operate on the "right" type of a union.
 The expression in a `typecase` must be a variable.
 
     | main = fun() {
-    |   var a = 333 as integer|string;
+    |   a = 333 as integer|string;
     |   typecase 333 is integer {
     |     print("what?")
     |   };
@@ -1063,7 +1047,7 @@ type.
 Inside a `typecase` the variable cannot be updated.
 
     | main = fun() {
-    |   var a = 333 as integer|string;
+    |   a = 333 as integer|string;
     |   typecase a is integer {
     |     a = 700;
     |   };
@@ -1073,7 +1057,7 @@ Inside a `typecase` the variable cannot be updated.
 The union can include void.
 
     | main = fun() {
-    |   var j = null as void|integer;
+    |   j = null as void|integer;
     |   typecase j is void {
     |     print("nothing there")
     |   };
@@ -1090,13 +1074,13 @@ you can in actuality create recursive, but finite, data structures.
     |   next: list|integer;
     | }
     | main = fun() {
-    |   var l = make list(
+    |   l = make list(
     |     value: "first",
     |     next: make list(
     |       value: "second",
     |       next:0 as list|integer
     |     ) as list|integer)
-    |   var s = l.next
+    |   s = l.next
     |   typecase s is list {
     |     print(s.value)
     |   }
@@ -1116,9 +1100,9 @@ You may want to use helper functions to hide this ugliness.
     |   make list(value:v, next:l as list|void)
     | }
     | fun nth(n, l: list) {
-    |   var u = l as list|void;
-    |   var v = u;
-    |   var k = n;
+    |   u = l as list|void;
+    |   v = u;
+    |   k = n;
     |   while k > 1 {
     |     typecase u is void { break; }
     |     typecase u is list { v = u.next; }
@@ -1128,8 +1112,8 @@ You may want to use helper functions to hide this ugliness.
     |   return u
     | }
     | main = fun() {
-    |   var l = cons("first", singleton("second"));
-    |   var g = nth(2, l);
+    |   l = cons("first", singleton("second"));
+    |   g = nth(2, l);
     |   typecase g is list { print(g.value); }
     | }
     = second

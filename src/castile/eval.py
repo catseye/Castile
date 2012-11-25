@@ -71,17 +71,7 @@ class Closure(object):
         if ast is None:
             ast = self.ast.children[1]
         if ast.tag == 'Body':
-            self.eval(ast.children[0])  # to collect locals
             return self.eval(ast.children[1])
-        elif ast.tag == 'VarDecls':
-            for child in ast.children:
-                self.eval(child)
-            return None
-        elif ast.tag == 'VarDecl':
-            name = ast.value
-            v = self.eval(ast.children[0])
-            self.locals[name] = v
-            return None
         elif ast.tag == 'Block':
             v1 = None
             for stmt in ast.children:

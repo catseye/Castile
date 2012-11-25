@@ -63,7 +63,7 @@ if (result !== undefined && result !== null)
   print(repr(result));
 """)
         elif ast.tag == 'Defn':
-            self.out.write('%s = ' % ast.value)
+            self.out.write('var %s = ' % ast.value)
             self.compile(ast.children[0])
             self.out.write(';\n')
         elif ast.tag in ('StructDefn', 'Forward'):
@@ -90,9 +90,7 @@ if (result !== undefined && result !== null)
             for child in ast.children:
                 self.compile(child)
         elif ast.tag == 'VarDecl':
-            self.out.write('%s = ' % ast.value)
-            self.compile(ast.children[0])
-            self.out.write(';\n')
+            self.out.write('var %s;\n' % ast.value)
         elif ast.tag == 'Block':
             self.out.write('{')
             for child in ast.children:

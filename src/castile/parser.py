@@ -19,6 +19,8 @@ class Parser(object):
 
     * It inserts a final `return` in a block where the last statement is a
       non-void expression.
+    * It collects all assigned-to variable names in a function body, and
+      turns them into VarDecl nodes.
 
     """
     def __init__(self, text):
@@ -26,6 +28,8 @@ class Parser(object):
         self.token = None
         self.type = None
         self.scan()
+        # for parser...
+        self.locals = None
 
     ### SCANNER ###
 
@@ -222,13 +226,8 @@ class Parser(object):
         # last expression to a 'return' if it's not a statement
         # (and inserts a 'return' if the block is empty)
         self.expect('{')
-        vardecls = []
-        while self.consume('var'):
-            id = self.expect_type('identifier')
-            self.expect('=')
-            e = self.expr0()
-            vardecls.append(AST('VarDecl', [e], value=id))
-            self.consume(';')
+        save_locals = self.locals
+        self.locals = set()
         stmts = []
         last = None
         while not self.on('}'):
@@ -240,8 +239,11 @@ class Parser(object):
         elif last is not None and last.tag not in self.STMT_TAGS:
             stmts[-1] = AST('Return', [stmts[-1]])
         self.expect('}')
-        vardecls = AST('VarDecls', vardecls)
+        vardecls = AST('VarDecls',
+            [AST('VarDecl', value=name) for name in self.locals]
+        )
         stmts = AST('Block', stmts)
+        self.locals = save_locals
         return AST('Body', [vardecls, stmts])
 
     def stmt(self):
@@ -362,11 +364,16 @@ class Parser(object):
             self.expect(')')
             return e
         else:
+            self.consume('var')
             id = self.expect_type('identifier')
             ast = AST('VarRef', value=id)
             if self.consume('='):
                 e = self.expr0()
-                ast = AST('Assignment', [ast, e])
+                aux = None
+                if id not in self.locals:
+                    self.locals.add(id)
+                    aux = 'defining instance'
+                ast = AST('Assignment', [ast, e], aux=aux)
             return ast
 
     def literal(self):

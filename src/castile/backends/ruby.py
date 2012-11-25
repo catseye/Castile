@@ -98,9 +98,7 @@ end
             for child in ast.children:
                 self.compile(child)
         elif ast.tag == 'VarDecl':
-            self.out.write('%s = ' % ast.value)
-            self.compile(ast.children[0])
-            self.out.write('\n')
+            self.out.write('%s = nil;\n' % ast.value)
         elif ast.tag == 'Block':
             for child in ast.children:
                 self.compile(child)

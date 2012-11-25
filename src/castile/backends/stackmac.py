@@ -149,7 +149,7 @@ call
             for child in ast.children:
                 self.compile(child)
         elif ast.tag == 'VarDecl':
-            self.compile(ast.children[0])
+            self.out.write('push 0\n')
             self.out.write('%s_local_%s=%s\n' %
                 (self.fun_lit, ast.value, self.local_pos))
             self.local_pos += 1
