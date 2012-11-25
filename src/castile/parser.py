@@ -215,7 +215,7 @@ class Parser(object):
         self.expect('}')
         return AST('Block', stmts)
 
-    STMT_TYPES = ('If', 'While', 'TypeCase', 'Return', 'Break')
+    STMT_TAGS = ('If', 'While', 'TypeCase', 'Return', 'Break')
 
     def body(self):
         # block for a function body -- automatically promotes the
@@ -237,7 +237,7 @@ class Parser(object):
             self.consume(';')
         if len(stmts) == 0:
             stmts = [AST('Return', [AST('None')])]
-        elif last is not None and last.type not in self.STMT_TYPES:
+        elif last is not None and last.tag not in self.STMT_TAGS:
             stmts[-1] = AST('Return', [stmts[-1]])
         self.expect('}')
         vardecls = AST('VarDecls', vardecls)

@@ -1,8 +1,8 @@
 class AST(object):
-    def __init__(self, type, children=None, value=None):
-        # TODO 'type' should be 'tag' or 'kind' or smth; 'type' should be
+    def __init__(self, tag, children=None, value=None):
+        # TODO 'type' should be
         # the type, in the type system, of the value this node evaluates to
-        self._type = type
+        self._tag = tag
         self._value = value
         if children is not None:
             self._children = children
@@ -12,12 +12,14 @@ class AST(object):
         for child in self.children:
             assert isinstance(child, AST), \
               "child %r of %r is not an AST node" % (child, self)
+        self.type = None  # typechecker may populate this
         self.aux = None  # typechecker may populate this
+        # TODO document what it means for particular nodes
         #print "created %r" % self
 
     @property
-    def type(self):
-        return self._type
+    def tag(self):
+        return self._tag
 
     @property
     def value(self):
@@ -29,19 +31,19 @@ class AST(object):
 
     def __repr__(self):
         if self.value is None:
-            return 'AST(%r,%r)' % (self.type, self.children)
+            return 'AST(%r,%r)' % (self.tag, self.children)
         if not self.children:
-            return 'AST(%r,value=%r)' % (self.type, self.value)
-        return 'AST(%r,%r,value=%r)' % (self.type, self.children, self.value)
+            return 'AST(%r,value=%r)' % (self.ttag, self.value)
+        return 'AST(%r,%r,value=%r)' % (self.tag, self.children, self.value)
 
     def minirepr(self):
         return '%s(%s:%s)' % (
-            self.type, self.value,
+            self.tag, self.value,
             ','.join([c.minirepr() for c in self.children])
         )
 
     def pprint(self, indent):
-        h = ('  ' * indent) + self.type
+        h = ('  ' * indent) + self.tag
         if self.value is not None:
             h += '=%r' % self.value
         h += '\n'

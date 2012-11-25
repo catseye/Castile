@@ -47,7 +47,7 @@ class WhileBreak(Exception):
 class Closure(object):
     def __init__(self, program, ast):
         self.program = program
-        assert callable(ast) or ast.type == 'FunLit'
+        assert callable(ast) or ast.tag == 'FunLit'
         self.ast = ast
         self.locals = {}
 
@@ -56,10 +56,10 @@ class Closure(object):
         if callable(self.ast):  # for builtins
             return self.ast(*actuals)
         formals = self.ast.children[0]
-        assert formals.type == 'Args'
+        assert formals.tag == 'Args'
         i = 0
         for formal in formals.children:
-            assert formal.type == 'Arg'
+            assert formal.tag == 'Arg'
             self.locals[formal.value] = actuals[i]
             i += 1
         try:
@@ -70,24 +70,24 @@ class Closure(object):
     def eval(self, ast=None):
         if ast is None:
             ast = self.ast.children[1]
-        if ast.type == 'Body':
+        if ast.tag == 'Body':
             self.eval(ast.children[0])  # to collect locals
             return self.eval(ast.children[1])
-        elif ast.type == 'VarDecls':
+        elif ast.tag == 'VarDecls':
             for child in ast.children:
                 self.eval(child)
             return None
-        elif ast.type == 'VarDecl':
+        elif ast.tag == 'VarDecl':
             name = ast.value
             v = self.eval(ast.children[0])
             self.locals[name] = v
             return None
-        elif ast.type == 'Block':
+        elif ast.tag == 'Block':
             v1 = None
             for stmt in ast.children:
                 v1 = self.eval(stmt)
             return v1
-        elif ast.type == 'If':
+        elif ast.tag == 'If':
             v1 = self.eval(ast.children[0])
             if len(ast.children) == 3:  # if-else
                 if v1:
@@ -98,12 +98,12 @@ class Closure(object):
                 if v1:
                     self.eval(ast.children[1])
                 return None
-        elif ast.type == 'Return':
+        elif ast.tag == 'Return':
             v1 = self.eval(ast.children[0])
             raise FunctionReturn(v1)
-        elif ast.type == 'Break':
+        elif ast.tag == 'Break':
             raise WhileBreak()
-        elif ast.type == 'While':
+        elif ast.tag == 'While':
             v1 = self.eval(ast.children[0])
             try:
                 while v1:
@@ -112,46 +112,46 @@ class Closure(object):
             except WhileBreak:
                 pass
             return None
-        elif ast.type == 'Op':
+        elif ast.tag == 'Op':
             v1 = self.eval(ast.children[0])
             op = OPS[ast.value]
             v2 = self.eval(ast.children[1])
             return op(v1, v2)
-        elif ast.type == 'Not':
+        elif ast.tag == 'Not':
             return not self.eval(ast.children[0])
-        elif ast.type == 'VarRef':
+        elif ast.tag == 'VarRef':
             name = ast.value
             if name in self.locals:
                 return self.locals[name]
             return self.program.stab[name]
-        elif ast.type in ['IntLit', 'StrLit', 'BoolLit']:
+        elif ast.tag in ['IntLit', 'StrLit', 'BoolLit']:
             return ast.value
-        elif ast.type in ['None']:
+        elif ast.tag == 'None':
             return None
-        elif ast.type == 'FunLit':
+        elif ast.tag == 'FunLit':
             return Closure(self.program, ast)
-        elif ast.type == 'FunCall':
+        elif ast.tag == 'FunCall':
             fun_val = self.eval(ast.children[0])
             actuals = [self.eval(arg) for arg in ast.children[1:]]
             return fun_val.call(actuals)
-        elif ast.type == 'Assignment':
+        elif ast.tag == 'Assignment':
             var_ref = ast.children[0]
             name = var_ref.value
             v = self.eval(ast.children[1])
             self.locals[name] = v
             return None
-        elif ast.type == 'Index':
+        elif ast.tag == 'Index':
             v = self.eval(ast.children[0])
             return v[ast.value]
-        elif ast.type == 'Make':
+        elif ast.tag == 'Make':
             v = StructDict(ast.value, [arg.value for arg in ast.children[1:]])
             for arg in ast.children[1:]:
                 v[arg.value] = self.eval(arg.children[0])
             return v
-        elif ast.type == 'TypeCast':
+        elif ast.tag == 'TypeCast':
             v = self.eval(ast.children[0])
             return TaggedValue(typeof(v), v)
-        elif ast.type == 'TypeCase':
+        elif ast.tag == 'TypeCase':
             r = self.eval(ast.children[0])
             assert isinstance(r, TaggedValue)
             if r.tag == ast.value:
@@ -188,11 +188,11 @@ class Program(object):
             self.stab[name] = value
 
     def load(self, ast):
-        assert ast.type == 'Program'
+        assert ast.tag == 'Program'
         # dummy closure for evaluating literals at toplevel
         toplevel = Closure(self, lambda x: x)
         for child in ast.children:
-            if child.type == 'Defn':
+            if child.tag == 'Defn':
                 self.stab[child.value] = toplevel.eval(child.children[0])
 
     def run(self):

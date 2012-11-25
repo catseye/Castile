@@ -54,12 +54,12 @@ class Compiler(object):
         self.tag_count = 0      # next tag to generate
 
     def size_of(self, ast):
-        if ast.type == 'Type':
+        if ast.tag == 'Type':
             if ast.value == 'void':
                 return 0
             else:
                 return 1
-        elif ast.type in ('FunType', 'StructType', 'UnionType'):
+        elif ast.tag in ('FunType', 'StructType', 'UnionType'):
             # TODO might be unboxed, all on stack, in future
             return 1
         else:
@@ -78,7 +78,7 @@ class Compiler(object):
         return self.tags[value]
 
     def compile(self, ast):
-        if ast.type == 'Program':
+        if ast.tag == 'Program':
             self.out.write("""\
 ; AUTOMATICALLY GENERATED -- EDIT AT OWN RISK
 
@@ -92,13 +92,13 @@ global_pos=%d
 get_global main_index
 call
 """ % self.global_pos)
-        elif ast.type == 'Defn':
+        elif ast.tag == 'Defn':
             self.out.write('%s_index=%d\n' % (ast.value, self.global_pos))
             self.global_pos += 1
             self.compile(ast.children[0])
-        elif ast.type in ('StructDefn', 'Forward'):
+        elif ast.tag in ('StructDefn', 'Forward'):
             pass
-        elif ast.type == 'FunLit':
+        elif ast.tag == 'FunLit':
             past_fun = self.get_label('past_fun')
             self.out.write('jmp %s\n' % past_fun)
             save_fun = self.fun_lit
@@ -116,7 +116,7 @@ call
             # base this on return type: void = 0, int = 1, union = 2, etc
             # TODO use size_of, when it works on types
             returnsize = 1
-            if ast.aux.return_type == Void():
+            if ast.type.return_type == Void():
                 returnsize = 0
             self.out.write('set_returnsize %d\n' % returnsize)
             self.out.write('clear_baseptr %d\n' % (0 - self.fun_argsize))
@@ -125,10 +125,10 @@ call
             self.out.write('push %s\n' % self.fun_lit)
             self.fun_argsize = save_argsize
             self.fun_lit = save_fun
-        elif ast.type == 'Args':
+        elif ast.tag == 'Args':
             argsize = 0
             for child in ast.children:
-                assert child.type == 'Arg'
+                assert child.tag == 'Arg'
                 argsize += self.size_of(child.children[0])
             self.fun_argsize = argsize
             # first arg passed is DEEPEST, so go backwards.
@@ -137,21 +137,21 @@ call
                 self.out.write('%s_local_%s=%d\n' %
                     (self.fun_lit, child.value, pos))
                 pos += self.size_of(child.children[0])
-        elif ast.type == 'Body':
+        elif ast.tag == 'Body':
             self.compile(ast.children[0])
             self.compile(ast.children[1])
-        elif ast.type == 'VarDecls':
+        elif ast.tag == 'VarDecls':
             for child in ast.children:
                 self.compile(child)
-        elif ast.type == 'VarDecl':
+        elif ast.tag == 'VarDecl':
             self.compile(ast.children[0])
             self.out.write('%s_local_%s=%s\n' %
                 (self.fun_lit, ast.value, self.local_pos))
             self.local_pos += 1
-        elif ast.type == 'Block':
+        elif ast.tag == 'Block':
             for child in ast.children:
                 self.compile(child)
-        elif ast.type == 'While':
+        elif ast.tag == 'While':
             start = self.get_label('loop_start')
             end = self.get_label('loop_end')
             save = self.loop_end
@@ -163,25 +163,25 @@ call
             self.out.write('jmp %s\n' % start)
             self.out.write('%s:\n' % end)
             self.loop_end = self.loop_end
-        elif ast.type == 'Op':
+        elif ast.tag == 'Op':
             self.compile(ast.children[0])
             self.compile(ast.children[1])
             self.out.write('%s\n' % OPS.get(ast.value, ast.value))
-        elif ast.type == 'VarRef':
+        elif ast.tag == 'VarRef':
             if ast.aux == 'global':
                 self.out.write('builtin_%s\n' % ast.value)
             elif ast.aux == 'toplevel':
                 self.out.write('get_global %s_index\n' % ast.value)
             else:
                 self.out.write('get_local %s_local_%s\n' % (self.fun_lit, ast.value))
-        elif ast.type == 'FunCall':
+        elif ast.tag == 'FunCall':
             for child in ast.children[1:]:
                 self.out.write('; push argument\n')
                 self.compile(child)
             self.out.write('; push function\n')
             self.compile(ast.children[0])
             self.out.write('call\n')
-        elif ast.type == 'If':
+        elif ast.tag == 'If':
             else_part = self.get_label('else_part')
             end_if = self.get_label('end_if')
             self.compile(ast.children[0])
@@ -192,31 +192,31 @@ call
             if len(ast.children) == 3:
                 self.compile(ast.children[2])
             self.out.write('%s:\n' % end_if)
-        elif ast.type == 'Return':
+        elif ast.tag == 'Return':
             self.compile(ast.children[0])
             self.out.write('jmp exeunt_%s\n' % self.fun_lit)
-        elif ast.type == 'Break':
+        elif ast.tag == 'Break':
             self.out.write('jmp %s\n' % self.loop_end)
-        elif ast.type == 'Not':
+        elif ast.tag == 'Not':
             self.compile(ast.children[0])
             self.out.write('not\n')
-        elif ast.type == 'None':
+        elif ast.tag == 'None':
             pass  # sizeof(void) == 0
-        elif ast.type == 'BoolLit':
+        elif ast.tag == 'BoolLit':
             if ast.value:
                 self.out.write("push -1\n")
             else:
                 self.out.write("push 0\n")
-        elif ast.type == 'IntLit':
+        elif ast.tag == 'IntLit':
             self.out.write('push %s\n' % ast.value)
-        elif ast.type == 'StrLit':
+        elif ast.tag == 'StrLit':
             self.out.write('push %r\n' % ast.value)
-        elif ast.type == 'Assignment':
+        elif ast.tag == 'Assignment':
             self.compile(ast.children[1])
             self.out.write('; assign to...\n')
-            assert ast.children[0].type == 'VarRef'
+            assert ast.children[0].tag == 'VarRef'
             self.out.write('set_local %s_local_%s\n' % (self.fun_lit, ast.children[0].value))
-        elif ast.type == 'Make':
+        elif ast.tag == 'Make':
             # TODO store in the order defined in the struct?
             fields = {}
             for child in ast.children[1:]:
@@ -225,12 +225,12 @@ call
                 self.compile(fields[position])
             self.out.write('push %d\n' % (len(ast.children) - 1))
             self.out.write('make_struct\n')  # sigh
-        elif ast.type == 'FieldInit':
+        elif ast.tag == 'FieldInit':
             self.compile(ast.children[0])
-        elif ast.type == 'Index':
+        elif ast.tag == 'Index':
             self.compile(ast.children[0])
             self.out.write('get_field %d\n' % ast.aux)
-        elif ast.type == 'TypeCast':
+        elif ast.tag == 'TypeCast':
             self.compile(ast.children[0])
             self.out.write('; tag with "%s"\n' % ast.aux)
             if ast.aux == 'void':
@@ -238,7 +238,7 @@ call
                 self.out.write('push 0\n')
             tag = self.get_tag(ast.aux)
             self.out.write('tag %d\n' % tag)
-        elif ast.type == 'TypeCase':
+        elif ast.tag == 'TypeCase':
             end_typecase = self.get_label('end_typecase')
             self.compile(ast.children[0])
             self.out.write('dup\n')
@@ -250,7 +250,7 @@ call
             # set the value to the untagged value of the value
             self.out.write('dup\n')
             self.out.write('get_value\n')
-            assert ast.children[0].type == 'VarRef'
+            assert ast.children[0].tag == 'VarRef'
             self.out.write('set_local %s_local_%s\n' % (self.fun_lit, ast.children[0].value))
             
             self.compile(ast.children[2])

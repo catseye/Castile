@@ -17,7 +17,7 @@ class Compiler(object):
             self.compile(asts[-1])
 
     def compile(self, ast):
-        if ast.type == 'Program':
+        if ast.tag == 'Program':
             self.out.write("""\
 /* AUTOMATICALLY GENERATED -- EDIT AT OWN RISK */
 
@@ -62,62 +62,62 @@ var result = main();
 if (result !== undefined && result !== null)
   print(repr(result));
 """)
-        elif ast.type == 'Defn':
+        elif ast.tag == 'Defn':
             self.out.write('%s = ' % ast.value)
             self.compile(ast.children[0])
             self.out.write(';\n')
-        elif ast.type in ('StructDefn', 'Forward'):
+        elif ast.tag in ('StructDefn', 'Forward'):
             pass
-        elif ast.type == 'FunLit':
+        elif ast.tag == 'FunLit':
             self.out.write('function(')
             self.compile(ast.children[0])
             self.out.write(')\n')
             self.compile(ast.children[1])
-        elif ast.type == 'Args':
+        elif ast.tag == 'Args':
             self.commas(ast.children)
-        elif ast.type == 'Arg':
+        elif ast.tag == 'Arg':
             self.out.write(ast.value)
-        elif ast.type == 'Body':
+        elif ast.tag == 'Body':
             self.out.write('{')
             self.compile(ast.children[0])
-            assert ast.children[1].type == 'Block'
+            assert ast.children[1].tag == 'Block'
             block = ast.children[1]
             for child in block.children:
                 self.compile(child)
                 self.out.write(';\n')
             self.out.write('}')
-        elif ast.type == 'VarDecls':
+        elif ast.tag == 'VarDecls':
             for child in ast.children:
                 self.compile(child)
-        elif ast.type == 'VarDecl':
+        elif ast.tag == 'VarDecl':
             self.out.write('%s = ' % ast.value)
             self.compile(ast.children[0])
             self.out.write(';\n')
-        elif ast.type == 'Block':
+        elif ast.tag == 'Block':
             self.out.write('{')
             for child in ast.children:
                 self.compile(child)
                 self.out.write(';\n')
             self.out.write('}')
-        elif ast.type == 'While':
+        elif ast.tag == 'While':
             self.out.write('while (')
             self.compile(ast.children[0])
             self.out.write(')')
             self.compile(ast.children[1])
-        elif ast.type == 'Op':
+        elif ast.tag == 'Op':
             self.out.write('(')
             self.compile(ast.children[0])
             self.out.write(' %s ' % OPS.get(ast.value, ast.value))
             self.compile(ast.children[1])
             self.out.write(')')
-        elif ast.type == 'VarRef':
+        elif ast.tag == 'VarRef':
             self.out.write(ast.value)
-        elif ast.type == 'FunCall':
+        elif ast.tag == 'FunCall':
             self.compile(ast.children[0])
             self.out.write('(')
             self.commas(ast.children[1:])
             self.out.write(')')
-        elif ast.type == 'If':
+        elif ast.tag == 'If':
             self.out.write('if(')
             self.compile(ast.children[0])
             self.out.write(')')
@@ -127,45 +127,45 @@ if (result !== undefined && result !== null)
                 self.compile(ast.children[2])
             else:  # just-if
                 self.compile(ast.children[1])
-        elif ast.type == 'Return':
+        elif ast.tag == 'Return':
             self.out.write('return ')
             self.compile(ast.children[0])
-        elif ast.type == 'Break':
+        elif ast.tag == 'Break':
             self.out.write('break')
-        elif ast.type == 'Not':
+        elif ast.tag == 'Not':
             self.out.write('!(')
             self.compile(ast.children[0])
             self.out.write(')')
-        elif ast.type == 'None':
+        elif ast.tag == 'None':
             self.out.write('null')
-        elif ast.type == 'IntLit':
+        elif ast.tag == 'IntLit':
             self.out.write(str(ast.value))
-        elif ast.type == 'StrLit':
+        elif ast.tag == 'StrLit':
             self.out.write("'%s'" % ast.value)
-        elif ast.type == 'BoolLit':
+        elif ast.tag == 'BoolLit':
             if ast.value:
                 self.out.write("true")
             else:
                 self.out.write("false")
-        elif ast.type == 'Assignment':
+        elif ast.tag == 'Assignment':
             self.compile(ast.children[0])
             self.out.write(' = ')
             self.compile(ast.children[1])
-        elif ast.type == 'Make':
+        elif ast.tag == 'Make':
             self.out.write('{')
             self.commas(ast.children[1:])
             self.out.write('}')
-        elif ast.type == 'FieldInit':
+        elif ast.tag == 'FieldInit':
             self.out.write("'%s':" % ast.value)
             self.compile(ast.children[0])
-        elif ast.type == 'Index':
+        elif ast.tag == 'Index':
             self.compile(ast.children[0])
             self.out.write('.%s' % ast.value)
-        elif ast.type == 'TypeCast':
+        elif ast.tag == 'TypeCast':
             self.out.write("['%s'," % ast.aux)
             self.compile(ast.children[0])
             self.out.write(']')
-        elif ast.type == 'TypeCase':
+        elif ast.tag == 'TypeCase':
             self.out.write('if (')
             self.compile(ast.children[0])
             self.out.write("[0] == '%s')" % ast.aux)
