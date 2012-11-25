@@ -114,9 +114,9 @@ class TypeChecker(object):
             types = []
             for child in ast.children:
                 types.append(self.type_of(child))
-            return types
+            return types  # NOT A TYPE
         elif ast.tag == 'Arg':
-            return self.set(ast.value, self.type_of(ast.children[0]))
+            ast.type = self.set(ast.value, self.type_of(ast.children[0]))
         elif ast.tag == 'Type':
             map = {
                 'integer': Integer(),
@@ -124,32 +124,32 @@ class TypeChecker(object):
                 'string': String(),
                 'void': Void(),
             }
-            return map[ast.value]
+            ast.type = map[ast.value]
         elif ast.tag == 'Body':
             self.context = ScopedContext({}, self.context)
             for child in ast.children:
                 self.assert_eq(self.type_of(child), Void())
             self.context = self.context.parent
-            return Void()
+            ast.type = Void()
         elif ast.tag == 'VarDecls':
             for child in ast.children:
                 self.assert_eq(self.type_of(child), Void())
-            return Void()
+            ast.type = Void()
         elif ast.tag == 'VarDecl':
             name = ast.value
             if name in self.context:
                 raise CastileTypeError('declaration of %s shadows previous' % name)
             self.assignable[name] = True
             self.set(name, self.type_of(ast.children[0]))
-            return Void()
+            ast.type = Void()
         elif ast.tag == 'FunType':
             return_type = self.type_of(ast.children[0])
-            return Function([self.type_of(c) for c in ast.children[1:]],
+            ast.type = Function([self.type_of(c) for c in ast.children[1:]],
                             return_type)
         elif ast.tag == 'UnionType':
-            return Union([self.type_of(c) for c in ast.children])
+            ast.type = Union([self.type_of(c) for c in ast.children])
         elif ast.tag == 'StructType':
-            return Struct(ast.value)
+            ast.type = Struct(ast.value)
         elif ast.tag == 'VarRef':
             ast.type = self.context[ast.value]
             ast.aux = self.context.level(ast.value)
@@ -172,35 +172,36 @@ class TypeChecker(object):
                 self.return_type = t1
             else:
                 self.assert_eq(t1, self.return_type)
-            return Void()
+            ast.type = Void()
         elif ast.tag == 'Break':
-            return Void()
+            ast.type = Void()
         elif ast.tag == 'If':
             t1 = self.type_of(ast.children[0])
             assert t1 == Boolean()
             t2 = self.type_of(ast.children[1])
             if len(ast.children) == 3:
+                # TODO useless!  is void.
                 t3 = self.type_of(ast.children[2])
                 self.assert_eq(t2, t3)
-                return t2
+                ast.type = t2
             else:
-                return Void()
+                ast.type = Void()
         elif ast.tag == 'While':
             t1 = self.type_of(ast.children[0])
-            assert t1 == Boolean()
+            self.assert_eq(t1, Boolean())
             t2 = self.type_of(ast.children[1])
-            return Void()
+            ast.type = Void()
         elif ast.tag == 'Block':
             for child in ast.children:
                 self.assert_eq(self.type_of(child), Void())
-            return Void()
+            ast.type = Void()
         elif ast.tag == 'Assignment':
             t1 = self.type_of(ast.children[0])
             if not self.is_assignable(ast.children[0]):
                 raise CastileTypeError('cannot assign to non-local')
             t2 = self.type_of(ast.children[1])
             self.assert_eq(t1, t2)
-            return Void()
+            ast.type = Void()
         elif ast.tag == 'Make':
             t = self.type_of(ast.children[0])
             if t.name not in self.structs:
@@ -218,7 +219,7 @@ class TypeChecker(object):
                 i += 1
             ast.type = t
         elif ast.tag == 'FieldInit':
-            return self.type_of(ast.children[0])
+            ast.type = self.type_of(ast.children[0])
         elif ast.tag == 'Index':
             t = self.type_of(ast.children[0])
             field_name = ast.value
@@ -241,14 +242,13 @@ class TypeChecker(object):
             assert ast.children[0].tag == 'VarRef'
             self.context = ScopedContext({}, self.context)
             self.context[ast.children[0].value] = t2
-            t3 = self.type_of(ast.children[2])
+            ast.type = self.type_of(ast.children[2])
             self.context = self.context.parent
             ast.aux = str(t2)
-            return t3
         elif ast.tag == 'Program':
             for defn in ast.children:
-                t1 = self.type_of(defn)
-            return Void()
+                self.assert_eq(self.type_of(defn), Void())
+            ast.type = Void()
         elif ast.tag == 'Defn':
             # reset assignable
             self.assignable = {}
@@ -263,13 +263,14 @@ class TypeChecker(object):
                 # we compare it against itself
                 rt = t.return_type
                 self.assert_eq(t, Function([], rt))
-            return t
+            ast.type = Void()
         elif ast.tag == 'Forward':
             t = self.type_of(ast.children[0])
             self.forwards[ast.value] = t
-            return self.set(ast.value, t)
+            self.set(ast.value, t)
+            ast.type = Void()
         elif ast.tag == 'StructDefn':
-            pass
+            ast.type = Void()
         elif ast.tag == 'TypeCast':
             val_t = self.type_of(ast.children[0])
             uni_t = self.type_of(ast.children[1])

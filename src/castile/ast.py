@@ -1,39 +1,39 @@
 class AST(object):
-    def __init__(self, tag, children=None, value=None):
-        # TODO 'type' should be
-        # the type, in the type system, of the value this node evaluates to
-        self._tag = tag
-        self._value = value
+    def __init__(self, tag, children=None, value=None, type=None, aux=None):
+        self.tag = tag
+        self.value = value
+        # typechecker may populate this.  parser will not.
+        self.type = type
+        # typechecker may populate this.  parser will not.
+        # TODO document what it means for particular nodes
+        self.aux = aux
         if children is not None:
-            self._children = children
+            self.children = children
         else:
-            self._children = []
+            self.children = []
         assert isinstance(self.children, list)
         for child in self.children:
             assert isinstance(child, AST), \
               "child %r of %r is not an AST node" % (child, self)
-        self.type = None  # typechecker may populate this
-        self.aux = None  # typechecker may populate this
-        # TODO document what it means for particular nodes
         #print "created %r" % self
 
-    @property
-    def tag(self):
-        return self._tag
-
-    @property
-    def value(self):
-        return self._value
-
-    @property
-    def children(self):
-        return self._children
+    def copy(self, children=None, value=None, type=None, aux=None):
+        if children is None:
+            children = self.children
+        if value is None:
+            value = self.value
+        if type is None:
+            type = self.type
+        if aux is None:
+            aux = self.aux
+        return AST(self.tag, children=children, value=value,
+                   type=type, aux=aux)
 
     def __repr__(self):
         if self.value is None:
             return 'AST(%r,%r)' % (self.tag, self.children)
         if not self.children:
-            return 'AST(%r,value=%r)' % (self.ttag, self.value)
+            return 'AST(%r,value=%r)' % (self.tag, self.value)
         return 'AST(%r,%r,value=%r)' % (self.tag, self.children, self.value)
 
     def minirepr(self):
