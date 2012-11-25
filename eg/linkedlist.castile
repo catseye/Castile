@@ -1,14 +1,14 @@
 struct list {
   value: string;
-  next: union(list, void);
+  next: list|void;
 }
 
 fun empty() {
-  return null as void in union(list, void)
+  return null as list|void
 }
 
-fun cons(v: string, l: union(list, void)) {
-  make list(value:v, next:l) as list in union(list, void)
+fun cons(v: string, l: list|void) {
+  make list(value:v, next:l) as list|void
 }
 
 main = fun() {

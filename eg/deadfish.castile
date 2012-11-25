@@ -1,0 +1,19 @@
+fun main() {
+  var a = 0;
+  var c = "";
+  while true {
+    if a == 256 or a < 0 {
+	a = 0;
+    }
+    c = input(">> ");
+    if c == "i" {
+        a = a + 1;
+    } else if c == "d" {
+        a = a - 1;
+    } else if c == "s" {
+        a = a * a;
+    } else if c == "o" {
+        print(str(a));
+    }
+  }
+}

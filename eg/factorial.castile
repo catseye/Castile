@@ -1,4 +1,4 @@
-factorial: function(integer): integer
+factorial: integer -> integer
 fun factorial(a) {
   if (a == 0) {
     return 1
@@ -8,7 +8,7 @@ fun factorial(a) {
 }
 
 fun main() {
-  var n = 0 as integer in union(integer, void);
+  var n = 0 as integer|void;
   var s = "";
   print("Enter integer to obtain factorial of it, or 'q' to quit.");
   while true {
