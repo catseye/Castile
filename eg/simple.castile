@@ -1,5 +1,5 @@
 fun main() {
-  var x = 12;
+  x = 12;
   if 4 < 5 {
     x = 2 * 3 + 4
   } else {

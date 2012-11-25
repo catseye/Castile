@@ -1,6 +1,6 @@
 fun main() {
-  var a = 0;
-  var c = "";
+  a = 0;
+  c = "";
   while true {
     if a == 256 or a < 0 {
 	a = 0;

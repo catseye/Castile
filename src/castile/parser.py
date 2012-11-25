@@ -68,7 +68,7 @@ class Parser(object):
             return
         if self.scan_pattern(r'and|or', 'boolean operator'):
             return
-        if self.scan_pattern(r'(var|if|else|while|make|struct|'
+        if self.scan_pattern(r'(if|else|while|make|struct|'
                              r'typecase|is|as|return|break|'
                              r'true|false|null)(?!\w)',
                              'keyword', token_group=2, rest_group=3):
@@ -364,7 +364,6 @@ class Parser(object):
             self.expect(')')
             return e
         else:
-            self.consume('var')
             id = self.expect_type('identifier')
             ast = AST('VarRef', value=id)
             if self.consume('='):

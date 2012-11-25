@@ -12,10 +12,10 @@ fun cons(v: string, l: list|void) {
 }
 
 main = fun() {
-  var l = cons("first", cons("second", cons("third", empty())));
-  
-  var h = l;
-  var next = empty();
+  l = cons("first", cons("second", cons("third", empty())));
+
+  h = l;
+  next = empty();
 
   /*
    * Note that we cannot say "h = h.next" in the following loop,

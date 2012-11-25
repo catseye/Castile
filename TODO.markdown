@@ -7,6 +7,8 @@ Name mangling for compilers (prepend with `_` most likely.)
 
 Tests for unions of unions.
 
+Test for equality of union values.
+
 Tests for multiple occurrences of same type in a union.
 
 ### Implementation ###
@@ -31,9 +33,6 @@ C backend.  Other backends (Python? Java? CIL? Scheme?)
 
 Convenience:
 
-*   Allow `var x` anywhere, and lift to front of function.
-*   Allow `x = expr` to stand for `var x = expr`, if it's first.  But beware the
-    Lua/Python war on "explicit local".
 *   Should we have automatic promotion (value tagging?)
     Since it causes an operation, I think it should be explicit, but the
     explicit syntax could be more lightweight.

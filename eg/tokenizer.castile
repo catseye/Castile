@@ -1,5 +1,5 @@
 fun instr(c: string, s: string) {
-  var i = 0;
+  i = 0;
   while i < len(s) {
     if c == substr(s, i, 1) { return true; }
     i = i + 1
@@ -15,9 +15,9 @@ struct result {
 }
 
 fun scan(s: string) {
-  var i = 0;
-  var t = "";
-  var c = "";
+  i = 0;
+  t = "";
+  c = "";
   while true {
     c = substr(s, i, 1);
     if c != " " {
@@ -39,8 +39,8 @@ fun scan(s: string) {
 }
 
 fun main() {
-  var s = input(">> ")
-  var r = make result(token: "", remainder: "")
+  s = input(">> ")
+  r = make result(token: "", remainder: "")
   while len(s) > 0 {
     while len(s) > 0 {
       r = scan(s);

@@ -1,6 +1,6 @@
 fun main() {
-  var c = read(1);
-  var l = 0;
+  c = read(1);
+  l = 0;
   while (len(c) == 1) {
     l = write(c);
     c = read(1)

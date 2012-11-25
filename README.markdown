@@ -52,7 +52,7 @@ Castile's influences might include:
     language-level pointers; sharing, if it happens at all, must be
     orchestrated by the implementation.  Global variables and function
     arguments are not mutable, and neither are the fields of structs.
-    (However, local variables *are* mutable.)
+    (But unlike Erlang, local variables *are* mutable.)
 
 Some lines of research underneath all this are, if all we have is a relatively
 crude language, but we make it typesafe and give it a slightly nicer type
@@ -116,7 +116,7 @@ Grammar
               | "(" Expr0 ")"
               | "not" Expr1
               | Literal
-              | ["var"] ident ["=" Expr0].
+              | ident ["=" Expr0].
     Literal ::= strlit
               | ["-"] intlit
               | "true" | "false" | "null"
@@ -433,18 +433,8 @@ initial assignment.
     | }
     ? undefined
 
-A local variables should not be defined inside an `if`... yeah, tricky, I don't
-think we're there yet.
-
-    | fun main() {
-    |   if (4 > 5) {
-    |     a = 10;
-    |   } else {
-    |     b = 11;
-    |   }
-    |   a
-    | }
-    ? undefined
+A local variables may not be defined inside an `if` or `while` or `typecase`
+block, as it might not be executed.
 
     | fun main() {
     |   if (4 > 5) {
@@ -454,7 +444,25 @@ think we're there yet.
     |   }
     |   b
     | }
-    ? undefined
+    ? within control
+
+    | fun main() {
+    |   b = false;
+    |   while b {
+    |     a = 10;
+    |   }
+    |   a
+    | }
+    ? within control
+
+    | fun main() {
+    |   a = 55 as integer|string;
+    |   typecase a is string {
+    |     b = 7
+    |   }
+    |   a
+    | }
+    ? within control
 
 Assignment, though it syntactically may occur in expressions, has a type of
 void, so it can only really happen at the statement level.

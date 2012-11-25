@@ -8,8 +8,8 @@ fun factorial(a) {
 }
 
 fun main() {
-  var n = 0 as integer|void;
-  var s = "";
+  n = 0 as integer|void;
+  s = "";
   print("Enter integer to obtain factorial of it, or 'q' to quit.");
   while true {
     s = input(">> ");

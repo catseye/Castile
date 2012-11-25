@@ -26,6 +26,8 @@ class TypeChecker(object):
         self.forwards = {}
         self.structs = {}  # struct name -> StructDefinition
         self.return_type = None
+        self.within_control = False
+
         self.verbose = False
 
     def set(self, name, type):
@@ -166,6 +168,8 @@ class TypeChecker(object):
         elif ast.tag == 'Break':
             ast.type = Void()
         elif ast.tag == 'If':
+            within_control = self.within_control
+            self.within_control = True
             t1 = self.type_of(ast.children[0])
             assert t1 == Boolean()
             t2 = self.type_of(ast.children[1])
@@ -176,11 +180,15 @@ class TypeChecker(object):
                 ast.type = t2
             else:
                 ast.type = Void()
+            self.within_control = within_control
         elif ast.tag == 'While':
+            within_control = self.within_control
+            self.within_control = True
             t1 = self.type_of(ast.children[0])
             self.assert_eq(t1, Boolean())
             t2 = self.type_of(ast.children[1])
             ast.type = Void()
+            self.within_control = within_control
         elif ast.tag == 'Block':
             for child in ast.children:
                 self.assert_eq(self.type_of(child), Void())
@@ -190,6 +198,8 @@ class TypeChecker(object):
             t1 = None
             name = ast.children[0].value
             if ast.aux == 'defining instance':
+                if self.within_control:
+                    raise CastileTypeError('definition of %s within control block' % name)
                 if name in self.context:
                     raise CastileTypeError('definition of %s shadows previous' % name)
                 self.set(name, t2)
@@ -241,10 +251,13 @@ class TypeChecker(object):
                 raise CastileTypeError('bad typecase, %s not in %s' % (t2, t1))
             # typecheck t3 with variable in children[0] having type t2
             assert ast.children[0].tag == 'VarRef'
+            within_control = self.within_control
+            self.within_control = True
             self.context = ScopedContext({}, self.context, level='typecase')
             self.context[ast.children[0].value] = t2
             ast.type = self.type_of(ast.children[2])
             self.context = self.context.parent
+            self.within_control = within_control
         elif ast.tag == 'Program':
             for defn in ast.children:
                 self.assert_eq(self.type_of(defn), Void())
