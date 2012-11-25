@@ -800,22 +800,59 @@ Types must match when making a struct.
     | struct person { name: string; age: integer }
     | main = fun() {
     |   var j = make person(name:"Jake", age:"Old enough to know better");
-    |   j
+    |   j.age
     | }
     ? type mismatch
 
     | struct person { name: string; age: integer }
     | main = fun() {
     |   var j = make person(name:"Jake");
-    |   j
+    |   j.age
     | }
     ? argument mismatch
 
     | struct person { name: string }
     | main = fun() {
-    |   make person(name:"Jake", age:23);
+    |   var j = make person(name:"Jake", age:23);
+    |   j.age
     | }
     ? argument mismatch
+
+Order of field initialization when making a struct doesn't matter.
+
+    | struct person { name: string; age: integer }
+    | main = fun() {
+    |   var j = make person(age: 23, name:"Jake");
+    |   j.age
+    | }
+    = 23
+
+Structs can be tested for equality.  (Since structs are immutable, it
+doesn't matter if this is structural equality or identity.)
+
+    | struct person { age: integer; name: string }
+    | main = fun() {
+    |   var j = make person(age: 23, name:"Jake");
+    |   var k = make person(age: 23, name:"Jake");
+    |   j == k
+    | }
+    = True
+
+    | struct person { name: string; age: integer }
+    | main = fun() {
+    |   var j = make person(age: 23, name:"Jake");
+    |   var k = make person(name:"Jake", age: 23);
+    |   j == k
+    | }
+    = True
+
+    | struct person { age: integer; name: string }
+    | main = fun() {
+    |   var j = make person(age: 23, name:"Jake");
+    |   var k = make person(age: 23, name:"John");
+    |   j == k
+    | }
+    = False
 
 Structs can be passed to functions.
 
@@ -952,6 +989,19 @@ Values of union type can be passed to functions.
     |   var a = 0;
     |   a = foo(a, 333 as integer|string);
     |   a = foo(a, "hiya" as integer|string);
+    |   a
+    | }
+    = 2
+
+Order of types in a union doesn't matter.
+
+    | fun foo(a, b: integer|string) {
+    |   a + 1
+    | }
+    | main = fun() {
+    |   var a = 0;
+    |   a = foo(a, 333 as integer|string);
+    |   a = foo(a, "hiya" as string|integer);
     |   a
     | }
     = 2

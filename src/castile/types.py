@@ -48,13 +48,6 @@ class Struct(Type):
         return "struct %s" % self.name
 
 
-# NOTE: NOT A TYPE
-class StructDefinition(object):
-    def __init__(self, name, content_types):
-        self.name = name
-        self.content_types = content_types
-
-
 class Union(Type):
     def __init__(self, content_types):
         self.content_types = content_types
@@ -67,6 +60,6 @@ class Union(Type):
 
     def __str__(self):
         h = "union("
-        h += ', '.join([str(t) for t in self.content_types])
+        h += ', '.join(sorted([str(t) for t in self.content_types]))
         h += ')'
         return h

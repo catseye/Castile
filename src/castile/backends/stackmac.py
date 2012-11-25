@@ -217,8 +217,12 @@ call
             assert ast.children[0].type == 'VarRef'
             self.out.write('set_local %s_local_%s\n' % (self.fun_lit, ast.children[0].value))
         elif ast.type == 'Make':
+            # TODO store in the order defined in the struct?
+            fields = {}
             for child in ast.children[1:]:
-                self.compile(child)
+                fields[child.aux] = child   # FieldInit.aux = position in struct
+            for position in sorted(fields):
+                self.compile(fields[position])
             self.out.write('push %d\n' % (len(ast.children) - 1))
             self.out.write('make_struct\n')  # sigh
         elif ast.type == 'FieldInit':

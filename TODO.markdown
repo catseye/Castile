@@ -5,13 +5,14 @@ Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?
 
 Name mangling for compilers (prepend with `_` most likely.)
 
-Tests for struct equality, union value equality, unions of unions.
-
-Test that order doesn't matter in unions, or in field assignments during a make.
+Tests for unions of unions.
 
 ### Implementation ###
 
-Handle empty structs correctly on stackmac.
+Struct equality in Javascript, stackmac backends.
+
+"struct size" function in stackmac backend, for structs with no fields or
+void fields.
 
 Figure out a way to do `input`, `read`, and `write` with node.js backend.
 
@@ -27,6 +28,8 @@ AST nodes should have source line numbers, it would be really nice.
 
 "assignable" in typechecker -- can be done more cleanly with ScopedDict?
 
+Get rid of redundant struct_fields attr in checker.
+
 ### Design ###
 
 Convenience:
@@ -37,6 +40,7 @@ Convenience:
 *   Should we have automatic promotion (value tagging?)
     Since it causes an operation, I think it should be explicit, but the
     explicit syntax could be more lightweight.
+*   Lua-esque `:` operator: `a:b(c)` -> `a.b(a, c)`
 
 Type promotion with higher precedence?  So that it can be used at toplevel.
 

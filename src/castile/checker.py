@@ -7,6 +7,13 @@ class CastileTypeError(ValueError):
     pass
 
 
+class StructDefinition(object):
+    def __init__(self, name, field_names, content_types):
+        self.name = name
+        self.field_names = field_names  # dict of name -> position
+        self.content_types = content_types  # list of types in order
+
+
 class TypeChecker(object):
     def __init__(self):
         global_context = {}
@@ -60,7 +67,7 @@ class TypeChecker(object):
             struct_fields[field_name] = i
             i += 1
             te.append(self.type_of(child.children[0]))
-        self.structs[name] = StructDefinition(ast.value, te)
+        self.structs[name] = StructDefinition(ast.value, struct_fields, te)
 
     # context is modified as side-effect of traversal
     def type_of(self, ast):
@@ -206,8 +213,11 @@ class TypeChecker(object):
                 raise CastileTypeError("argument mismatch")
             i = 0
             for defn in ast.children[1:]:
+                name = defn.value
                 t1 = self.type_of(defn)
-                self.assert_eq(t1, struct_defn.content_types[i])
+                pos = struct_defn.field_names[name]
+                defn.aux = pos
+                self.assert_eq(t1, struct_defn.content_types[pos])
                 i += 1
             return t
         elif ast.type == 'FieldInit':
