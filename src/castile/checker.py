@@ -25,8 +25,6 @@ class TypeChecker(object):
 
         self.forwards = {}
         self.structs = {}  # struct name -> StructDefinition
-        self.struct_fields = {}  # struct name -> dict of field name -> pos
-        self.assignable = {}
         self.return_type = None
         self.verbose = False
 
@@ -41,11 +39,6 @@ class TypeChecker(object):
             return
         raise CastileTypeError("type mismatch: %s != %s" % (t1, t2))
 
-    def is_assignable(self, ast):
-        assert ast.tag == 'VarRef'
-        name = ast.value
-        return name in self.assignable
-
     def collect_structs(self, ast):
         for child in ast.children:
             if child.tag == 'StructDefn':
@@ -56,7 +49,6 @@ class TypeChecker(object):
         if name in self.structs:
             raise CastileTypeError('duplicate struct %s' % name)
         struct_fields = {}
-        self.struct_fields[name] = struct_fields
         te = []
         i = 0
         for child in ast.children:
@@ -107,7 +99,8 @@ class TypeChecker(object):
             ast.type = Boolean()
         elif ast.tag == 'FunLit':
             save_context = self.context
-            self.context = ScopedContext({}, self.toplevel_context)
+            self.context = ScopedContext({}, self.toplevel_context,
+                                         level='argument')
             self.return_type = None
             arg_types = self.type_of(ast.children[0])  # args
             t = self.type_of(ast.children[1])  # body
@@ -134,7 +127,8 @@ class TypeChecker(object):
             }
             ast.type = map[ast.value]
         elif ast.tag == 'Body':
-            self.context = ScopedContext({}, self.context)
+            self.context = ScopedContext({}, self.context,
+                                         level='local')
             for child in ast.children:
                 self.assert_eq(self.type_of(child), Void())
             self.context = self.context.parent
@@ -147,7 +141,6 @@ class TypeChecker(object):
             name = ast.value
             if name in self.context:
                 raise CastileTypeError('declaration of %s shadows previous' % name)
-            self.assignable[name] = True
             self.set(name, self.type_of(ast.children[0]))
             ast.type = Void()
         elif ast.tag == 'FunType':
@@ -205,7 +198,7 @@ class TypeChecker(object):
             ast.type = Void()
         elif ast.tag == 'Assignment':
             t1 = self.type_of(ast.children[0])
-            if not self.is_assignable(ast.children[0]):
+            if self.context.level(ast.children[0].value) != 'local':
                 raise CastileTypeError('cannot assign to non-local')
             t2 = self.type_of(ast.children[1])
             self.assert_eq(t1, t2)
@@ -231,7 +224,7 @@ class TypeChecker(object):
         elif ast.tag == 'Index':
             t = self.type_of(ast.children[0])
             field_name = ast.value
-            struct_fields = self.struct_fields[t.name]
+            struct_fields = self.structs[t.name].field_names
             if field_name not in struct_fields:
                 raise CastileTypeError("undefined field")
             index = struct_fields[field_name]
@@ -248,7 +241,7 @@ class TypeChecker(object):
                 raise CastileTypeError('bad typecase, %s not in %s' % (t2, t1))
             # typecheck t3 with variable in children[0] having type t2
             assert ast.children[0].tag == 'VarRef'
-            self.context = ScopedContext({}, self.context)
+            self.context = ScopedContext({}, self.context, level='typecase')
             self.context[ast.children[0].value] = t2
             ast.type = self.type_of(ast.children[2])
             self.context = self.context.parent
@@ -258,8 +251,6 @@ class TypeChecker(object):
             ast.type = Void()
             self.resolve_structs(ast)
         elif ast.tag == 'Defn':
-            # reset assignable
-            self.assignable = {}
             t = self.type_of(ast.children[0])
             if ast.value in self.forwards:
                 self.assert_eq(self.forwards[ast.value], t)

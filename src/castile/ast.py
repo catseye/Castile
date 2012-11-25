@@ -6,7 +6,7 @@ class AST(object):
         self.type = type
         # typechecker may populate this.  parser will not.
         # on VarRef nodes, this is the level of the reference
-        #  ('global', 'toplevel', or None for locals)
+        #  ('global', 'toplevel', 'argument', 'local', or 'typecase')
         # on FieldInit and Index nodes, this is the position
         #  (offset) of the field within the struct
         self.aux = aux

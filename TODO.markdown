@@ -13,9 +13,6 @@ Tests for multiple occurrences of same type in a union.
 
 Struct equality in Javascript, stackmac backends.
 
-"struct size" function in stackmac backend, for structs with no fields or
-void fields.
-
 Figure out a way to do `input`, `read`, and `write` with node.js backend.
 
 Implement `int`, `str`, `chr`, `ord` for Ruby, Javascript, stackmac.
@@ -27,10 +24,6 @@ and void types in unions of (void, X) should only be one value.
 (structs are still boxed though)
 
 AST nodes should have source line numbers, it would be really nice.
-
-"assignable" in typechecker -- can be done more cleanly with ScopedDict?
-
-Get rid of redundant struct_fields attr in checker.
 
 C backend.  Other backends (Python? Java? CIL? Scheme?)
 

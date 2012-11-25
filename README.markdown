@@ -1061,11 +1061,19 @@ The expression in a `typecase` can be an argument.
     | }
     = integer
 
-(But can it be updated?)
-
 The expression in a `typecase` cannot effectively be a global, as globals
 must be literals and there is no way (right now) to make a literal of union
 type.
+
+Inside a `typecase` the variable cannot be updated.
+
+    | main = fun() {
+    |   var a = 333 as integer|string;
+    |   typecase a is integer {
+    |     a = 700;
+    |   };
+    | }
+    ? cannot assign
 
 The union can include void.
 
