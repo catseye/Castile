@@ -43,6 +43,7 @@ class Function(Type):
 class Struct(Type):
     def __init__(self, name):
         self.name = name
+        self.defn = None
 
     def __str__(self):
         return "struct %s" % self.name

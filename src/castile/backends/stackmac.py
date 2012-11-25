@@ -1,4 +1,4 @@
-from castile.types import Void, String
+from castile.types import *
 
 # Compile to some hypothetical stack-based machine.
 # Not yet in a good way.
@@ -53,17 +53,26 @@ class Compiler(object):
         self.tags = {}          # numeric tags established so far
         self.tag_count = 0      # next tag to generate
 
-    def size_of(self, ast):
-        if ast.tag == 'Type':
-            if ast.value == 'void':
+    def size_of(self, type):
+        if type == Void():
+            return 0
+        elif isinstance(type, Struct):
+            if self.struct_size(type) == 0:
                 return 0
             else:
                 return 1
-        elif ast.tag in ('FunType', 'StructType', 'UnionType'):
+        elif isinstance(type, Union):
             # TODO might be unboxed, all on stack, in future
             return 1
         else:
-            raise NotImplementedError(ast)
+            return 1
+
+    def struct_size(self, type):
+        assert isinstance(type, Struct)
+        size = 0
+        for t in type.defn.content_types:
+            size += self.size_of(t)
+        return size
 
     def get_label(self, pref):
         count = self.labels.get(pref, 0)
@@ -113,11 +122,7 @@ call
             # TODO copy the result value(S) to the first arg position
             # (for now the opcode handles that)
             self.out.write('exeunt_%s:\n' % self.fun_lit)
-            # base this on return type: void = 0, int = 1, union = 2, etc
-            # TODO use size_of, when it works on types
-            returnsize = 1
-            if ast.type.return_type == Void():
-                returnsize = 0
+            returnsize = self.size_of(ast.type.return_type)
             self.out.write('set_returnsize %d\n' % returnsize)
             self.out.write('clear_baseptr %d\n' % (0 - self.fun_argsize))
             self.out.write('rts\n')
@@ -129,14 +134,14 @@ call
             argsize = 0
             for child in ast.children:
                 assert child.tag == 'Arg'
-                argsize += self.size_of(child.children[0])
+                argsize += self.size_of(child.type)
             self.fun_argsize = argsize
             # first arg passed is DEEPEST, so go backwards.
             pos = 0 - self.fun_argsize
             for child in ast.children:
                 self.out.write('%s_local_%s=%d\n' %
                     (self.fun_lit, child.value, pos))
-                pos += self.size_of(child.children[0])
+                pos += self.size_of(ast.type)
         elif ast.tag == 'Body':
             self.compile(ast.children[0])
             self.compile(ast.children[1])
@@ -223,8 +228,7 @@ call
                 fields[child.aux] = child   # FieldInit.aux = position in struct
             for position in sorted(fields):
                 self.compile(fields[position])
-            self.out.write('push %d\n' % (len(ast.children) - 1))
-            self.out.write('make_struct\n')  # sigh
+            self.out.write('make_struct %d\n' % self.struct_size(ast.type))
         elif ast.tag == 'FieldInit':
             self.compile(ast.children[0])
         elif ast.tag == 'Index':
@@ -232,18 +236,19 @@ call
             self.out.write('get_field %d\n' % ast.aux)
         elif ast.tag == 'TypeCast':
             self.compile(ast.children[0])
-            self.out.write('; tag with "%s"\n' % ast.aux)
-            if ast.aux == 'void':
+            t = str(ast.children[0].type)
+            self.out.write('; tag with "%s"\n' % t)
+            if self.size_of(ast.children[0].type) == 0:
                 # special case.  there is nothing on the stack
                 self.out.write('push 0\n')
-            tag = self.get_tag(ast.aux)
+            tag = self.get_tag(t)
             self.out.write('tag %d\n' % tag)
         elif ast.tag == 'TypeCase':
             end_typecase = self.get_label('end_typecase')
             self.compile(ast.children[0])
             self.out.write('dup\n')
             self.out.write('get_tag\n')
-            tag = self.get_tag(ast.aux)
+            tag = self.get_tag(str(ast.children[1].type))
             self.out.write('push %d\n' % tag)
             self.out.write('eq\n')
             self.out.write('bzero %s\n' % end_typecase)

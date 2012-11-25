@@ -135,10 +135,10 @@ def run(program, strings):
         elif op == 'set_local':
             stack[baseptr + arg] = stack.pop()
         elif op == 'make_struct':
-            size = stack.pop()
-            struct = stack[-size:]
-            stack = stack[:-size]
-            stack.append(struct)
+            if arg > 0:
+                struct = stack[-arg:]
+                stack = stack[:-arg]
+                stack.append(struct)
         elif op == 'get_field':
             obj = stack.pop()
             stack.append(obj[arg])

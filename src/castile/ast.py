@@ -5,7 +5,10 @@ class AST(object):
         # typechecker may populate this.  parser will not.
         self.type = type
         # typechecker may populate this.  parser will not.
-        # TODO document what it means for particular nodes
+        # on VarRef nodes, this is the level of the reference
+        #  ('global', 'toplevel', or None for locals)
+        # on FieldInit and Index nodes, this is the position
+        #  (offset) of the field within the struct
         self.aux = aux
         if children is not None:
             self.children = children

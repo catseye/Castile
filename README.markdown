@@ -785,15 +785,11 @@ Structs need not be defined before use.
     | struct person { name: string; age: integer }
     = 23
 
-Structs may contain structs which don't exist.  (Surprisingly.  Might just leave this in.)
+Structs may not contain structs which don't exist.
 
     | struct person { name: string; age: foobar }
     | main = fun() { 333 }
-    = 333
-
-    | struct person { name: string; age: foobar }
-    | main = fun() { make person(name:"Jake", age:23) }
-    ? type mismatch
+    ? undefined
 
 Types must match when making a struct.
 
@@ -1135,8 +1131,18 @@ You may want to use helper functions to hide this ugliness.
     | }
     = second
 
-Structs may be empty.  In combination with unions, this lets us create
-"typed enums".
+Structs may be empty.
+
+    | struct red { }
+    | fun show(color: red) {
+    |   print("hi")
+    | }
+    | main = fun() {
+    |   show(make red());
+    | }
+    = hi
+
+In combination with unions, this lets us create "typed enums".
 
     | struct red { }
     | struct green { }

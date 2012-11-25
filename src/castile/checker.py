@@ -69,6 +69,14 @@ class TypeChecker(object):
             te.append(self.type_of(child.children[0]))
         self.structs[name] = StructDefinition(ast.value, struct_fields, te)
 
+    def resolve_structs(self, ast):
+          if isinstance(ast.type, Struct):
+              if ast.type.name not in self.structs:
+                  raise CastileTypeError('undefined struct %s' % name)
+              ast.type.defn = self.structs[ast.type.name]
+          for child in ast.children:
+              self.resolve_structs(child)
+
     # context is modified as side-effect of traversal
     def type_of(self, ast):
         if ast.tag == 'Op':
@@ -244,11 +252,11 @@ class TypeChecker(object):
             self.context[ast.children[0].value] = t2
             ast.type = self.type_of(ast.children[2])
             self.context = self.context.parent
-            ast.aux = str(t2)
         elif ast.tag == 'Program':
             for defn in ast.children:
                 self.assert_eq(self.type_of(defn), Void())
             ast.type = Void()
+            self.resolve_structs(ast)
         elif ast.tag == 'Defn':
             # reset assignable
             self.assignable = {}
@@ -279,8 +287,6 @@ class TypeChecker(object):
             if not uni_t.contains(val_t):
                 raise CastileTypeError('bad cast, %s does not include %s' %
                                   (uni_t, val_t))
-            # for compiler's benefit
-            ast.aux = str(val_t)
             ast.type = uni_t
         else:
             raise NotImplementedError(repr(ast))
