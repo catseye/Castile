@@ -7,6 +7,8 @@ Name mangling for compilers (prepend with `_` most likely.)
 
 Tests for unions of unions.
 
+Tests for multiple occurrences of same type in a union.
+
 ### Implementation ###
 
 Struct equality in Javascript, stackmac backends.
@@ -29,6 +31,8 @@ AST nodes should have source line numbers, it would be really nice.
 "assignable" in typechecker -- can be done more cleanly with ScopedDict?
 
 Get rid of redundant struct_fields attr in checker.
+
+C backend.  Other backends (Python? Java? CIL? Scheme?)
 
 ### Design ###
 
