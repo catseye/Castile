@@ -1,4 +1,6 @@
 # nascent! embryonic! inchoate! alpha! wip!
+from castile.types import *
+from castile.transformer import VarDeclTypeAssigner
 
 OPS = {
 }
@@ -7,6 +9,7 @@ OPS = {
 class Compiler(object):
     def __init__(self, out):
         self.out = out
+        self.main_type = None
 
     def commas(self, asts, sep=','):
         if asts:
@@ -16,14 +19,32 @@ class Compiler(object):
             self.compile(asts[-1])
 
     def c_type(self, type):
-        return 'int'
+        if type == Integer():
+            return 'int'
+        elif type == String():
+            return 'char *'
+        elif type == Void():
+            return 'void'
+        elif isinstance(type, Struct):
+            return 'struct %s *' % type.name
+        elif isinstance(type, Function):
+            # oh dear
+            return 'void *'
+        elif isinstance(type, Union):
+            # oh dear
+            return 'void *'
+        else:
+            raise NotImplementedError(type)
 
     def compile(self, ast):
         if ast.tag == 'Program':
+            g = VarDeclTypeAssigner()
+            g.assign_types(ast)
             self.out.write(r"""
 /* AUTOMATICALLY GENERATED -- EDIT AT OWN RISK */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 void print(char *s)
 {
@@ -33,7 +54,18 @@ void print(char *s)
 """)
             for child in ast.children:
                 self.compile(child)
-            self.out.write(r"""
+            if self.main_type == Void():
+                self.out.write(r"""
+
+int main(int argc, char **argv)
+{
+    castile_main();
+    return 0;
+}
+
+""")
+            if self.main_type == Integer():
+                self.out.write(r"""
 
 int main(int argc, char **argv)
 {
@@ -48,6 +80,7 @@ int main(int argc, char **argv)
             name = ast.value
             if name == 'main':
                 name = 'castile_main'
+                self.main_type = thing.type.return_type
             if thing.tag == 'FunLit':
                 self.out.write('%s %s' % (self.c_type(thing.type.return_type), name))
                 self.compile(ast.children[0])
@@ -58,7 +91,12 @@ int main(int argc, char **argv)
         elif ast.tag == 'Forward':
             self.out.write('extern %s;\n' % ast.value)
         elif ast.tag == 'StructDefn':
-            self.out.write('struct %s {}\n' % ast.value)
+            self.out.write('struct %s {' % ast.value)
+            for child in ast.children:
+                self.compile(child)
+            self.out.write('};\n')
+        elif ast.tag == 'FieldDefn':
+            self.out.write('%s %s;\n' % (self.c_type(ast.children[0].type), ast.value))
         elif ast.tag == 'FunLit':
             self.out.write('(')
             self.compile(ast.children[0])
@@ -136,19 +174,18 @@ int main(int argc, char **argv)
             self.out.write(' = ')
             self.compile(ast.children[1])
         elif ast.tag == 'Make':
-            self.out.write('malloc()<--{')
+            self.out.write('&(struct %s){ ' % ast.type.name)
             self.commas(ast.children[1:])
-            self.out.write('}')
+            self.out.write(' }')
         elif ast.tag == 'FieldInit':
-            self.out.write("'%s'," % ast.value)
-            self.compile(ast.children[0])
+            self.commas(ast.children)
         elif ast.tag == 'Index':
             self.compile(ast.children[0])
-            self.out.write('["%s"]' % ast.value)
+            self.out.write('->%s' % ast.value)
         elif ast.tag == 'TypeCast':
-            self.out.write("['%s'," % str(ast.children[0].type))
+            self.out.write('tag("%s",' % str(ast.children[0].type))
             self.compile(ast.children[0])
-            self.out.write(']')
+            self.out.write(')')
         elif ast.tag == 'TypeCase':
             self.out.write('if (')
             self.compile(ast.children[0])

@@ -68,7 +68,9 @@ class VarDeclTypeAssigner(object):
         self.current_funlit = None
 
     def find_vardecl(self, name):
-        vardecls = self.current_funlit.children[0]
+        body = self.current_funlit.children[1]
+        assert body.tag == 'Body'
+        vardecls = body.children[0]
         assert vardecls.tag == 'VarDecls'
         for child in vardecls.children:
             if child.value == name:
