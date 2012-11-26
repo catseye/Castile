@@ -34,5 +34,13 @@ if [ "x$1" = "xstackmac" -o "x$1" = "xall" ]; then
 EOF
 fi
 
+if [ "x$1" = "xc" ]; then
+  cat >>test_config <<EOF
+    -> Functionality "Run Castile Program" is implemented by shell command
+    -> "bin/castile -c c %(test-file) > foo.c && gcc foo.c && ./a.out"
+
+EOF
+fi
+
 falderal -b test_config README.markdown
-rm -f test_config foo.*
+rm -f test_config foo.* a.out

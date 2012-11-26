@@ -61,3 +61,32 @@ class FunctionLifter(object):
             for child in ast.children:
                 children.append(self.lift_functions(child))
             return ast.copy(children=children)
+
+
+class VarDeclTypeAssigner(object):
+    def __init__(self):
+        self.current_funlit = None
+
+    def find_vardecl(self, name):
+        vardecls = self.current_funlit.children[0]
+        assert vardecls.tag == 'VarDecls'
+        for child in vardecls.children:
+            if child.value == name:
+                return child
+
+    def assign_types(self, ast):
+        if ast.tag == 'FunLit':
+            save = self.current_funlit
+            self.current_funlit = ast
+            for child in ast.children:
+                self.assign_types(child)
+            self.current_funlit = save
+        elif ast.tag == 'Assignment':
+            if ast.aux == 'defining instance':
+                vardecl = self.find_vardecl(ast.children[0].value)
+                vardecl.type = ast.children[1].type
+            for child in ast.children:
+                self.assign_types(child)
+        else:
+            for child in ast.children:
+                self.assign_types(child)

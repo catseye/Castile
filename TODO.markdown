@@ -46,5 +46,7 @@ Should there be an expression form of `if`?
 
 Should there be an expression form of `=`?  (`:=`?)
 
-Should a block be a valid statement, with block scope?  (Meaningless if
-all variables must be declared at start of function, as is the case right now.)
+Block scope in blocks; if the first assignment to a variable occurs inside
+a block, its scope is that block.  It cannot be seen after that block closes.
+(Shadowing is not possible; if the first assignment was before, that outer
+variable is what gets updated.)
