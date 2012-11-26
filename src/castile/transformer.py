@@ -29,7 +29,7 @@ class FunctionLifter(object):
             # before function defns
             non_fun_defns = []
             non_lifted_defns = []
-            for child in ast.children:
+            for child in children:
                 if child.children:
                     if child.children[0].tag == 'FunLit':
                         non_lifted_defns.append(child)

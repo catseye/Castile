@@ -59,6 +59,9 @@ def main(argv):
         if options.compile_to is not None:
             x = FunctionLifter()
             ast = x.lift_functions(ast)
+            if options.show_ast:
+                print ast.pprint(0)
+                print "-----"
             c = getattr(backends, options.compile_to).Compiler(sys.stdout)
             c.compile(ast)
             sys.exit(0)

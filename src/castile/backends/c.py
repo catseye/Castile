@@ -20,7 +20,7 @@ class Compiler(object):
 
     def compile(self, ast):
         if ast.tag == 'Program':
-            self.out.write(r"""\
+            self.out.write(r"""
 /* AUTOMATICALLY GENERATED -- EDIT AT OWN RISK */
 
 #include <stdio.h>
@@ -33,13 +33,13 @@ void print(char *s)
 """)
             for child in ast.children:
                 self.compile(child)
-            self.out.write("""\
+            self.out.write(r"""
 
 int main(int argc, char **argv)
 {
     int x = castile_main();
     printf("%d\n", x);
-    exit(0);
+    return 0;
 }
 
 """)
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
             if name == 'main':
                 name = 'castile_main'
             if thing.tag == 'FunLit':
-                self.out.write('%s %s' % (self.c_type(thing.type.return_type), ast.value))
+                self.out.write('%s %s' % (self.c_type(thing.type.return_type), name))
                 self.compile(ast.children[0])
             else:
                 self.out.write('%s = ' % ast.value)
