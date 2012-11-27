@@ -32,11 +32,35 @@ class Compiler(object):
         elif isinstance(type, Struct):
             return 'struct %s *' % type.name
         elif isinstance(type, Function):
-            # oh dear
-            return 'void *'
+            s = self.c_decl(type.return_type) + ' (*)('
+            s += ', '.join([self.c_type(a) for a in type.arg_types])
+            s += ')'
+            return s
         elif isinstance(type, Union):
             # oh dear
-            return 'void *'
+            return 'void * %s' % name
+        else:
+            raise NotImplementedError(type)
+
+    def c_decl(self, type, name):
+        if type == Integer():
+            return 'int %s' % name
+        elif type == String():
+            return 'char * %s' % name
+        elif type == Void():
+            return 'void %s' % name
+        elif type == Boolean():
+            return 'int %s' % name
+        elif isinstance(type, Struct):
+            return 'struct %s * %s' % (type.name, name)
+        elif isinstance(type, Function):
+            s = self.c_type(type.return_type) + ' %s(' % name
+            s += ', '.join([self.c_type(a) for a in type.arg_types])
+            s += ')'
+            return s
+        elif isinstance(type, Union):
+            # oh dear
+            return 'void * %s' % name
         else:
             raise NotImplementedError(type)
 
@@ -109,21 +133,21 @@ int main(int argc, char **argv)
                 name = 'castile_main'
                 self.main_type = thing.type.return_type
             if thing.tag == 'FunLit':
-                self.out.write('%s %s' % (self.c_type(thing.type.return_type), name))
+                self.out.write(self.c_decl(thing.type.return_type, name))
                 self.compile(ast.children[0])
             else:
                 self.out.write('%s = ' % ast.value)
                 self.compile(ast.children[0])
                 self.out.write(';\n')
         elif ast.tag == 'Forward':
-            self.out.write('extern %s;\n' % ast.value)
+            self.out.write('extern %s;\n' % self.c_decl(ast.children[0].type, ast.value))
         elif ast.tag == 'StructDefn':
             self.out.write('struct %s {' % ast.value)
             for child in ast.children:
                 self.compile(child)
             self.out.write('};\n')
         elif ast.tag == 'FieldDefn':
-            self.out.write('%s %s;\n' % (self.c_type(ast.children[0].type), ast.value))
+            self.out.write('%s;\n' % self.c_decl(ast.children[0].type, ast.value))
         elif ast.tag == 'FunLit':
             self.out.write('(')
             self.compile(ast.children[0])
@@ -133,7 +157,7 @@ int main(int argc, char **argv)
         elif ast.tag == 'Args':
             self.commas(ast.children)
         elif ast.tag == 'Arg':
-            self.out.write(ast.value)
+            self.out.write(self.c_decl(ast.type, ast.value))
         elif ast.tag == 'Body':
             self.compile(ast.children[0])
             self.compile(ast.children[1])
@@ -141,7 +165,7 @@ int main(int argc, char **argv)
             for child in ast.children:
                 self.compile(child)
         elif ast.tag == 'VarDecl':
-            self.out.write('%s %s;\n' % (self.c_type(ast.type), ast.value))
+            self.out.write('%s;\n' % self.c_decl(ast.type, ast.value))
         elif ast.tag == 'Block':
             self.out.write('{\n')
             for child in ast.children:
