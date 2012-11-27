@@ -4,7 +4,7 @@ Castile
 This is the reference distribution for Castile, an unremarkable programming
 language.
 
-The current version of Castile is 0.2.  It is not only subject to change,
+The current version of Castile is 0.3-PRE.  It is not only subject to change,
 it is pretty much *guaranteed* to change.
 
 Unlike most of my programming languages, there is nothing that could really
@@ -13,9 +13,10 @@ about Castile.  It is not a particularly comfortable programming experience,
 often forcing the programmer to be explicit and verbose.
 
 The reference implementation is slightly less unremarkable than the language
-itself, if only for the fact that it compiles to three different target
-languages: Javascript, Ruby, and a hypothetical stack machine called
-"stackmac".  (A stackmac emulator ships with this distribution.)
+itself, if only for the fact that it compiles to four different target
+languages: Javascript, Ruby, a hypothetical stack machine called
+"stackmac" (a stackmac emulator ships with this distribution,) and (coming
+soon) C.
 
 Castile's influences might include:
 

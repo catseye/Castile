@@ -60,7 +60,7 @@ struct tagged_value {
     union {
         void *ptr;
         int i;
-    }
+    };
 };
 
 /*
@@ -87,6 +87,17 @@ int main(int argc, char **argv)
 {
     int x = castile_main();
     printf("%d\n", x);
+    return 0;
+}
+
+""")
+            if self.main_type == Boolean():
+                self.out.write(r"""
+
+int main(int argc, char **argv)
+{
+    int x = castile_main();
+    printf("%s\n", x ? "True" : "False");
     return 0;
 }
 
@@ -175,7 +186,7 @@ int main(int argc, char **argv)
             self.compile(ast.children[0])
             self.out.write(')')
         elif ast.tag == 'None':
-            self.out.write('nil')
+            self.out.write('')
         elif ast.tag == 'BoolLit':
             if ast.value:
                 self.out.write("1")
