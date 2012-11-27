@@ -3,6 +3,8 @@ from castile.types import *
 from castile.transformer import VarDeclTypeAssigner
 
 OPS = {
+  'and': '&&',
+  'or': '||',
 }
 
 
@@ -25,6 +27,8 @@ class Compiler(object):
             return 'char *'
         elif type == Void():
             return 'void'
+        elif type == Boolean():
+            return 'int'
         elif isinstance(type, Struct):
             return 'struct %s *' % type.name
         elif isinstance(type, Function):
@@ -51,6 +55,18 @@ void print(char *s)
   printf("%s\n", s);
 }
 
+struct tagged_value {
+    int type;
+    union {
+        void *ptr;
+        int i;
+    }
+};
+
+/*
+struct tagged_value *tag(char *, void *) {
+}
+*/
 """)
             for child in ast.children:
                 self.compile(child)
