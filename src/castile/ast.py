@@ -49,6 +49,8 @@ class AST(object):
         h = ('  ' * indent) + self.tag
         if self.value is not None:
             h += '=%r' % self.value
+        if self.type is not None:
+            h += ' (%s)' % self.type
         h += '\n'
         for child in self.children:
             h += child.pprint(indent + 1)
