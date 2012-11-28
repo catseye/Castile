@@ -42,7 +42,7 @@ class Compiler(object):
         else:
             raise NotImplementedError(type)
 
-    def c_decl(self, type, name):
+    def c_decl(self, type, name, ptr=False):
         if type == Integer():
             return 'int %s' % name
         elif type == String():
@@ -54,7 +54,11 @@ class Compiler(object):
         elif isinstance(type, Struct):
             return 'struct %s * %s' % (type.name, name)
         elif isinstance(type, Function):
-            s = self.c_type(type.return_type) + ' %s(' % name
+            s = self.c_type(type.return_type) 
+            if ptr:
+                s += ' (*%s)(' % name
+            else:
+                s += ' %s(' % name
             s += ', '.join([self.c_type(a) for a in type.arg_types])
             s += ')'
             return s
@@ -165,7 +169,7 @@ int main(int argc, char **argv)
             for child in ast.children:
                 self.compile(child)
         elif ast.tag == 'VarDecl':
-            self.out.write('%s;\n' % self.c_decl(ast.type, ast.value))
+            self.out.write('%s;\n' % self.c_decl(ast.type, ast.value, ptr=True))
         elif ast.tag == 'Block':
             self.out.write('{\n')
             for child in ast.children:
