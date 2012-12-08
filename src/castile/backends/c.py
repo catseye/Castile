@@ -20,6 +20,7 @@ class Compiler(object):
                 self.out.write(sep)
             self.compile(asts[-1])
 
+    # as used in local variable declarations
     def c_type(self, type):
         if type == Integer():
             return 'int'
@@ -32,49 +33,25 @@ class Compiler(object):
         elif isinstance(type, Struct):
             return 'struct %s *' % type.name
         elif isinstance(type, Function):
-            #s = '/* {CTYPE %s */' % type
-            s = '('
-            s += self.c_type(type.return_type) + ' (*)('
-            s += ', '.join([self.c_type(a) for a in type.arg_types])
-            s += '))'
-            #s += '/* }CTYPE */'
-            return s
+            return 'void *'
         elif isinstance(type, Union):
             # oh dear
             return 'void *'
         else:
             raise NotImplementedError(type)
 
-    def c_decl(self, type, name, ptr=False, args=False):
-        if type == Integer():
-            return 'int %s' % name
-        elif type == String():
-            return 'char * %s' % name
-        elif type == Void():
-            return 'void %s' % name
-        elif type == Boolean():
-            return 'int %s' % name
-        elif isinstance(type, Struct):
-            return 'struct %s * %s' % (type.name, name)
-        elif isinstance(type, Function):
-            #s = '/* {CDECL %s */' % type
+    def c_decl(self, type, name, args=True):
+        if isinstance(type, Function):
             s = ''
             s += self.c_type(type.return_type) 
-            if ptr:
-                s += ' (*%s)' % name
-            else:
-                s += ' %s' % name
+            s += ' %s' % name
             if args:
                 s += '('
                 s += ', '.join([self.c_type(a) for a in type.arg_types])
                 s += ')'
-            #s += '/* }CDECL */'
             return s
-        elif isinstance(type, Union):
-            # oh dear
-            return 'void * %s' % name
         else:
-            raise NotImplementedError(type)
+            return '%s %s' % (self.c_type(type), name)
 
     def compile(self, ast):
         if ast.tag == 'Program':
@@ -152,7 +129,7 @@ int main(int argc, char **argv)
                 self.compile(ast.children[0])
                 self.out.write(';\n')
         elif ast.tag == 'Forward':
-            self.out.write('extern %s;\n' % self.c_decl(ast.children[0].type, ast.value, args=True))
+            self.out.write('extern %s;\n' % self.c_decl(ast.children[0].type, ast.value))
         elif ast.tag == 'StructDefn':
             self.out.write('struct %s {' % ast.value)
             for child in ast.children:
@@ -177,7 +154,7 @@ int main(int argc, char **argv)
             for child in ast.children:
                 self.compile(child)
         elif ast.tag == 'VarDecl':
-            self.out.write('%s;\n' % self.c_decl(ast.type, ast.value, ptr=True, args=True))
+            self.out.write('%s %s;\n' % (self.c_type(ast.type), ast.value))
         elif ast.tag == 'Block':
             self.out.write('{\n')
             for child in ast.children:
@@ -198,7 +175,11 @@ int main(int argc, char **argv)
         elif ast.tag == 'VarRef':
             self.out.write(ast.value)
         elif ast.tag == 'FunCall':
+            self.out.write("((")
+            self.out.write(self.c_decl(ast.children[0].type, '(*)'))
+            self.out.write(")")
             self.compile(ast.children[0])
+            self.out.write(")")
             self.out.write('(')
             self.commas(ast.children[1:])
             self.out.write(')')

@@ -625,13 +625,13 @@ Literal functions cannot access arguments declared in enclosing scopes.
 
 Functions can be passed to functions and returned from functions.
 
-    | fun double(x) { x * 2 }
+    | fun doubble(x) { x * 2 }
     | fun triple(x) { x * 3 }
     | fun apply_and_add_one(f: (integer -> integer), x) { f(x) + 1 }
-    | fun select(a) { if a > 10 { return double } else { return triple } }
+    | fun sellect(a) { if a > 10 { return doubble } else { return triple } }
     | fun main() {
-    |   t = select(5);
-    |   d = select(15);
+    |   t = sellect(5);
+    |   d = sellect(15);
     |   p = t(10);
     |   apply_and_add_one(d, p)
     | }
