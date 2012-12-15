@@ -62,10 +62,20 @@ class Compiler(object):
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void print(char *s)
 {
   printf("%s\n", s);
+}
+
+char *concat(char *s, char *t)
+{
+  char *st = malloc(strlen(s) + strlen(t) + 1);
+  st[0] = '\0';
+  strcat(st, s);
+  strcat(st, t);
+  return st;
 }
 
 struct tagged_value {
@@ -76,10 +86,9 @@ struct tagged_value {
     };
 };
 
-/*
-struct tagged_value *tag(char *, void *) {
+struct tagged_value *tag(int type, void *value) {
 }
-*/
+
 """)
             for child in ast.children:
                 self.compile(child)
@@ -231,18 +240,18 @@ int main(int argc, char **argv)
             self.compile(ast.children[0])
             self.out.write(')')
         elif ast.tag == 'TypeCase':
-            self.out.write('if (')
+            self.out.write('if (tag(')
             self.compile(ast.children[0])
-            self.out.write("[0] == '%s')" % str(ast.children[1].type))
-            self.out.write('then save=')
+            self.out.write(") == '%s') {" % str(ast.children[1].type))
+            self.out.write('save=')
             self.compile(ast.children[0])
-            self.out.write('\n')
+            self.out.write(';\n')
             self.compile(ast.children[0])
             self.out.write('=')
             self.compile(ast.children[0])
             self.out.write('[1]\n')
             self.compile(ast.children[2])
             self.compile(ast.children[0])
-            self.out.write(' = save end')
+            self.out.write(' = save;\n')
         else:
             raise NotImplementedError(repr(ast))
