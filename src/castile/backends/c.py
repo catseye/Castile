@@ -146,7 +146,7 @@ int main(int argc, char **argv)
         elif ast.tag == 'Args':
             self.commas(ast.children)
         elif ast.tag == 'Arg':
-            self.out.write(self.c_decl(ast.type, ast.value))
+            self.out.write('%s %s' % (self.c_type(ast.type), ast.value))
         elif ast.tag == 'Body':
             self.compile(ast.children[0])
             self.compile(ast.children[1])
