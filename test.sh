@@ -2,7 +2,7 @@
 
 echo -n '' > test_config
 
-if [ "x$1" = "xeval" -o "x$1" = "xall" ]; then
+if [ "x$1" = x ]; then
   cat >>test_config <<EOF
     -> Functionality "Run Castile Program" is implemented by shell command
     -> "bin/castile %(test-file)"
@@ -10,7 +10,7 @@ if [ "x$1" = "xeval" -o "x$1" = "xall" ]; then
 EOF
 fi
 
-if [ "x$1" = "xjs" -o "x$1" = "xall" ]; then
+if [ ! x`which node` = x ]; then
   cat >>test_config <<EOF
     -> Functionality "Run Castile Program" is implemented by shell command
     -> "bin/castile -c javascript %(test-file) > foo.js && node foo.js"
@@ -18,7 +18,7 @@ if [ "x$1" = "xjs" -o "x$1" = "xall" ]; then
 EOF
 fi
 
-if [ "x$1" = "xruby" -o "x$1" = "xall" ]; then
+if [ ! x`which ruby` = x ]; then
   cat >>test_config <<EOF
     -> Functionality "Run Castile Program" is implemented by shell command
     -> "bin/castile -c ruby %(test-file) > foo.rb && ruby foo.rb"
@@ -26,7 +26,7 @@ if [ "x$1" = "xruby" -o "x$1" = "xall" ]; then
 EOF
 fi
 
-if [ "x$1" = "xstackmac" -o "x$1" = "xall" ]; then
+if [ -e bin/stackmac ]; then
   cat >>test_config <<EOF
     -> Functionality "Run Castile Program" is implemented by shell command
     -> "bin/castile -c stackmac %(test-file) > foo.stack && bin/stackmac foo.stack"
@@ -43,4 +43,6 @@ EOF
 fi
 
 falderal -b test_config README.markdown
+RESULT=$?
 rm -f test_config foo.* a.out
+exit $RESULT
