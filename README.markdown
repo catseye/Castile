@@ -4,7 +4,7 @@ Castile
 This is the reference distribution for Castile, an unremarkable programming
 language.
 
-The current version of Castile is 0.3-PRE.  It is not only subject to change,
+The current version of Castile is 0.3.  It is not only subject to change,
 it is pretty much *guaranteed* to change.
 
 Unlike most of my programming languages, there is nothing that could really
