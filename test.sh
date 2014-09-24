@@ -5,7 +5,7 @@ echo -n '' > test_config
 if [ "x$1" = x ]; then
   cat >>test_config <<EOF
     -> Functionality "Run Castile Program" is implemented by shell command
-    -> "bin/castile %(test-file)"
+    -> "bin/castile %(test-body-file)"
 
 EOF
 fi
@@ -13,7 +13,7 @@ fi
 if [ ! x`which node` = x ]; then
   cat >>test_config <<EOF
     -> Functionality "Run Castile Program" is implemented by shell command
-    -> "bin/castile -c javascript %(test-file) > foo.js && node foo.js"
+    -> "bin/castile -c javascript %(test-body-file) > foo.js && node foo.js"
 
 EOF
 fi
@@ -21,7 +21,7 @@ fi
 if [ ! x`which ruby` = x ]; then
   cat >>test_config <<EOF
     -> Functionality "Run Castile Program" is implemented by shell command
-    -> "bin/castile -c ruby %(test-file) > foo.rb && ruby foo.rb"
+    -> "bin/castile -c ruby %(test-body-file) > foo.rb && ruby foo.rb"
 
 EOF
 fi
@@ -29,7 +29,7 @@ fi
 if [ -e bin/stackmac ]; then
   cat >>test_config <<EOF
     -> Functionality "Run Castile Program" is implemented by shell command
-    -> "bin/castile -c stackmac %(test-file) > foo.stack && bin/stackmac foo.stack"
+    -> "bin/castile -c stackmac %(test-body-file) > foo.stack && bin/stackmac foo.stack"
 
 EOF
 fi
@@ -37,7 +37,7 @@ fi
 if [ "x$1" = "xc" ]; then
   cat >>test_config <<EOF
     -> Functionality "Run Castile Program" is implemented by shell command
-    -> "bin/castile -c c %(test-file) > foo.c && gcc foo.c && ./a.out"
+    -> "bin/castile -c c %(test-body-file) > foo.c && gcc foo.c && ./a.out"
 
 EOF
 fi
