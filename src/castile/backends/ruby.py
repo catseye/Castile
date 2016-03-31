@@ -162,7 +162,7 @@ end
             self.commas(ast.children[1:])
             self.out.write('}')
         elif ast.tag == 'FieldInit':
-            self.out.write("'%s'," % ast.value)
+            self.out.write("'%s'=>" % ast.value)
             self.compile(ast.children[0])
         elif ast.tag == 'Index':
             self.compile(ast.children[0])
