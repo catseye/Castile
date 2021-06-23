@@ -40,7 +40,7 @@ def main(argv):
         import doctest
         (fails, something) = doctest.testmod()
         if fails == 0:
-            print "All tests passed."
+            print("All tests passed.")
             sys.exit(0)
         else:
             sys.exit(1)
@@ -48,8 +48,8 @@ def main(argv):
         p = Parser(f.read())
         ast = p.program()
         if options.show_ast:
-            print ast.pprint(0)
-            print "-----"
+            print(ast.pprint(0))
+            print("-----")
         if options.parse_only:
             sys.exit(0)
         if options.typecheck:
@@ -60,8 +60,8 @@ def main(argv):
             x = FunctionLifter()
             ast = x.lift_functions(ast)
             if options.show_ast:
-                print ast.pprint(0)
-                print "-----"
+                print(ast.pprint(0))
+                print("-----")
             c = getattr(backends, options.compile_to).Compiler(sys.stdout)
             c.compile(ast)
             sys.exit(0)
@@ -69,4 +69,4 @@ def main(argv):
         e.load(ast)
         r = e.run()
         if r is not None:
-            print repr(r)
+            print(repr(r))

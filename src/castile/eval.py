@@ -36,7 +36,9 @@ class StructDict(dict):
 
 
 class FunctionReturn(Exception):
-    pass
+    @property
+    def message(self):
+        return self.args[0]
 
 
 class WhileBreak(Exception):
@@ -172,7 +174,7 @@ def typeof(x):
 class Program(object):
     def __init__(self):
         self.stab = {}
-        for (name, (value, type)) in BUILTINS.iteritems():
+        for (name, (value, type)) in BUILTINS.items():
             if callable(value):
                 value = Closure(self, value)
             self.stab[name] = value

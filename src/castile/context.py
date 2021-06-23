@@ -6,13 +6,13 @@ class ScopedContext(object):
     """
     >>> d = ScopedContext({ 'a': 2, 'b': 3 })
     >>> e = ScopedContext({ 'c': 4 }, parent=d)
-    >>> print e['c']
+    >>> e['c']
     4
-    >>> print e['b']
+    >>> e['b']
     3
-    >>> print 'a' in e
+    >>> 'a' in e
     True
-    >>> print 'e' in e
+    >>> 'e' in e
     False
 
     """
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     import doctest
     (fails, something) = doctest.testmod()
     if fails == 0:
-        print "All tests passed."
+        print("All tests passed.")
         sys.exit(0)
     else:
         sys.exit(1)
