@@ -1,48 +1,24 @@
 #!/bin/sh
 
-echo -n '' > test_config
-
-if [ "x$1" = x ]; then
-  cat >>test_config <<EOF
-    -> Functionality "Run Castile Program" is implemented by shell command
-    -> "bin/castile %(test-body-file)"
-
-EOF
-fi
+APPLIANCES="tests/appliances/castile.md"
 
 if [ ! x`which node` = x ]; then
-  cat >>test_config <<EOF
-    -> Functionality "Run Castile Program" is implemented by shell command
-    -> "bin/castile -c javascript %(test-body-file) > foo.js && node foo.js"
-
-EOF
+    APPLIANCES="$APPLIANCES tests/appliances/castile-c-javascript.md"
 fi
 
 if [ ! x`which ruby` = x ]; then
-  cat >>test_config <<EOF
-    -> Functionality "Run Castile Program" is implemented by shell command
-    -> "bin/castile -c ruby %(test-body-file) > foo.rb && ruby foo.rb"
-
-EOF
+    APPLIANCES="$APPLIANCES tests/appliances/castile-c-ruby.md"
 fi
 
 if [ -e bin/stackmac ]; then
-  cat >>test_config <<EOF
-    -> Functionality "Run Castile Program" is implemented by shell command
-    -> "bin/castile -c stackmac %(test-body-file) > foo.stack && bin/stackmac foo.stack"
-
-EOF
+    APPLIANCES="$APPLIANCES tests/appliances/castile-c-stackmac.md"
 fi
 
 if [ "x$1" = "xc" ]; then
-  cat >>test_config <<EOF
-    -> Functionality "Run Castile Program" is implemented by shell command
-    -> "bin/castile -c c %(test-body-file) > foo.c && gcc foo.c && ./a.out"
-
-EOF
+    APPLIANCES="$APPLIANCES tests/appliances/castile-c-c.md"
 fi
 
-falderal -b test_config README.markdown
+falderal $APPLIANCES README.md
 RESULT=$?
-rm -f test_config foo.* a.out
+rm -f foo.* a.out
 exit $RESULT

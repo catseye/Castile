@@ -1,0 +1,2 @@
+    -> Functionality "Run Castile Program" is implemented by shell command
+    -> "bin/castile -c c %(test-body-file) > foo.c && gcc foo.c && ./a.out"

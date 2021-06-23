@@ -1,0 +1,2 @@
+    -> Functionality "Run Castile Program" is implemented by shell command
+    -> "bin/castile -c ruby %(test-body-file) > foo.rb && ruby foo.rb"
