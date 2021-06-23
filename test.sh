@@ -2,6 +2,10 @@
 
 APPLIANCES="tests/appliances/castile.md"
 
+if [ ! x`which python3` = x ]; then
+    APPLIANCES="$APPLIANCES tests/appliances/python3-castile.md"
+fi
+
 if [ ! x`which node` = x ]; then
     APPLIANCES="$APPLIANCES tests/appliances/castile-c-javascript.md"
 fi
