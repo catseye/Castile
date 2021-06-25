@@ -1,0 +1,2 @@
+    -> Functionality "Run Castile Program" is implemented by shell command
+    -> "python3 bin/castile %(test-body-file)"

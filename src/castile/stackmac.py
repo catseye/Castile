@@ -31,7 +31,7 @@ def run(program, strings):
     while ip < len(program):
         (op, arg) = program[ip]
         if debug:
-            print ip, op, arg, stack, callstack
+            print(ip, op, arg, stack, callstack)
         if op == 'push':
             stack.append(arg)
         elif op == 'pop':
@@ -164,7 +164,7 @@ def run(program, strings):
             result = 'False'
         if result == -1:
             result = 'True'
-        print result
+        print(result)
 
 
 def main(args):

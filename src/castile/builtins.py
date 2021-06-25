@@ -26,7 +26,7 @@ def builtin_print(s):
     Its usage may conflict with the usage of standard output.
 
     """
-    print s
+    print(s)
 
 
 def builtin_input(s):

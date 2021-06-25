@@ -17,7 +17,7 @@ class StructDefinition(object):
 class TypeChecker(object):
     def __init__(self):
         global_context = {}
-        for (name, (value, type)) in BUILTINS.iteritems():
+        for (name, (value, type)) in BUILTINS.items():
             global_context[name] = type
         self.context = ScopedContext(global_context, level='global')
         self.toplevel_context = ScopedContext({}, self.context, level='toplevel')
@@ -33,7 +33,7 @@ class TypeChecker(object):
     def set(self, name, type):
         self.context[name] = type
         if self.verbose:
-            print '%s: %s' % (name, type)
+            print('%s: %s' % (name, type))
         return type
 
     def assert_eq(self, t1, t2):
