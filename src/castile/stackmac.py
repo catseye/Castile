@@ -63,6 +63,10 @@ def run(program, strings):
                     s = strings[stack.pop()]
                     strings.append(builtin(s, p, k))
                     stack.append(len(strings) - 1)
+                elif name == 'str':
+                    n = stack.pop()
+                    strings.append(builtin(n))
+                    stack.append(len(strings) - 1)
                 else:
                     raise NotImplementedError(name)
         elif op == 'rts':
@@ -233,4 +237,6 @@ def main(args):
                 arg = int(arg)
             p.append((op, arg))
 
+    if debug:
+        print(strings)
     run(p, strings)

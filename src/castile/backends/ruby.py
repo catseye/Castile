@@ -49,6 +49,10 @@ substr = lambda { |s, p, k|
   s[p..p+(k-1)]
 }
 
+str = lambda { |n|
+  n.to_s
+}
+
 def repr o
   if o == true
     return "True"

@@ -29,8 +29,6 @@ AST nodes should have source line numbers, it would be really nice.
 
 C backend.  Other backends (Python? Java? CIL? Scheme?)
 
-Runtime support for `str` in Ruby backend and JavaScript backend.
-
 ### Design ###
 
 Convenience:

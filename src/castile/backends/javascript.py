@@ -36,6 +36,7 @@ var print = function(s) { console.log(s); };
 var len = function(s) { return s.length; };
 var concat = function(s1,s2) { return s1 + s2; };
 var substr = function(s,p,k) { return s.substr(p, k); };
+var str = function(n) { return '' + n; };
 
 var repr = function(o) {
   if (typeof o === "string") {
