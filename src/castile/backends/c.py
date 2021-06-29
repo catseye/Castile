@@ -22,6 +22,13 @@ CASTILE_VOID print(char *s)
     return 0;
 }
 
+char *str(int n)
+{
+    char *st = malloc(20);
+    snprintf(st, 19, "%d", n);
+    return st;
+}
+
 char *concat(char *s, char *t)
 {
     char *st = malloc(strlen(s) + strlen(t) + 1);
@@ -69,6 +76,7 @@ class Compiler(object):
         self.out = out
         self.main_type = None
         self.indent = 0
+        self.typecasing = set()
 
     def commas(self, asts, sep=','):
         if asts:
@@ -216,7 +224,11 @@ int main(int argc, char **argv)
             self.compile(ast.children[1])
             self.write(')')
         elif ast.tag == 'VarRef':
-            self.write(ast.value)
+            if ast.value in self.typecasing:
+                self.write('__')
+                self.write(ast.value)
+            else:
+                self.write(ast.value)
         elif ast.tag == 'FunCall':
             self.write("((")
             self.write(self.c_decl(ast.children[0].type, '(*)'))
@@ -292,18 +304,20 @@ int main(int argc, char **argv)
             self.compile(ast.children[0])
             self.write(')) {\n')
             self.indent += 1
-            self.write_indent('void * save = ')
+            self.write_indent(self.c_type(ast.children[1].type))
+            self.write(' __')
+            self.compile(ast.children[0])
+            self.write(' = (')
+            self.write(self.c_type(ast.children[1].type))
+            self.write(')')
             self.compile(ast.children[0])
             self.write(';\n')
-            self.write_indent('')
-            self.compile(ast.children[0])
-            self.write('=')
-            self.compile(ast.children[0])
-            self.write('[1];\n')
+            self.typecasing.add(ast.children[0].value)
+            #self.write('/*')
+            #self.write(repr(ast.children[0]))
+            #self.write('*/')
             self.compile(ast.children[2])
-            self.write_indent('');
-            self.compile(ast.children[0])
-            self.write(' = save;\n')
+            self.typecasing.remove(ast.children[0].value)
             self.indent -= 1;
             self.write_indent('}\n')
         else:
