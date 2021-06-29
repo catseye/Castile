@@ -77,7 +77,7 @@ class Compiler(object):
         self.out.write(x)
 
     def write_indent(self, x):
-        self.out.write('  ' * self.indent)
+        self.out.write('    ' * self.indent)
         self.out.write(x)
 
     # as used in local variable declarations
@@ -162,12 +162,12 @@ int main(int argc, char **argv)
         elif ast.tag == 'Forward':
             self.write_indent('extern %s;\n' % self.c_decl(ast.children[0].type, ast.value))
         elif ast.tag == 'StructDefn':
-            self.write_indent('struct %s {' % ast.value)
+            self.write_indent('struct %s {\n' % ast.value)
             self.indent += 1
             for child in ast.children:
                 self.compile(child)
             self.indent -= 1
-            self.write_indent('};\n')
+            self.write_indent('};\n\n')
         elif ast.tag == 'FieldDefn':
             self.write_indent('%s;\n' % self.c_decl(ast.children[0].type, ast.value))
         elif ast.tag == 'FunLit':
@@ -265,7 +265,14 @@ int main(int argc, char **argv)
             self.compile(ast.children[1])
         elif ast.tag == 'Make':
             self.write('&(struct %s){ ' % ast.type.name)
-            self.commas(ast.children[1:])
+            def find_field(name):
+                for field in ast.children[1:]:
+                    if field.value == name:
+                        return field
+            ordered_fields = []
+            for field_name in ast.type.defn.field_names_in_order():
+                ordered_fields.append(find_field(field_name))
+            self.commas(ordered_fields)
             self.write(' }')
         elif ast.tag == 'FieldInit':
             self.commas(ast.children)

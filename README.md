@@ -821,12 +821,12 @@ Types must match when making a struct.
 
 Order of field initialization when making a struct doesn't matter.
 
-    /| struct person { name: string; age: integer }
-    /| main = fun() {
-    /|   j = make person(age: 23, name:"Jake");
-    /|   j.age
-    /| }
-    /= 23
+    | struct person { name: string; age: integer }
+    | main = fun() {
+    |   j = make person(age: 23, name:"Jake");
+    |   j.age
+    | }
+    = 23
 
 Structs can be tested for equality.  (Since structs are immutable, it
 doesn't matter if this is structural equality or identity.)

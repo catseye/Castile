@@ -13,6 +13,14 @@ class StructDefinition(object):
         self.field_names = field_names  # dict of name -> position
         self.content_types = content_types  # list of types in order
 
+    def field_names_in_order(self):
+        m = {}
+        for k, v in self.field_names.items():
+            m[v] = k
+        l = []
+        for i in range(len(m)):
+            l.append(m[i])
+        return l
 
 class TypeChecker(object):
     def __init__(self):
