@@ -1,21 +1,7 @@
 OPS = {
 }
 
-
-class Compiler(object):
-    def __init__(self, out):
-        self.out = out
-
-    def commas(self, asts, sep=','):
-        if asts:
-            for child in asts[:-1]:
-                self.compile(child)
-                self.out.write(sep)
-            self.compile(asts[-1])
-
-    def compile(self, ast):
-        if ast.tag == 'Program':
-            self.out.write("""\
+PRELUDE = """\
 # AUTOMATICALLY GENERATED -- EDIT AT OWN RISK
 
 input = lambda { |s|
@@ -67,34 +53,63 @@ def repr o
   end
 end
 
-""")
-            for child in ast.children:
-                self.compile(child)
-            self.out.write("""\
+"""
+
+POSTLUDE = """\
 
 result = main.call()
 if result != nil
   puts(repr(result))
 end
-""")
+"""
+
+
+class Compiler(object):
+    def __init__(self, out):
+        self.out = out
+        self.indent = 0
+
+    def commas(self, asts, sep=','):
+        if asts:
+            for child in asts[:-1]:
+                self.compile(child)
+                self.out.write(sep)
+            self.compile(asts[-1])
+
+    def write(self, x):
+        self.out.write(x)
+
+    def write_indent(self, x):
+        self.out.write('  ' * self.indent)
+        self.out.write(x)
+
+    def compile(self, ast):
+        if ast.tag == 'Program':
+            self.write(PRELUDE)
+            for child in ast.children:
+                self.compile(child)
+            self.write(POSTLUDE)
         elif ast.tag == 'Defn':
-            self.out.write('%s = ' % ast.value)
+            self.write_indent('%s = ' % ast.value)
             self.compile(ast.children[0])
-            self.out.write('\n')
+            self.write('\n')
         elif ast.tag == 'Forward':
-            self.out.write('%s = nil\n' % ast.value)
+            self.write_indent('%s = nil\n' % ast.value)
         elif ast.tag == 'StructDefn':
             pass
         elif ast.tag == 'FunLit':
-            self.out.write('lambda { |')
+            self.write_indent('lambda { |')
             self.compile(ast.children[0])
-            self.out.write('|\n')
+            self.write('|\n')
+            self.indent += 1
             self.compile(ast.children[1])
-            self.out.write('return nil }')
+            self.write_indent('return nil\n')
+            self.indent -= 1
+            self.write_indent('}\n')
         elif ast.tag == 'Args':
             self.commas(ast.children)
         elif ast.tag == 'Arg':
-            self.out.write(ast.value)
+            self.write(ast.value)
         elif ast.tag == 'Body':
             self.compile(ast.children[0])
             self.compile(ast.children[1])
@@ -102,92 +117,101 @@ end
             for child in ast.children:
                 self.compile(child)
         elif ast.tag == 'VarDecl':
-            self.out.write('%s = nil;\n' % ast.value)
+            self.write_indent('%s = nil;\n' % ast.value)
         elif ast.tag == 'Block':
             for child in ast.children:
                 self.compile(child)
-                self.out.write('\n')
+                self.write('\n')
         elif ast.tag == 'While':
-            self.out.write('while (')
+            self.write_indent('while (')
             self.compile(ast.children[0])
-            self.out.write(') do\n')
+            self.write(') do\n')
+            self.indent += 1
             self.compile(ast.children[1])
-            self.out.write('end\n')
+            self.indent -= 1
+            self.write_indent('end\n')
         elif ast.tag == 'Op':
-            self.out.write('(')
+            self.write('(')
             self.compile(ast.children[0])
-            self.out.write(' %s ' % OPS.get(ast.value, ast.value))
+            self.write(' %s ' % OPS.get(ast.value, ast.value))
             self.compile(ast.children[1])
-            self.out.write(')')
+            self.write(')')
         elif ast.tag == 'VarRef':
-            self.out.write(ast.value)
+            self.write(ast.value)
         elif ast.tag == 'FunCall':
             self.compile(ast.children[0])
-            self.out.write('.call(')
+            self.write('.call(')
             self.commas(ast.children[1:])
-            self.out.write(')')
+            self.write(')')
         elif ast.tag == 'If':
-            self.out.write('if (')
+            self.write_indent('if (')
             self.compile(ast.children[0])
-            self.out.write(') then\n')
+            self.write(') then\n')
             if len(ast.children) == 3:  # if-else
+                self.indent += 1
                 self.compile(ast.children[1])
-                self.out.write(' else\n')
+                self.indent -= 1
+                self.write_indent('else\n')
+                self.indent += 1
                 self.compile(ast.children[2])
+                self.indent -= 1
             else:  # just-if
+                self.indent += 1
                 self.compile(ast.children[1])
-            self.out.write('end\n')
+                self.indent -= 1
+            self.write_indent('end\n')
         elif ast.tag == 'Return':
-            self.out.write('return ')
+            self.write_indent('return ')
             self.compile(ast.children[0])
         elif ast.tag == 'Break':
-            self.out.write('break')
+            self.write_indent('break')
         elif ast.tag == 'Not':
-            self.out.write('!(')
+            self.write('!(')
             self.compile(ast.children[0])
-            self.out.write(')')
+            self.write(')')
         elif ast.tag == 'None':
-            self.out.write('nil')
+            self.write('nil')
         elif ast.tag == 'BoolLit':
             if ast.value:
-                self.out.write("true")
+                self.write("true")
             else:
-                self.out.write("false")
+                self.write("false")
         elif ast.tag == 'IntLit':
-            self.out.write(str(ast.value))
+            self.write(str(ast.value))
         elif ast.tag == 'StrLit':
-            self.out.write("'%s'" % ast.value)
+            self.write("'%s'" % ast.value)
         elif ast.tag == 'Assignment':
+            self.write_indent('')
             self.compile(ast.children[0])
-            self.out.write(' = ')
+            self.write(' = ')
             self.compile(ast.children[1])
         elif ast.tag == 'Make':
-            self.out.write('{')
+            self.write('{')
             self.commas(ast.children[1:])
-            self.out.write('}')
+            self.write('}')
         elif ast.tag == 'FieldInit':
-            self.out.write("'%s'=>" % ast.value)
+            self.write("'%s'=>" % ast.value)
             self.compile(ast.children[0])
         elif ast.tag == 'Index':
             self.compile(ast.children[0])
-            self.out.write('["%s"]' % ast.value)
+            self.write('["%s"]' % ast.value)
         elif ast.tag == 'TypeCast':
-            self.out.write("['%s'," % str(ast.children[0].type))
+            self.write("['%s'," % str(ast.children[0].type))
             self.compile(ast.children[0])
-            self.out.write(']')
+            self.write(']')
         elif ast.tag == 'TypeCase':
-            self.out.write('if (')
+            self.write_indent('if (')
             self.compile(ast.children[0])
-            self.out.write("[0] == '%s')" % str(ast.children[1].type))
-            self.out.write('then save=')
+            self.write("[0] == '%s')" % str(ast.children[1].type))
+            self.write('then save=')
             self.compile(ast.children[0])
-            self.out.write('\n')
+            self.write('\n')
             self.compile(ast.children[0])
-            self.out.write('=')
+            self.write('=')
             self.compile(ast.children[0])
-            self.out.write('[1]\n')
+            self.write('[1]\n')
             self.compile(ast.children[2])
             self.compile(ast.children[0])
-            self.out.write(' = save end')
+            self.write(' = save end')
         else:
             raise NotImplementedError(repr(ast))
