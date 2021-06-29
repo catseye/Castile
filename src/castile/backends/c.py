@@ -14,6 +14,8 @@ PRELUDE = r"""
 #include <stdlib.h>
 #include <string.h>
 
+typedef int CASTILE_VOID;
+
 void print(char *s)
 {
     printf("%s\n", s);
@@ -69,7 +71,7 @@ class Compiler(object):
         elif type == String():
             return 'char *'
         elif type == Void():
-            return 'void'
+            return 'CASTILE_VOID'
         elif type == Boolean():
             return 'int'
         elif isinstance(type, Struct):
@@ -230,7 +232,7 @@ int main(int argc, char **argv)
             self.compile(ast.children[0])
             self.write(')')
         elif ast.tag == 'None':
-            self.write('')
+            self.write('(CASTILE_VOID)0')
         elif ast.tag == 'BoolLit':
             if ast.value:
                 self.write("1")

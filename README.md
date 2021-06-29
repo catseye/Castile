@@ -524,11 +524,11 @@ Truth and falsehood are builtin toplevels.
 
 So is `null`, which is the single value of `void` type.
 
-    /| fun wat(x: void) { 3 }
-    /| fun main() {
-    /|   wat(null)
-    /| }
-    /= 3
+    | fun wat(x: void) { 3 }
+    | fun main() {
+    |   wat(null)
+    | }
+    = 3
 
 ### More on Functions ###
 
