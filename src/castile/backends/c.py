@@ -54,7 +54,10 @@ struct tagged_value {
     };
 };
 
-struct tagged_value *tag(int type, void *value) {
+struct tagged_value *tag(char *type, void *value) {
+}
+
+int is_tag(char *type, struct tagged_value *value) {
 }
 
 """
@@ -284,18 +287,23 @@ int main(int argc, char **argv)
             self.compile(ast.children[0])
             self.write(')')
         elif ast.tag == 'TypeCase':
-            self.write_indent('if (tag(')
+            self.write_indent('if (is_tag("%s",' % str(ast.children[1].type))
             self.compile(ast.children[0])
-            self.write(") == '%s') {" % str(ast.children[1].type))
-            self.write('save=')
+            self.write(')) {\n')
+            self.indent += 1
+            self.write_indent('int save = ')
             self.compile(ast.children[0])
             self.write(';\n')
+            self.write_indent('')
             self.compile(ast.children[0])
             self.write('=')
             self.compile(ast.children[0])
-            self.write('[1]\n')
+            self.write('[1];\n')
             self.compile(ast.children[2])
+            self.write_indent('');
             self.compile(ast.children[0])
             self.write(' = save;\n')
+            self.indent -= 1;
+            self.write_indent('}\n')
         else:
             raise NotImplementedError(repr(ast))

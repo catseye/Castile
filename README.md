@@ -1007,6 +1007,16 @@ Order of types in a union doesn't matter.
     | }
     = 2
 
+Trivial use of `typecase`.
+
+    | main = fun() {
+    |   a = 333 as integer|string;
+    |   typecase a is integer {
+    |     print("int")
+    |   };
+    | }
+    = int
+
 The `typecase` construct can operate on the "right" type of a union.
 
     /| fun foo(a, b: integer|string) {
