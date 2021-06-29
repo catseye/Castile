@@ -30,6 +30,22 @@ char *concat(char *s, char *t)
     return st;
 }
 
+char *substr(char *s, int p, int k)
+{
+    char *st = malloc(k + 1);
+    int i;
+    for (i = 0; i < k; i++) {
+        st[i] = s[p+i];
+    }
+    st[i] = '\0';
+    return st;
+}
+
+int len(char *s)
+{
+    return strlen(s);
+}
+
 struct tagged_value {
     int type;
     union {

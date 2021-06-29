@@ -703,20 +703,20 @@ The usual.
 
 Some standard functions are builtin and available as toplevels.
 
-    /| fun main() {
-    /|   a = "hello";
-    /|   b = len(a);
-    /|   while b > 0 {
-    /|     print(a);
-    /|     b = b - 1;
-    /|     a = substr(a, 1, b)
-    /|   }
-    /| }
-    /= hello
-    /= ello
-    /= llo
-    /= lo
-    /= o
+    | fun main() {
+    |   a = "hello";
+    |   b = len(a);
+    |   while b > 0 {
+    |     print(a);
+    |     b = b - 1;
+    |     a = substr(a, 1, b)
+    |   }
+    | }
+    = hello
+    = ello
+    = llo
+    = lo
+    = o
 
 The `+` operator is not string concatenation.  `concat` is.
 
