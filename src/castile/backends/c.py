@@ -16,9 +16,10 @@ PRELUDE = r"""
 
 typedef int CASTILE_VOID;
 
-void print(char *s)
+CASTILE_VOID print(char *s)
 {
     printf("%s\n", s);
+    return 0;
 }
 
 char *concat(char *s, char *t)
@@ -135,7 +136,7 @@ int main(int argc, char **argv)
     int x = castile_main();
     printf("%s\n", x ? "True" : "False");
 """)
-        self.write(r"""
+        self.write("""\
     return 0;
 }
 
@@ -283,7 +284,7 @@ int main(int argc, char **argv)
             self.compile(ast.children[0])
             self.write('->%s' % ast.value)
         elif ast.tag == 'TypeCast':
-            self.write('tag("%s",' % str(ast.children[0].type))
+            self.write('tag("%s",(void *)' % str(ast.children[0].type))
             self.compile(ast.children[0])
             self.write(')')
         elif ast.tag == 'TypeCase':
@@ -291,7 +292,7 @@ int main(int argc, char **argv)
             self.compile(ast.children[0])
             self.write(')) {\n')
             self.indent += 1
-            self.write_indent('int save = ')
+            self.write_indent('void * save = ')
             self.compile(ast.children[0])
             self.write(';\n')
             self.write_indent('')
