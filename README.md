@@ -524,11 +524,11 @@ Truth and falsehood are builtin toplevels.
 
 So is `null`, which is the single value of `void` type.
 
-    | fun wat(x: void) { 3 }
-    | fun main() {
-    |   wat(null)
-    | }
-    = 3
+    /| fun wat(x: void) { 3 }
+    /| fun main() {
+    /|   wat(null)
+    /| }
+    /= 3
 
 ### More on Functions ###
 
@@ -703,20 +703,20 @@ The usual.
 
 Some standard functions are builtin and available as toplevels.
 
-    | fun main() {
-    |   a = "hello";
-    |   b = len(a);
-    |   while b > 0 {
-    |     print(a);
-    |     b = b - 1;
-    |     a = substr(a, 1, b)
-    |   }
-    | }
-    = hello
-    = ello
-    = llo
-    = lo
-    = o
+    /| fun main() {
+    /|   a = "hello";
+    /|   b = len(a);
+    /|   while b > 0 {
+    /|     print(a);
+    /|     b = b - 1;
+    /|     a = substr(a, 1, b)
+    /|   }
+    /| }
+    /= hello
+    /= ello
+    /= llo
+    /= lo
+    /= o
 
 The `+` operator is not string concatenation.  `concat` is.
 
@@ -821,12 +821,12 @@ Types must match when making a struct.
 
 Order of field initialization when making a struct doesn't matter.
 
-    | struct person { name: string; age: integer }
-    | main = fun() {
-    |   j = make person(age: 23, name:"Jake");
-    |   j.age
-    | }
-    = 23
+    /| struct person { name: string; age: integer }
+    /| main = fun() {
+    /|   j = make person(age: 23, name:"Jake");
+    /|   j.age
+    /| }
+    /= 23
 
 Structs can be tested for equality.  (Since structs are immutable, it
 doesn't matter if this is structural equality or identity.)
@@ -1009,23 +1009,23 @@ Order of types in a union doesn't matter.
 
 The `typecase` construct can operate on the "right" type of a union.
 
-    | fun foo(a, b: integer|string) {
-    |   r = a;
-    |   typecase b is integer {
-    |     r = r + b;
-    |   };
-    |   typecase b is string {
-    |     r = r + len(b);
-    |   };
-    |   r
-    | }
-    | main = fun() {
-    |   a = 0;
-    |   a = foo(a, 333 as integer|string);
-    |   a = foo(a, "hiya" as integer|string);
-    |   a
-    | }
-    = 337
+    /| fun foo(a, b: integer|string) {
+    /|   r = a;
+    /|   typecase b is integer {
+    /|     r = r + b;
+    /|   };
+    /|   typecase b is string {
+    /|     r = r + len(b);
+    /|   };
+    /|   r
+    /| }
+    /| main = fun() {
+    /|   a = 0;
+    /|   a = foo(a, 333 as integer|string);
+    /|   a = foo(a, "hiya" as integer|string);
+    /|   a
+    /| }
+    /= 337
 
 The expression in a `typecase` must be a variable.
 
@@ -1039,15 +1039,15 @@ The expression in a `typecase` must be a variable.
 
 The expression in a `typecase` can be an argument.
 
-    | fun wat(j: integer|string) {
-    |   typecase j is integer {
-    |     print("integer")
-    |   };
-    | }
-    | main = fun() {
-    |   wat(444 as integer|string)
-    | }
-    = integer
+    /| fun wat(j: integer|string) {
+    /|   typecase j is integer {
+    /|     print("integer")
+    /|   };
+    /| }
+    /| main = fun() {
+    /|   wat(444 as integer|string)
+    /| }
+    /= integer
 
 The expression in a `typecase` cannot effectively be a global, as globals
 must be literals and there is no way (right now) to make a literal of union
@@ -1065,92 +1065,92 @@ Inside a `typecase` the variable cannot be updated.
 
 The union can include void.
 
-    | main = fun() {
-    |   j = null as void|integer;
-    |   typecase j is void {
-    |     print("nothing there")
-    |   };
-    | }
-    = nothing there
+    /| main = fun() {
+    /|   j = null as void|integer;
+    /|   typecase j is void {
+    /|     print("nothing there")
+    /|   };
+    /| }
+    /= nothing there
 
 ### Struct Types + Union Types ###
 
 Union types may be used to make fields of a struct "nullable", so that
 you can in actuality create recursive, but finite, data structures.
 
-    | struct list {
-    |   value: string;
-    |   next: list|integer;
-    | }
-    | main = fun() {
-    |   l = make list(
-    |     value: "first",
-    |     next: make list(
-    |       value: "second",
-    |       next:0 as list|integer
-    |     ) as list|integer)
-    |   s = l.next
-    |   typecase s is list {
-    |     print(s.value)
-    |   }
-    | }
-    = second
+    /| struct list {
+    /|   value: string;
+    /|   next: list|integer;
+    /| }
+    /| main = fun() {
+    /|   l = make list(
+    /|     value: "first",
+    /|     next: make list(
+    /|       value: "second",
+    /|       next:0 as list|integer
+    /|     ) as list|integer)
+    /|   s = l.next
+    /|   typecase s is list {
+    /|     print(s.value)
+    /|   }
+    /| }
+    /= second
 
 You may want to use helper functions to hide this ugliness.
 
-    | struct list {
-    |   value: string;
-    |   next: list|void;
-    | }
-    | fun singleton(v: string) {
-    |   make list(value:v, next:null as list|void)
-    | }
-    | fun cons(v: string, l: list) {
-    |   make list(value:v, next:l as list|void)
-    | }
-    | fun nth(n, l: list) {
-    |   u = l as list|void;
-    |   v = u;
-    |   k = n;
-    |   while k > 1 {
-    |     typecase u is void { break; }
-    |     typecase u is list { v = u.next; }
-    |     u = v;
-    |     k = k - 1;
-    |   }
-    |   return u
-    | }
-    | main = fun() {
-    |   l = cons("first", singleton("second"));
-    |   g = nth(2, l);
-    |   typecase g is list { print(g.value); }
-    | }
-    = second
+    /| struct list {
+    /|   value: string;
+    /|   next: list|void;
+    /| }
+    /| fun singleton(v: string) {
+    /|   make list(value:v, next:null as list|void)
+    /| }
+    /| fun cons(v: string, l: list) {
+    /|   make list(value:v, next:l as list|void)
+    /| }
+    /| fun nth(n, l: list) {
+    /|   u = l as list|void;
+    /|   v = u;
+    /|   k = n;
+    /|   while k > 1 {
+    /|     typecase u is void { break; }
+    /|     typecase u is list { v = u.next; }
+    /|     u = v;
+    /|     k = k - 1;
+    /|   }
+    /|   return u
+    /| }
+    /| main = fun() {
+    /|   l = cons("first", singleton("second"));
+    /|   g = nth(2, l);
+    /|   typecase g is list { print(g.value); }
+    /| }
+    /= second
 
 Structs may be empty.
 
-    | struct red { }
-    | fun show(color: red) {
-    |   print("hi")
-    | }
-    | main = fun() {
-    |   show(make red());
-    | }
-    = hi
+    /| struct red { }
+    /| fun show(color: red) {
+    /|   print("hi")
+    /| }
+    /| main = fun() {
+    /|   show(make red());
+    /| }
+    /= hi
 
 In combination with unions, this lets us create "typed enums".
 
-    | struct red { }
-    | struct green { }
-    | struct blue { }
-    | fun show(color: red|green|blue) {
-    |   typecase color is red { print("red"); }
-    |   typecase color is green { print("green"); }
-    |   typecase color is blue { print("blue"); }
-    | }
-    | main = fun() {
-    |   show(make red() as red|green|blue);
-    |   show(make blue() as red|green|blue);
-    | }
-    = red
-    = blue
+    /| struct red { }
+    /| struct green { }
+    /| struct blue { }
+    /| fun show(color: red|green|blue) {
+    /|   typecase color is red { print("red"); }
+    /|   typecase color is green { print("green"); }
+    /|   typecase color is blue { print("blue"); }
+    /| }
+    /| main = fun() {
+    /|   show(make red() as red|green|blue);
+    /|   show(make blue() as red|green|blue);
+    /| }
+    /= red
+    /= blue
