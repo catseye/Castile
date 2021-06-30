@@ -703,6 +703,13 @@ Equality, inequality, boolean operators.
     | }
     = struth
 
+    | fun main() {
+    |   if "five" == "five" and (("six" != "seven") or false) {
+    |     print("struth")
+    |   }
+    | }
+    = struth
+
 Equality cannot be checked between two values of different types.
 
     | fun main() {
@@ -864,13 +871,42 @@ doesn't matter if this is structural equality or identity.)
     | }
     = True
 
-    /| struct person { age: integer; name: string }
-    /| main = fun() {
-    /|   j = make person(age: 23, name:"Jake");
-    /|   k = make person(age: 23, name:"John");
-    /|   j == k
-    /| }
-    /= False
+    | struct person { age: integer; name: string }
+    | main = fun() {
+    |   j = make person(age: 23, name:"Jake");
+    |   k = make person(age: 23, name:"John");
+    |   j == k
+    | }
+    = False
+
+    | struct person { age: integer; name: string }
+    | main = fun() {
+    |   j = make person(age: 23, name:"Jake");
+    |   k = make person(age: 21, name:"Jake");
+    |   j != k
+    | }
+    = True
+
+Structs of two different types cannot be tested for equality.
+
+    | struct person { age: integer; name: string }
+    | struct individual { age: integer; name: string }
+    | main = fun() {
+    |   j = make person(age: 23, name:"Jake");
+    |   k = make individual(age: 23, name:"Jake");
+    |   j == k
+    | }
+    ? mismatch
+
+Structs cannot be compared for ordering.
+
+    | struct person { age: integer; name: string }
+    | main = fun() {
+    |   j = make person(age: 23, name:"Jake");
+    |   k = make person(age: 21, name:"Jake");
+    |   j > k
+    | }
+    ? structs cannot be compared for order
 
 Structs can be passed to functions.
 

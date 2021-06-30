@@ -20,6 +20,16 @@ def boo(b):
         return 0
 
 
+def add_string(strings, s):
+    """Adds a string to the pool, deduping it.  Returns the index of the
+    entry of the string, whether new or existing."""
+    for n, t in enumerate(strings):
+        if t == s:
+            return n
+    strings.append(s)
+    return len(strings) - 1
+
+
 def run(program, strings):
     global labels
     ip = 0
@@ -52,8 +62,8 @@ def run(program, strings):
                 elif name == 'concat':
                     b = strings[stack.pop()]
                     a = strings[stack.pop()]
-                    strings.append(builtin(a, b))
-                    stack.append(len(strings) - 1)
+                    pos = add_string(strings, builtin(a, b))
+                    stack.append(pos)
                 elif name == 'len':
                     a = strings[stack.pop()]
                     stack.append(builtin(a))
@@ -61,12 +71,12 @@ def run(program, strings):
                     k = stack.pop()
                     p = stack.pop()
                     s = strings[stack.pop()]
-                    strings.append(builtin(s, p, k))
-                    stack.append(len(strings) - 1)
+                    pos = add_string(strings, builtin(s, p, k))
+                    stack.append(pos)
                 elif name == 'str':
                     n = stack.pop()
-                    strings.append(builtin(n))
-                    stack.append(len(strings) - 1)
+                    pos = add_string(strings, builtin(n))
+                    stack.append(pos)
                 else:
                     raise NotImplementedError(name)
         elif op == 'rts':
@@ -235,8 +245,7 @@ def main(args):
         else:
             match = re.match(r"^'(.*?)'$", arg)
             if match:
-                strings.append(match.group(1))
-                arg = len(strings) - 1
+                arg = add_string(strings, match.group(1))
             else:
                 arg = int(arg)
             p.append((op, arg))
