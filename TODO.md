@@ -17,6 +17,11 @@ Name mangling for compilers (prepend with `_` most likely.)
 
 Struct equality in Javascript, stackmac backends.
 
+Better approach to equality testing.  The `Op` with `==` node
+should be subject to type-checking, and transformation, whence
+it is replaced with an `Eq` node, a `StrEq` node, or a `StructEq`
+node, before code generation happens.
+
 Figure out a way to do `input`, `read`, and `write` with node.js backend.
 
 Implement `int`, `chr`, `ord` for Ruby, Javascript, stackmac.
@@ -28,8 +33,6 @@ and void types in unions of (void, X) should only be one value.
 (structs are still boxed though)
 
 AST nodes should have source line numbers, it would be really nice.
-
-Finish C backend.
 
 Implement garbage collection of some sort in the C backend.  Either that
 or implement some kind of resource-awareness in the language itself.
