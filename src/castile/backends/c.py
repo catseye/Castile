@@ -183,6 +183,26 @@ int main(int argc, char **argv)
                 self.compile(child)
             self.indent -= 1
             self.write_indent('};\n\n')
+            self.write_indent('struct %s * make_%s(' % (ast.value, ast.value))
+
+            for child in ast.children[:-1]:
+                assert child.tag == 'FieldDefn'
+                self.write('%s, ' % self.c_decl(child.children[0].type, child.value))
+            child = ast.children[-1]
+            assert child.tag == 'FieldDefn'
+            self.write('%s' % self.c_decl(child.children[0].type, child.value))
+
+            self.write(') {\n')
+            self.indent += 1
+            self.write_indent('struct %s *x = malloc(sizeof(struct %s));\n' % (ast.value, ast.value))
+
+            for child in ast.children:
+                assert child.tag == 'FieldDefn'
+                self.write_indent('x->%s = %s;\n' % (child.value, child.value))
+
+            self.write_indent('return x;\n')
+            self.indent -= 1
+            self.write_indent('}\n')
         elif ast.tag == 'FieldDefn':
             self.write_indent('%s;\n' % self.c_decl(ast.children[0].type, ast.value))
         elif ast.tag == 'FunLit':
@@ -283,7 +303,7 @@ int main(int argc, char **argv)
             self.write(' = ')
             self.compile(ast.children[1])
         elif ast.tag == 'Make':
-            self.write('&(struct %s){ ' % ast.type.name)
+            self.write('make_%s(' % ast.type.name)
             def find_field(name):
                 for field in ast.children[1:]:
                     if field.value == name:
@@ -292,7 +312,7 @@ int main(int argc, char **argv)
             for field_name in ast.type.defn.field_names_in_order():
                 ordered_fields.append(find_field(field_name))
             self.commas(ordered_fields)
-            self.write(' }')
+            self.write(')')
         elif ast.tag == 'FieldInit':
             self.commas(ast.children)
         elif ast.tag == 'Index':
