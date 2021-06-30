@@ -1123,34 +1123,77 @@ you can in actuality create recursive, but finite, data structures.
 
 You may want to use helper functions to hide this ugliness.
 
-    /| struct list {
-    /|   value: string;
-    /|   next: list|void;
-    /| }
-    /| fun singleton(v: string) {
-    /|   make list(value:v, next:null as list|void)
-    /| }
-    /| fun cons(v: string, l: list) {
-    /|   make list(value:v, next:l as list|void)
-    /| }
-    /| fun nth(n, l: list) {
-    /|   u = l as list|void;
-    /|   v = u;
-    /|   k = n;
-    /|   while k > 1 {
-    /|     typecase u is void { break; }
-    /|     typecase u is list { v = u.next; }
-    /|     u = v;
-    /|     k = k - 1;
-    /|   }
-    /|   return u
-    /| }
-    /| main = fun() {
-    /|   l = cons("first", singleton("second"));
-    /|   g = nth(2, l);
-    /|   typecase g is list { print(g.value); }
-    /| }
-    /= second
+    | struct list {
+    |   value: string;
+    |   next: list|void;
+    | }
+    | 
+    | fun empty() {
+    |   return null as list|void
+    | }
+    | 
+    | fun cons(v: string, l: list|void) {
+    |   make list(value:v, next:l) as list|void
+    | }
+    | 
+    | fun nth(n, l: list|void) {
+    |   u = l;
+    |   v = u;
+    |   k = n;
+    |   while k > 1 {
+    |     typecase u is void { break; }
+    |     typecase u is list { v = u.next; }
+    |     u = v;
+    |     k = k - 1;
+    |   }
+    |   return u
+    | }
+    | 
+    | main = fun() {
+    |   l = cons("first", cons("second", cons("third", empty())));
+    |   h = nth(2, l);
+    |   typecase h is list { print(h.value); }
+    | }
+    = second
+
+And in fact, you can restrict the union types to smaller sets to
+better indicate the allowable types of the functions.  For example,
+`cons` always returns a list, so that should be its return type,
+not `list|void`.  Likewise, `nth` requires a list.  In this way we
+can implement some of the "Parse, don't Validate" approach.
+
+    | struct list {
+    |   value: string;
+    |   next: list|void;
+    | }
+    | 
+    | fun cons(v: string, l: list) {
+    |   make list(value:v, next:l as list|void)
+    | }
+    | 
+    | fun singleton(v: string) {
+    |   make list(value:v, next:null as list|void)
+    | }
+    | 
+    | fun nth(n, l: list) {
+    |   u = l as list|void;
+    |   v = u;
+    |   k = n;
+    |   while k > 1 {
+    |     typecase u is void { break; }
+    |     typecase u is list { v = u.next; }
+    |     u = v;
+    |     k = k - 1;
+    |   }
+    |   return u
+    | }
+    | 
+    | main = fun() {
+    |   l = cons("first", cons("second", singleton("third")));
+    |   h = nth(2, l);
+    |   typecase h is list { print(h.value); }
+    | }
+    = second
 
 Structs may be empty.
 

@@ -83,6 +83,11 @@ class Compiler(object):
         self.out.write('  ' * self.indent)
         self.out.write(x)
 
+    def mangle(self, ident):
+        if ident.startswith('next'):
+            return '{}_'.format(ident)
+        return ident
+
     def compile(self, ast):
         if ast.tag == 'Program':
             self.write(PRELUDE)
@@ -117,7 +122,7 @@ class Compiler(object):
             for child in ast.children:
                 self.compile(child)
         elif ast.tag == 'VarDecl':
-            self.write_indent('%s = nil;\n' % ast.value)
+            self.write_indent('%s = nil;\n' % self.mangle(ast.value))
         elif ast.tag == 'Block':
             for child in ast.children:
                 self.compile(child)
@@ -137,7 +142,7 @@ class Compiler(object):
             self.compile(ast.children[1])
             self.write(')')
         elif ast.tag == 'VarRef':
-            self.write(ast.value)
+            self.write(self.mangle(ast.value))
         elif ast.tag == 'FunCall':
             self.compile(ast.children[0])
             self.write('.call(')
