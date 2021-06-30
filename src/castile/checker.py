@@ -22,6 +22,7 @@ class StructDefinition(object):
             l.append(m[i])
         return l
 
+
 class TypeChecker(object):
     def __init__(self):
         global_context = {}
@@ -72,12 +73,12 @@ class TypeChecker(object):
         self.structs[name] = StructDefinition(ast.value, struct_fields, te)
 
     def resolve_structs(self, ast):
-          if isinstance(ast.type, Struct):
-              if ast.type.name not in self.structs:
-                  raise CastileTypeError('undefined struct %s' % name)
-              ast.type.defn = self.structs[ast.type.name]
-          for child in ast.children:
-              self.resolve_structs(child)
+        if isinstance(ast.type, Struct):
+            if ast.type.name not in self.structs:
+                raise CastileTypeError('undefined struct %s' % name)
+            ast.type.defn = self.structs[ast.type.name]
+        for child in ast.children:
+            self.resolve_structs(child)
 
     # context is modified as side-effect of traversal
     def type_of(self, ast):
@@ -144,8 +145,9 @@ class TypeChecker(object):
             ast.type = Void()
         elif ast.tag == 'FunType':
             return_type = self.type_of(ast.children[0])
-            ast.type = Function([self.type_of(c) for c in ast.children[1:]],
-                            return_type)
+            ast.type = Function(
+                [self.type_of(c) for c in ast.children[1:]], return_type
+            )
         elif ast.tag == 'UnionType':
             ast.type = Union([self.type_of(c) for c in ast.children])
         elif ast.tag == 'StructType':
@@ -158,7 +160,7 @@ class TypeChecker(object):
         elif ast.tag == 'FunCall':
             t1 = self.type_of(ast.children[0])
             assert isinstance(t1, Function), \
-              '%r is not a function' % t1
+                '%r is not a function' % t1
             if len(t1.arg_types) != len(ast.children) - 1:
                 raise CastileTypeError("argument mismatch")
             i = 0
@@ -297,8 +299,9 @@ class TypeChecker(object):
             if not isinstance(uni_t, Union):
                 raise CastileTypeError('bad cast, not a union: %s' % uni_t)
             if not uni_t.contains(val_t):
-                raise CastileTypeError('bad cast, %s does not include %s' %
-                                  (uni_t, val_t))
+                raise CastileTypeError(
+                    'bad cast, %s does not include %s' % (uni_t, val_t)
+                )
             ast.type = uni_t
         else:
             raise NotImplementedError(repr(ast))

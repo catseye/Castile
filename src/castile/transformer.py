@@ -4,6 +4,7 @@
 
 from castile.ast import AST
 
+
 class FunctionLifter(object):
     """Bring all function definitions up to the toplevel (for target
     languages like C).

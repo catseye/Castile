@@ -3,8 +3,8 @@ from castile.types import *
 from castile.transformer import VarDeclTypeAssigner
 
 OPS = {
-  'and': '&&',
-  'or': '||',
+    'and': '&&',
+    'or': '||',
 }
 
 PRELUDE = r"""
@@ -118,7 +118,7 @@ class Compiler(object):
     def c_decl(self, type, name, args=True):
         if isinstance(type, Function):
             s = ''
-            s += self.c_type(type.return_type) 
+            s += self.c_type(type.return_type)
             s += ' %s' % name
             if args:
                 s += '('
@@ -304,11 +304,13 @@ int main(int argc, char **argv)
             self.write(' = ')
             self.compile(ast.children[1])
         elif ast.tag == 'Make':
-            self.write('make_%s(' % ast.type.name)
+
             def find_field(name):
                 for field in ast.children[1:]:
                     if field.value == name:
                         return field
+
+            self.write('make_%s(' % ast.type.name)
             ordered_fields = []
             for field_name in ast.type.defn.field_names_in_order():
                 ordered_fields.append(find_field(field_name))
@@ -337,12 +339,9 @@ int main(int argc, char **argv)
             self.compile(ast.children[0])
             self.write('->value);\n')
             self.typecasing.add(ast.children[0].value)
-            #self.write('/*')
-            #self.write(repr(ast.children[0]))
-            #self.write('*/')
             self.compile(ast.children[2])
             self.typecasing.remove(ast.children[0].value)
-            self.indent -= 1;
+            self.indent -= 1
             self.write_indent('}\n')
         else:
             raise NotImplementedError(repr(ast))

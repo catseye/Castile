@@ -139,8 +139,9 @@ call
             # first arg passed is DEEPEST, so go backwards.
             pos = 0 - self.fun_argsize
             for child in ast.children:
-                self.out.write('%s_local_%s=%d\n' %
-                    (self.fun_lit, child.value, pos))
+                self.out.write(
+                    '%s_local_%s=%d\n' % (self.fun_lit, child.value, pos)
+                )
                 pos += self.size_of(ast.type)
         elif ast.tag == 'Body':
             self.compile(ast.children[0])
@@ -150,8 +151,9 @@ call
                 self.compile(child)
         elif ast.tag == 'VarDecl':
             self.out.write('push 0\n')
-            self.out.write('%s_local_%s=%s\n' %
-                (self.fun_lit, ast.value, self.local_pos))
+            self.out.write(
+                '%s_local_%s=%s\n' % (self.fun_lit, ast.value, self.local_pos)
+            )
             self.local_pos += 1
         elif ast.tag == 'Block':
             for child in ast.children:
@@ -257,12 +259,12 @@ call
             self.out.write('get_value\n')
             assert ast.children[0].tag == 'VarRef'
             self.out.write('set_local %s_local_%s\n' % (self.fun_lit, ast.children[0].value))
-            
+
             self.compile(ast.children[2])
             # now restore the value, with what was saved on the stack
             self.out.write('dup\n')
             self.out.write('set_local %s_local_%s\n' % (self.fun_lit, ast.children[0].value))
-            
+
             self.out.write('%s:\n' % end_typecase)
             self.out.write('pop 1\n')
         else:

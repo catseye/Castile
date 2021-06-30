@@ -17,8 +17,8 @@ class AST(object):
         assert isinstance(self.children, list)
         for child in self.children:
             assert isinstance(child, AST), \
-              "child %r of %r is not an AST node" % (child, self)
-        #print "created %r" % self
+                "child %r of %r is not an AST node" % (child, self)
+        # print("created %r" % self)
 
     def copy(self, children=None, value=None, type=None, aux=None):
         if children is None:
