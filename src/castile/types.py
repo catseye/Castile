@@ -53,9 +53,11 @@ class Union(Type):
     def __init__(self, content_types):
         self.content_types = content_types
 
-    def contains(self, type):
+    def contains(self, type_):
+        if isinstance(type_, Union):
+            return all([self.contains(t) for t in type_.content_types])
         for member in self.content_types:
-            if type == member:
+            if type_ == member:
                 return True
         return False
 

@@ -1080,7 +1080,7 @@ Each of the individual types named in the union type must be unique.
     | }
     ? bad union type
 
-Cannot promote a union type to itself.
+One can, vacuously, promote a union type to itself.
 
     | fun main() {
     |   a = 20;
@@ -1089,20 +1089,20 @@ Cannot promote a union type to itself.
     |   d = c as integer|string
     |   print("ok")
     | }
-    ? bad cast
+    = ok
 
-Can promote a union type to another union type, so long as it is a superset.  (TODO)
+One can promote a union type to another union type, so long as it is a superset.
 
-    /| fun main() {
-    /|   a = 20;
-    /|   b = 30;
-    /|   c = a + b as integer|string
-    /|   d = c as integer|string|void
-    /|   print("ok")
-    /| }
-    /= ok
+    | fun main() {
+    |   a = 20;
+    |   b = 30;
+    |   c = a + b as integer|string
+    |   d = c as integer|string|void
+    |   print("ok")
+    | }
+    = ok
 
-Cannot promote a union type to a union type that is not a superset.
+One cannot promote a union type to a union type that is not a superset.
 
     | fun main() {
     |   a = 20;

@@ -302,15 +302,15 @@ class TypeChecker(object):
         elif ast.tag == 'StructDefn':
             ast.type = Void()
         elif ast.tag == 'TypeCast':
-            val_t = self.type_of(ast.children[0])
-            uni_t = self.type_of(ast.children[1])
-            if not isinstance(uni_t, Union):
-                raise CastileTypeError('bad cast, not a union: %s' % uni_t)
-            if not uni_t.contains(val_t):
+            value_t = self.type_of(ast.children[0])
+            union_t = self.type_of(ast.children[1])
+            if not isinstance(union_t, Union):
+                raise CastileTypeError('bad cast, not a union: %s' % union_t)
+            if not union_t.contains(value_t):
                 raise CastileTypeError(
-                    'bad cast, %s does not include %s' % (uni_t, val_t)
+                    'bad cast, %s does not include %s' % (union_t, value_t)
                 )
-            ast.type = uni_t
+            ast.type = union_t
         else:
             raise NotImplementedError(repr(ast))
         return ast.type
