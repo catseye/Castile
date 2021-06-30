@@ -1197,28 +1197,28 @@ can implement some of the "Parse, don't Validate" approach.
 
 Structs may be empty.
 
-    /| struct red { }
-    /| fun show(color: red) {
-    /|   print("hi")
-    /| }
-    /| main = fun() {
-    /|   show(make red());
-    /| }
-    /= hi
+    | struct red { }
+    | fun show(color: red) {
+    |   print("hi")
+    | }
+    | main = fun() {
+    |   show(make red());
+    | }
+    = hi
 
 In combination with unions, this lets us create "typed enums".
 
-    /| struct red { }
-    /| struct green { }
-    /| struct blue { }
-    /| fun show(color: red|green|blue) {
-    /|   typecase color is red { print("red"); }
-    /|   typecase color is green { print("green"); }
-    /|   typecase color is blue { print("blue"); }
-    /| }
-    /| main = fun() {
-    /|   show(make red() as red|green|blue);
-    /|   show(make blue() as red|green|blue);
-    /| }
-    /= red
-    /= blue
+    | struct red { }
+    | struct green { }
+    | struct blue { }
+    | fun show(color: red|green|blue) {
+    |   typecase color is red { print("red"); }
+    |   typecase color is green { print("green"); }
+    |   typecase color is blue { print("blue"); }
+    | }
+    | main = fun() {
+    |   show(make red() as red|green|blue);
+    |   show(make blue() as red|green|blue);
+    | }
+    = red
+    = blue

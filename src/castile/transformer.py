@@ -35,6 +35,8 @@ class FunctionLifter(object):
                         non_lifted_defns.append(child)
                     else:
                         non_fun_defns.append(child)
+                else:
+                    non_fun_defns.append(child)
             children = non_fun_defns + lifted_defns + non_lifted_defns
             return ast.copy(children=children)
         elif ast.tag == 'Defn':

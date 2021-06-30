@@ -185,12 +185,13 @@ int main(int argc, char **argv)
             self.write_indent('};\n\n')
             self.write_indent('struct %s * make_%s(' % (ast.value, ast.value))
 
-            for child in ast.children[:-1]:
+            if ast.children:
+                for child in ast.children[:-1]:
+                    assert child.tag == 'FieldDefn'
+                    self.write('%s, ' % self.c_decl(child.children[0].type, child.value))
+                child = ast.children[-1]
                 assert child.tag == 'FieldDefn'
-                self.write('%s, ' % self.c_decl(child.children[0].type, child.value))
-            child = ast.children[-1]
-            assert child.tag == 'FieldDefn'
-            self.write('%s' % self.c_decl(child.children[0].type, child.value))
+                self.write('%s' % self.c_decl(child.children[0].type, child.value))
 
             self.write(') {\n')
             self.indent += 1
