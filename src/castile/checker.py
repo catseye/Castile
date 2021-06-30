@@ -151,7 +151,13 @@ class TypeChecker(object):
                 [self.type_of(c) for c in ast.children[1:]], return_type
             )
         elif ast.tag == 'UnionType':
-            ast.type = Union([self.type_of(c) for c in ast.children])
+            types = []
+            for c in ast.children:
+                type_ = self.type_of(c)
+                if type_ in types:
+                    raise CastileTypeError("bad union type")
+                types.append(type_)
+            ast.type = Union(types)
         elif ast.tag == 'StructType':
             ast.type = Struct(ast.value)
         elif ast.tag == 'VarRef':

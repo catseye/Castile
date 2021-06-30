@@ -30,8 +30,6 @@ Other backends (Python? Java? CIL? Scheme?)
 
 ### Design ###
 
-Each of the individual types named in the union type must be unique.
-
 Promote union type to bigger union type (e.g. `string|int` => `string|int|void`)
 
 Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)

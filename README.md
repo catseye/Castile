@@ -1067,18 +1067,18 @@ The type after the `as` must be the type of the expression.
     | }
     = ok
 
-Each of the individual types named in the union type must be unique.  (TODO)
+Each of the individual types named in the union type must be unique.
 
-    /| fun foo(a, b: integer|string) {
-    /|   print("ok")
-    /| }
-    /| fun main() {
-    /|   a = 20;
-    /|   b = 30;
-    /|   c = a + b as integer|integer|string
-    /|   foo(a, c)
-    /| }
-    /? bad union type
+    | fun foo(a, b: integer|string) {
+    |   print("ok")
+    | }
+    | fun main() {
+    |   a = 20;
+    |   b = 30;
+    |   c = a + b as integer|integer|string
+    |   foo(a, c)
+    | }
+    ? bad union type
 
 Cannot promote a union type to itself.
 
