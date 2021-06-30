@@ -692,7 +692,7 @@ Type of value returned must jibe with other return statements.
     | }
     ? type mismatch
 
-### Builtins ###
+### Equality ###
 
 Equality, inequality, boolean operators.
 
@@ -725,6 +725,39 @@ Equality cannot be checked between two values of different types.
     |   }
     | }
     ? mismatch
+
+Equality can be checked between unions.  (TODO)
+
+    /| fun main() {
+    /|   a = 40 as string|integer
+    /|   b = 40 as string|integer
+    /|   if a == b {
+    /|     print("it is")
+    /|   }
+    /| }
+    /= ok
+
+    | fun main() {
+    |   a = 40 as string|integer
+    |   b = "beep" as string|integer
+    |   if a != b {
+    |     print("correct")
+    |   }
+    | }
+    = correct
+
+Equality cannot be tested between two disjoint unions.
+
+    | fun main() {
+    |   a = 40 as string|integer
+    |   b = 40 as integer|void
+    |   if a == b {
+    |     print("correct")
+    |   }
+    | }
+    ? mismatch
+
+### Builtins ###
 
 The usual.
 
@@ -1015,7 +1048,7 @@ The type after the `as` must be a union.
     | }
     ? bad cast
 
-The type after the `as` must be one of the types in the union.
+The type of the value being cast by the `as` must be one of the types in the union.
 
     | fun main() {
     |   a = 20;
@@ -1033,6 +1066,52 @@ The type after the `as` must be the type of the expression.
     |   print("ok")
     | }
     = ok
+
+Each of the individual types named in the union type must be unique.  (TODO)
+
+    /| fun foo(a, b: integer|string) {
+    /|   print("ok")
+    /| }
+    /| fun main() {
+    /|   a = 20;
+    /|   b = 30;
+    /|   c = a + b as integer|integer|string
+    /|   foo(a, c)
+    /| }
+    /? bad union type
+
+Cannot promote a union type to itself.
+
+    | fun main() {
+    |   a = 20;
+    |   b = 30;
+    |   c = a + b as integer|string
+    |   d = c as integer|string
+    |   print("ok")
+    | }
+    ? bad cast
+
+Can promote a union type to another union type, so long as it is a superset.  (TODO)
+
+    /| fun main() {
+    /|   a = 20;
+    /|   b = 30;
+    /|   c = a + b as integer|string
+    /|   d = c as integer|string|void
+    /|   print("ok")
+    /| }
+    /= ok
+
+Cannot promote a union type to a union type that is not a superset.
+
+    | fun main() {
+    |   a = 20;
+    |   b = 30;
+    |   c = a + b as integer|string
+    |   d = c as integer|void
+    |   print("ok")
+    | }
+    ? bad cast
 
 Values of union type can be passed to functions.
 

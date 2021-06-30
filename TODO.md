@@ -1,30 +1,19 @@
 TODO
 ----
 
-### Tests ###
-
-Tests for unions of unions.
-
-Test for equality of union values.
-
-Tests for multiple occurrences of same type in a union.
-
-Test for casting a union to the same union or a different union.
-
 ### Implementation ###
 
 Name mangling for compilers (prepend with `_` most likely.)
 
-Struct equality in Javascript, stackmac backends.
-
-Better approach to equality testing.  The `Op` with `==` node
-should be subject to type-checking, and transformation, whence
-it is replaced with an `Eq` node, a `StrEq` node, or a `StructEq`
-node, before code generation happens.
+And literal characters in strings, especially `'` and `"`.
 
 Figure out a way to do `input`, `read`, and `write` with node.js backend.
 
-Implement `int`, `chr`, `ord` for Ruby, Javascript, stackmac.
+Implement `int`, `chr`, `ord` for Ruby, JavaScript, stackmac, C.
+
+Struct equality is not properly deep in JavaScript or C.
+
+Better indentation in the JavaScript backend.
 
 TaggedValue -> just a tuple.
 
@@ -40,6 +29,10 @@ or implement some kind of resource-awareness in the language itself.
 Other backends (Python? Java? CIL? Scheme?)
 
 ### Design ###
+
+Each of the individual types named in the union type must be unique.
+
+Promote union type to bigger union type (e.g. `string|int` => `string|int|void`)
 
 Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)
 
