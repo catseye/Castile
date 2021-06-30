@@ -1017,25 +1017,39 @@ Trivial use of `typecase`.
     | }
     = int
 
+Inside a `typecase` the variable can be used as a value of
+the determined type.
+
+    | main = fun() {
+    |   a = 333 as integer|string;
+    |   typecase a is integer {
+    |     print(str(a))
+    |   };
+    |   typecase a is string {
+    |     print(a)
+    |   };
+    | }
+    = 333
+
 The `typecase` construct can operate on the "right" type of a union.
 
-    /| fun foo(a, b: integer|string) {
-    /|   r = a;
-    /|   typecase b is integer {
-    /|     r = r + b;
-    /|   };
-    /|   typecase b is string {
-    /|     r = r + len(b);
-    /|   };
-    /|   r
-    /| }
-    /| main = fun() {
-    /|   a = 0;
-    /|   a = foo(a, 333 as integer|string);
-    /|   a = foo(a, "hiya" as integer|string);
-    /|   a
-    /| }
-    /= 337
+    | fun foo(a, b: integer|string) {
+    |   r = a;
+    |   typecase b is integer {
+    |     r = r + b;
+    |   };
+    |   typecase b is string {
+    |     r = r + len(b);
+    |   };
+    |   r
+    | }
+    | main = fun() {
+    |   a = 0;
+    |   a = foo(a, 333 as integer|string);
+    |   a = foo(a, "hiya" as integer|string);
+    |   a
+    | }
+    = 337
 
 The expression in a `typecase` must be a variable.
 
@@ -1047,17 +1061,18 @@ The expression in a `typecase` must be a variable.
     | }
     ? identifier
 
-The expression in a `typecase` can be an argument.
+The expression in a `typecase` can be an argument to the function in
+which the `typecase` occurs.
 
-    /| fun wat(j: integer|string) {
-    /|   typecase j is integer {
-    /|     print("integer")
-    /|   };
-    /| }
-    /| main = fun() {
-    /|   wat(444 as integer|string)
-    /| }
-    /= integer
+    | fun wat(j: integer|string) {
+    |   typecase j is integer {
+    |     print("integer")
+    |   };
+    | }
+    | main = fun() {
+    |   wat(444 as integer|string)
+    | }
+    = integer
 
 The expression in a `typecase` cannot effectively be a global, as globals
 must be literals and there is no way (right now) to make a literal of union
@@ -1075,36 +1090,36 @@ Inside a `typecase` the variable cannot be updated.
 
 The union can include void.
 
-    /| main = fun() {
-    /|   j = null as void|integer;
-    /|   typecase j is void {
-    /|     print("nothing there")
-    /|   };
-    /| }
-    /= nothing there
+    | main = fun() {
+    |   j = null as void|integer;
+    |   typecase j is void {
+    |     print("nothing there")
+    |   };
+    | }
+    = nothing there
 
 ### Struct Types + Union Types ###
 
 Union types may be used to make fields of a struct "nullable", so that
 you can in actuality create recursive, but finite, data structures.
 
-    /| struct list {
-    /|   value: string;
-    /|   next: list|integer;
-    /| }
-    /| main = fun() {
-    /|   l = make list(
-    /|     value: "first",
-    /|     next: make list(
-    /|       value: "second",
-    /|       next:0 as list|integer
-    /|     ) as list|integer)
-    /|   s = l.next
-    /|   typecase s is list {
-    /|     print(s.value)
-    /|   }
-    /| }
-    /= second
+    | struct list {
+    |   value: string;
+    |   next: list|integer;
+    | }
+    | main = fun() {
+    |   l = make list(
+    |     value: "first",
+    |     next: make list(
+    |       value: "second",
+    |       next:0 as list|integer
+    |     ) as list|integer)
+    |   s = l.next
+    |   typecase s is list {
+    |     print(s.value)
+    |   }
+    | }
+    = second
 
 You may want to use helper functions to hide this ugliness.
 

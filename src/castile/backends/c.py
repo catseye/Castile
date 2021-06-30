@@ -55,17 +55,21 @@ int len(char *s)
 }
 
 struct tagged_value {
-    int type;
-    union {
-        void *ptr;
-        int i;
-    };
+    char *tag;
+    void *value;
 };
 
-struct tagged_value *tag(char *type, void *value) {
+struct tagged_value *tag(char *tag, void *value)
+{
+    struct tagged_value *tv = malloc(sizeof(struct tagged_value));
+    tv->tag = tag;
+    tv->value = value;
+    return tv;
 }
 
-int is_tag(char *type, struct tagged_value *value) {
+int is_tag(char *tag, struct tagged_value *tv)
+{
+    return !strcmp(tag, tv->tag);
 }
 
 """
@@ -107,8 +111,7 @@ class Compiler(object):
         elif isinstance(type, Function):
             return 'void *'
         elif isinstance(type, Union):
-            # oh dear
-            return 'void *'
+            return 'struct tagged_value *'
         else:
             raise NotImplementedError(type)
 
@@ -126,8 +129,8 @@ class Compiler(object):
             return '%s %s' % (self.c_type(type), name)
 
     def compile_postlude(self):
+        self.write("\n")
         self.write(r"""
-
 int main(int argc, char **argv)
 {""")
         if self.main_type == Void():
@@ -147,8 +150,8 @@ int main(int argc, char **argv)
         self.write("""\
     return 0;
 }
-
 """)
+        self.write("\n")
 
     def compile(self, ast):
         if ast.tag == 'Program':
@@ -309,9 +312,9 @@ int main(int argc, char **argv)
             self.compile(ast.children[0])
             self.write(' = (')
             self.write(self.c_type(ast.children[1].type))
-            self.write(')')
+            self.write(')(')
             self.compile(ast.children[0])
-            self.write(';\n')
+            self.write('->value);\n')
             self.typecasing.add(ast.children[0].value)
             #self.write('/*')
             #self.write(repr(ast.children[0]))
