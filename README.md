@@ -694,6 +694,31 @@ Type of value returned must jibe with other return statements.
 
 ### Builtins ###
 
+Equality, inequality, boolean operators.
+
+    | fun main() {
+    |   if 15 == 15 and ((15 != 14) or false) {
+    |     print("struth")
+    |   }
+    | }
+    = struth
+
+Equality cannot be checked between two values of different types.
+
+    | fun main() {
+    |   if 15 == "fifteen" {
+    |     print("wat")
+    |   }
+    | }
+    ? mismatch
+
+    | fun main() {
+    |   if 15 != "fifteen" {
+    |     print("wat")
+    |   }
+    | }
+    ? mismatch
+
 The usual.
 
     | fun main() {

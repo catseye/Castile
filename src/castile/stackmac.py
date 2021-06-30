@@ -95,6 +95,10 @@ def run(program, strings):
             b = stack.pop()
             a = stack.pop()
             stack.append(boo(a == b))
+        elif op == 'ne':
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(boo(a != b))
         elif op == 'bzero':
             a = stack.pop()
             if a == 0:
