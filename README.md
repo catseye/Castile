@@ -856,21 +856,13 @@ Order of field initialization when making a struct doesn't matter.
 Structs can be tested for equality.  (Since structs are immutable, it
 doesn't matter if this is structural equality or identity.)
 
-    /| struct person { age: integer; name: string }
-    /| main = fun() {
-    /|   j = make person(age: 23, name:"Jake");
-    /|   k = make person(age: 23, name:"Jake");
-    /|   j == k
-    /| }
-    /= True
-
-    /| struct person { name: string; age: integer }
-    /| main = fun() {
-    /|   j = make person(age: 23, name:"Jake");
-    /|   k = make person(name:"Jake", age: 23);
-    /|   j == k
-    /| }
-    /= True
+    | struct person { name: string; age: integer }
+    | main = fun() {
+    |   j = make person(age: 23, name:"Jake");
+    |   k = make person(name:"Jake", age: 23);
+    |   j == k
+    | }
+    = True
 
     /| struct person { age: integer; name: string }
     /| main = fun() {

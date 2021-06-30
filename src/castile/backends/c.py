@@ -1,5 +1,6 @@
-# nascent! embryonic! inchoate! alpha! wip!
-from castile.types import *
+from castile.types import (
+    Integer, String, Void, Boolean, Function, Union, Struct
+)
 from castile.transformer import VarDeclTypeAssigner
 
 OPS = {
@@ -203,7 +204,20 @@ int main(int argc, char **argv)
 
             self.write_indent('return x;\n')
             self.indent -= 1
-            self.write_indent('}\n')
+            self.write_indent('}\n\n')
+
+            self.write_indent('int equal_%s(struct %s * a, struct %s * b) {\n' % (ast.value, ast.value, ast.value))
+
+            self.indent += 1
+            for child in ast.children:
+                assert child.tag == 'FieldDefn'
+                # TODO does not handle structs within structs
+                self.write_indent('if (a->%s != b->%s) return 0;\n' % (child.value, child.value))
+
+            self.write_indent('return 1;\n')
+            self.indent -= 1
+            self.write_indent('}\n\n')
+
         elif ast.tag == 'FieldDefn':
             self.write_indent('%s;\n' % self.c_decl(ast.children[0].type, ast.value))
         elif ast.tag == 'FunLit':
@@ -242,11 +256,18 @@ int main(int argc, char **argv)
             self.compile(ast.children[1])
             self.indent -= 1
         elif ast.tag == 'Op':
-            self.write('(')
-            self.compile(ast.children[0])
-            self.write(' %s ' % OPS.get(ast.value, ast.value))
-            self.compile(ast.children[1])
-            self.write(')')
+            if ast.value == '==' and isinstance(ast.children[0].type, Struct):
+                self.write('equal_%s(' % ast.children[0].type.name)
+                self.compile(ast.children[0])
+                self.write(', ')
+                self.compile(ast.children[1])
+                self.write(')')
+            else:
+                self.write('(')
+                self.compile(ast.children[0])
+                self.write(' %s ' % OPS.get(ast.value, ast.value))
+                self.compile(ast.children[1])
+                self.write(')')
         elif ast.tag == 'VarRef':
             if ast.value in self.typecasing:
                 self.write('__')

@@ -1,3 +1,5 @@
+from castile.types import Struct
+
 OPS = {
     'and': '&&',
     'or': '||',
@@ -67,8 +69,16 @@ if (result !== undefined && result !== null)
             self.out.write('var %s = ' % ast.value)
             self.compile(ast.children[0])
             self.out.write(';\n')
-        elif ast.tag in ('StructDefn', 'Forward'):
+        elif ast.tag == 'Forward':
             pass
+        elif ast.tag == 'StructDefn':
+            self.out.write('function equal_%s(a, b) {\n' % ast.value)
+            for child in ast.children:
+                assert child.tag == 'FieldDefn'
+                # TODO does not handle structs within structs
+                self.out.write('if (a.%s !== b.%s) return false;\n' % (child.value, child.value))
+            self.out.write('return true;\n')
+            self.out.write('}\n\n')
         elif ast.tag == 'FunLit':
             self.out.write('function(')
             self.compile(ast.children[0])
@@ -104,11 +114,18 @@ if (result !== undefined && result !== null)
             self.out.write(')')
             self.compile(ast.children[1])
         elif ast.tag == 'Op':
-            self.out.write('(')
-            self.compile(ast.children[0])
-            self.out.write(' %s ' % OPS.get(ast.value, ast.value))
-            self.compile(ast.children[1])
-            self.out.write(')')
+            if ast.value == '==' and isinstance(ast.children[0].type, Struct):
+                self.out.write('equal_%s(' % ast.children[0].type.name)
+                self.compile(ast.children[0])
+                self.out.write(', ')
+                self.compile(ast.children[1])
+                self.out.write(')')
+            else:
+                self.out.write('(')
+                self.compile(ast.children[0])
+                self.out.write(' %s ' % OPS.get(ast.value, ast.value))
+                self.compile(ast.children[1])
+                self.out.write(')')
         elif ast.tag == 'VarRef':
             self.out.write(ast.value)
         elif ast.tag == 'FunCall':
