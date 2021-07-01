@@ -24,7 +24,7 @@ if [ ! x`command -v gcc` = x ]; then
     APPLIANCES="$APPLIANCES tests/appliances/castile-c-c.md"
 fi
 
-falderal $APPLIANCES README.md
+falderal $APPLIANCES tests/Castile.md
 RESULT=$?
 rm -f foo.* a.out
 exit $RESULT
