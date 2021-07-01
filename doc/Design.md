@@ -68,14 +68,6 @@ implementation to also allow compiling to Javascript, and a few days after
 that, I added a Ruby backend (why not, eh?), and over the next few days,
 the stackmac backend and emulator.
 
-This document contains what is as close as there is to a specification of
-the language, in the form of a Falderal test suite.  The interpreter and all
-compilers pass all the tests, but there are known shortcomings in at least
-the compilers (no name mangling, etc.)
-
-The `eg` directory contains a few example Castile programs, including a
-string tokenizer.
-
 One area where the Castile implementation is not entirely unremarkable is
 that the typechecker is not required to be run.  Unchecked Castile is
 technically a different language from Castile; there are Castile programs
