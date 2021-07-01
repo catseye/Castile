@@ -77,9 +77,10 @@ This retains type-safety; the code will never unexpectedly be presented
 with a null value.
 
 Union types can also encourage the programmer follow a [Parse, don't validate][]
-approach.  In the above, `cons` will never return a `void`, and `max` is not
-defined on empty lists.  So ideally, we'd like to tighten their types to exclude
-those.  And we can:
+approach (which, despite the impression you might get from reading that article,
+is not restricted to Haskell or even to functional programming).  In the above
+code, `cons` will never return a `void`, and `max` is not defined on empty lists.
+So ideally, we'd like to tighten their types to exclude those.  And we can:
 
     ...
 
