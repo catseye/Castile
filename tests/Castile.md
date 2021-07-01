@@ -1,10 +1,12 @@
 Castile
 =======
 
-This is a test suite for Castile, written in Falderal format.
+This is a test suite for Castile, written in [Falderal][] format.
 
 While it cannot serve as a complete specification, it comes as
-close as anything currently does to a specification for Castilde.
+close as anything currently does to a specification for Castile.
+
+[Falderal]: https://catseye.tc/node/Falderal
 
     -> Tests for functionality "Run Castile Program"
 
