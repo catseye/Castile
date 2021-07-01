@@ -50,9 +50,10 @@ Here are some functions for creating linked lists, written in Castile:
       make list(value:v, next:l) as list|void
     }
 
-In this, `list|void` is a union type, which is the moral equivalent of
-saying that the value is "nullable".  In order to access any of the
-concrete types of the union, one must use `typecase`:
+In this, `list|void` is a union type.  In this case it is expressing
+the fact that the value can be either a `list` or `void` — the moral
+equivalent of "nullable".  In order to access any of the concrete types
+of a union type, one must use `typecase`:
 
     fun max(l: list|void) {
       u = l;
