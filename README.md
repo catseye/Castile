@@ -3,6 +3,7 @@ Castile
 
 Version 0.4 | _Entry_ [@ catseye.tc](https://catseye.tc/node/Castile)
 | _See also:_ [Eightebed](https://github.com/catseye/Eightebed#readme)
+∘ [Dieter](https://github.com/catseye/Dieter#readme)
 
 - - - -
 
