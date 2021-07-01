@@ -1,4 +1,4 @@
-from castile.types import *
+from castile.types import Void, Union, Struct
 
 # Compile to some hypothetical stack-based machine.
 # Not yet in a good way.
@@ -161,7 +161,6 @@ call
         elif ast.tag == 'While':
             start = self.get_label('loop_start')
             end = self.get_label('loop_end')
-            save = self.loop_end
             self.loop_end = end
             self.out.write('%s:\n' % start)
             self.compile(ast.children[0])

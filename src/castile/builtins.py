@@ -1,6 +1,6 @@
 import sys
 
-from castile.types import Boolean, Function, String, Integer, Void, Union
+from castile.types import Function, String, Integer, Void, Union
 
 
 class TaggedValue(object):
@@ -35,7 +35,12 @@ def builtin_input(s):
     Its usage may conflict with the usage of standard input.
 
     """
-    return raw_input(s)
+    try:
+        # Python 2
+        return raw_input(s)
+    except NameError:
+        # Python 3
+        return input(s)
 
 
 def builtin_read(n):

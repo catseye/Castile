@@ -1,7 +1,7 @@
+from castile.transformer import VarDeclTypeAssigner
 from castile.types import (
     Integer, String, Void, Boolean, Function, Union, Struct
 )
-from castile.transformer import VarDeclTypeAssigner
 
 OPS = {
     'and': '&&',

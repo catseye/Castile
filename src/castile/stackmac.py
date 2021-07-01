@@ -2,11 +2,9 @@
 # stack-machine-based backend.
 
 import re
-import sys
 
 from castile.builtins import BUILTINS
 from castile.eval import TaggedValue
-from castile.types import Void
 
 
 labels = {}

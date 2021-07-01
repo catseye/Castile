@@ -1,6 +1,8 @@
 from castile.builtins import BUILTINS
 from castile.context import ScopedContext
-from castile.types import *
+from castile.types import (
+    Integer, String, Void, Boolean, Function, Union, Struct
+)
 
 
 class CastileTypeError(ValueError):
@@ -17,10 +19,10 @@ class StructDefinition(object):
         m = {}
         for k, v in self.field_names.items():
             m[v] = k
-        l = []
+        names = []
         for i in range(len(m)):
-            l.append(m[i])
-        return l
+            names.append(m[i])
+        return names
 
 
 class TypeChecker(object):
@@ -75,7 +77,7 @@ class TypeChecker(object):
     def resolve_structs(self, ast):
         if isinstance(ast.type, Struct):
             if ast.type.name not in self.structs:
-                raise CastileTypeError('undefined struct %s' % name)
+                raise CastileTypeError('undefined struct %s' % ast.type.name)
             ast.type.defn = self.structs[ast.type.name]
         for child in ast.children:
             self.resolve_structs(child)

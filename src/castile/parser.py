@@ -103,6 +103,9 @@ class Parser(object):
     def on(self, token):
         return self.token == token
 
+    def on_any(self, tokens):
+        return self.token in tokens
+
     def on_type(self, type):
         return self.type == type
 
@@ -338,11 +341,9 @@ class Parser(object):
         return e
 
     def expr5(self):
-        if (
-            self.on_type('string literal') or self.on('-') or
-            self.on_type('integer literal') or self.on('fun') or
-            self.on('true') or self.on('false') or self.on('null')
-        ):
+        if self.on_type('string literal') or self.on_type('integer literal'):
+            return self.literal()
+        elif self.on_any(('-', 'fun', 'true', 'false', 'null')):
             return self.literal()
         elif self.consume('not'):
             return AST('Not', [self.expr1()])
