@@ -1,23 +1,19 @@
 TODO
 ----
 
-Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)
+### Implementation ###
 
 Name mangling for compilers (prepend with `_` most likely.)
 
-Tests for unions of unions.
-
-Test for equality of union values.
-
-Tests for multiple occurrences of same type in a union.
-
-### Implementation ###
-
-Struct equality in Javascript, stackmac backends.
+And literal characters in strings, especially `'` and `"`.
 
 Figure out a way to do `input`, `read`, and `write` with node.js backend.
 
-Implement `int`, `str`, `chr`, `ord` for Ruby, Javascript, stackmac.
+Implement `int`, `chr`, `ord` for Ruby, JavaScript, stackmac, C.
+
+Struct equality is not properly deep in JavaScript or C.
+
+Better indentation in the JavaScript backend.
 
 TaggedValue -> just a tuple.
 
@@ -27,9 +23,14 @@ and void types in unions of (void, X) should only be one value.
 
 AST nodes should have source line numbers, it would be really nice.
 
-C backend.  Other backends (Python? Java? CIL? Scheme?)
+Implement garbage collection of some sort in the C backend.  Either that
+or implement some kind of resource-awareness in the language itself.
+
+Other backends (Python? Java? CIL? Scheme?)
 
 ### Design ###
+
+Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)
 
 Convenience:
 

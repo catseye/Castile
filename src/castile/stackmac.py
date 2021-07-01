@@ -2,11 +2,9 @@
 # stack-machine-based backend.
 
 import re
-import sys
 
 from castile.builtins import BUILTINS
 from castile.eval import TaggedValue
-from castile.types import Void
 
 
 labels = {}
@@ -18,6 +16,16 @@ def boo(b):
         return -1
     else:
         return 0
+
+
+def add_string(strings, s):
+    """Adds a string to the pool, deduping it.  Returns the index of the
+    entry of the string, whether new or existing."""
+    for n, t in enumerate(strings):
+        if t == s:
+            return n
+    strings.append(s)
+    return len(strings) - 1
 
 
 def run(program, strings):
@@ -52,8 +60,8 @@ def run(program, strings):
                 elif name == 'concat':
                     b = strings[stack.pop()]
                     a = strings[stack.pop()]
-                    strings.append(builtin(a, b))
-                    stack.append(len(strings) - 1)
+                    pos = add_string(strings, builtin(a, b))
+                    stack.append(pos)
                 elif name == 'len':
                     a = strings[stack.pop()]
                     stack.append(builtin(a))
@@ -61,8 +69,12 @@ def run(program, strings):
                     k = stack.pop()
                     p = stack.pop()
                     s = strings[stack.pop()]
-                    strings.append(builtin(s, p, k))
-                    stack.append(len(strings) - 1)
+                    pos = add_string(strings, builtin(s, p, k))
+                    stack.append(pos)
+                elif name == 'str':
+                    n = stack.pop()
+                    pos = add_string(strings, builtin(n))
+                    stack.append(pos)
                 else:
                     raise NotImplementedError(name)
         elif op == 'rts':
@@ -91,6 +103,10 @@ def run(program, strings):
             b = stack.pop()
             a = stack.pop()
             stack.append(boo(a == b))
+        elif op == 'ne':
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(boo(a != b))
         elif op == 'bzero':
             a = stack.pop()
             if a == 0:
@@ -227,10 +243,11 @@ def main(args):
         else:
             match = re.match(r"^'(.*?)'$", arg)
             if match:
-                strings.append(match.group(1))
-                arg = len(strings) - 1
+                arg = add_string(strings, match.group(1))
             else:
                 arg = int(arg)
             p.append((op, arg))
 
+    if debug:
+        print(strings)
     run(p, strings)

@@ -1,6 +1,8 @@
 from castile.builtins import BUILTINS
 from castile.context import ScopedContext
-from castile.types import *
+from castile.types import (
+    Integer, String, Void, Boolean, Function, Union, Struct
+)
 
 
 class CastileTypeError(ValueError):
@@ -12,6 +14,15 @@ class StructDefinition(object):
         self.name = name
         self.field_names = field_names  # dict of name -> position
         self.content_types = content_types  # list of types in order
+
+    def field_names_in_order(self):
+        m = {}
+        for k, v in self.field_names.items():
+            m[v] = k
+        names = []
+        for i in range(len(m)):
+            names.append(m[i])
+        return names
 
 
 class TypeChecker(object):
@@ -64,12 +75,12 @@ class TypeChecker(object):
         self.structs[name] = StructDefinition(ast.value, struct_fields, te)
 
     def resolve_structs(self, ast):
-          if isinstance(ast.type, Struct):
-              if ast.type.name not in self.structs:
-                  raise CastileTypeError('undefined struct %s' % name)
-              ast.type.defn = self.structs[ast.type.name]
-          for child in ast.children:
-              self.resolve_structs(child)
+        if isinstance(ast.type, Struct):
+            if ast.type.name not in self.structs:
+                raise CastileTypeError('undefined struct %s' % ast.type.name)
+            ast.type.defn = self.structs[ast.type.name]
+        for child in ast.children:
+            self.resolve_structs(child)
 
     # context is modified as side-effect of traversal
     def type_of(self, ast):
@@ -88,6 +99,8 @@ class TypeChecker(object):
                 type1 = self.type_of(ast.children[0])
                 type2 = self.type_of(ast.children[1])
                 self.assert_eq(type1, type2)
+                if ast.value in ('>', '>=', '<', '<=') and isinstance(type1, Struct):
+                    raise CastileTypeError("structs cannot be compared for order")
                 ast.type = Boolean()
         elif ast.tag == 'Not':
             type1 = self.type_of(ast.children[0])
@@ -136,10 +149,17 @@ class TypeChecker(object):
             ast.type = Void()
         elif ast.tag == 'FunType':
             return_type = self.type_of(ast.children[0])
-            ast.type = Function([self.type_of(c) for c in ast.children[1:]],
-                            return_type)
+            ast.type = Function(
+                [self.type_of(c) for c in ast.children[1:]], return_type
+            )
         elif ast.tag == 'UnionType':
-            ast.type = Union([self.type_of(c) for c in ast.children])
+            types = []
+            for c in ast.children:
+                type_ = self.type_of(c)
+                if type_ in types:
+                    raise CastileTypeError("bad union type")
+                types.append(type_)
+            ast.type = Union(types)
         elif ast.tag == 'StructType':
             ast.type = Struct(ast.value)
         elif ast.tag == 'VarRef':
@@ -150,7 +170,7 @@ class TypeChecker(object):
         elif ast.tag == 'FunCall':
             t1 = self.type_of(ast.children[0])
             assert isinstance(t1, Function), \
-              '%r is not a function' % t1
+                '%r is not a function' % t1
             if len(t1.arg_types) != len(ast.children) - 1:
                 raise CastileTypeError("argument mismatch")
             i = 0
@@ -284,14 +304,15 @@ class TypeChecker(object):
         elif ast.tag == 'StructDefn':
             ast.type = Void()
         elif ast.tag == 'TypeCast':
-            val_t = self.type_of(ast.children[0])
-            uni_t = self.type_of(ast.children[1])
-            if not isinstance(uni_t, Union):
-                raise CastileTypeError('bad cast, not a union: %s' % uni_t)
-            if not uni_t.contains(val_t):
-                raise CastileTypeError('bad cast, %s does not include %s' %
-                                  (uni_t, val_t))
-            ast.type = uni_t
+            value_t = self.type_of(ast.children[0])
+            union_t = self.type_of(ast.children[1])
+            if not isinstance(union_t, Union):
+                raise CastileTypeError('bad cast, not a union: %s' % union_t)
+            if not union_t.contains(value_t):
+                raise CastileTypeError(
+                    'bad cast, %s does not include %s' % (union_t, value_t)
+                )
+            ast.type = union_t
         else:
             raise NotImplementedError(repr(ast))
         return ast.type

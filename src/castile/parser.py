@@ -31,7 +31,7 @@ class Parser(object):
         # for parser...
         self.locals = None
 
-    ### SCANNER ###
+    # ### SCANNER ### #
 
     def scan_pattern(self, pattern, type, token_group=1, rest_group=2):
         pattern = r'^(' + pattern + r')(.*?)$'
@@ -42,7 +42,7 @@ class Parser(object):
             self.type = type
             self.token = match.group(token_group)
             self.text = match.group(rest_group)
-            #print self.type, self.token
+            # print(self.type, self.token)
             return True
 
     def scan(self):
@@ -90,8 +90,9 @@ class Parser(object):
         if self.token == token:
             self.scan()
         else:
-            raise CastileSyntaxError("Expected '%s', but found '%s'" %
-                              (token, self.token))
+            raise CastileSyntaxError(
+                "Expected '%s', but found '%s'" % (token, self.token)
+            )
 
     def expect_type(self, type):
         self.check_type(type)
@@ -102,13 +103,17 @@ class Parser(object):
     def on(self, token):
         return self.token == token
 
+    def on_any(self, tokens):
+        return self.token in tokens
+
     def on_type(self, type):
         return self.type == type
 
     def check_type(self, type):
         if not self.type == type:
-            raise CastileSyntaxError("Expected %s, but found %s ('%s')" %
-                              (type, self.type, self.token))
+            raise CastileSyntaxError(
+                "Expected %s, but found %s ('%s')" % (type, self.type, self.token)
+            )
 
     def consume(self, token):
         if self.token == token:
@@ -125,7 +130,7 @@ class Parser(object):
         else:
             return None
 
-    ### PARSER ###
+    # ### PARSER ### #
 
     def program(self):
         defns = []
@@ -239,7 +244,8 @@ class Parser(object):
         elif last is not None and last.tag not in self.STMT_TAGS:
             stmts[-1] = AST('Return', [stmts[-1]])
         self.expect('}')
-        vardecls = AST('VarDecls',
+        vardecls = AST(
+            'VarDecls',
             [AST('VarDecl', value=name) for name in self.locals]
         )
         stmts = AST('Block', stmts)
@@ -335,9 +341,9 @@ class Parser(object):
         return e
 
     def expr5(self):
-        if (self.on_type('string literal') or self.on('-') or
-            self.on_type('integer literal') or self.on('fun')
-            or self.on('true') or self.on('false') or self.on('null')):
+        if self.on_type('string literal') or self.on_type('integer literal'):
+            return self.literal()
+        elif self.on_any(('-', 'fun', 'true', 'false', 'null')):
             return self.literal()
         elif self.consume('not'):
             return AST('Not', [self.expr1()])
