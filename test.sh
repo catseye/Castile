@@ -1,11 +1,11 @@
 #!/bin/sh
 
 if [ ! x`command -v python2` = x ]; then
-    APPLIANCES="$APPLIANCES tests/appliances/castile.md"
+    APPLIANCES="$APPLIANCES tests/appliances/castile.py2.md"
 fi
 
 if [ ! x`command -v python3` = x ]; then
-    APPLIANCES="$APPLIANCES tests/appliances/python3-castile.md"
+    APPLIANCES="$APPLIANCES tests/appliances/castile.py3.md"
 fi
 
 if [ ! x`command -v node` = x ]; then
