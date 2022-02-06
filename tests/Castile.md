@@ -362,7 +362,7 @@ Variables in upper scopes may be modified.
 
 ### Non-local Values ###
 
-Literals may appear at the toplevel.    Semicolons are optional at toplevel.
+Literals may appear at the toplevel.  Semicolons are optional at toplevel.
 
     | factor = 5;
     | fun main() {
@@ -370,7 +370,8 @@ Literals may appear at the toplevel.    Semicolons are optional at toplevel.
     | }
     = 30
 
-Toplevel literals may not be updated.  (And thus
+Toplevel literals may not be updated.  Thus, the following looks like it
+is defining a local with the same name as a toplevel, which is not permitted.
 
     | factor = 5
     | fun main() {

@@ -1,6 +1,6 @@
 """castile {options} program-file.castile
 
-Interpreter/compiler for Castile, an unremarkable programming language.
+Interpreter/compiler for Castile, a programming language with union types.
 
 """
 
@@ -24,7 +24,7 @@ def main(argv):
                          dest="compile_to", default=None,
                          help="compile to given backend code instead "
                               "of evaluating directly (available backends: "
-                              "javascript, ruby, stackmac)")
+                              "c, javascript, ruby, stackmac)")
     optparser.add_option("-p", "--parse-only",
                          action="store_true", dest="parse_only",
                          default=False,
