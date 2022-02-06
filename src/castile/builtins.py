@@ -11,6 +11,9 @@ class TaggedValue(object):
     def __repr__(self):
         return '(%r, %r)' % (self.tag, self.value)
 
+    def __eq__(self, other):
+        return self.tag == other.tag and self.value == other.value
+
 
 def builtin_len(s):
     return len(s)

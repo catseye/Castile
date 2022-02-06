@@ -1,0 +1,7 @@
+fun main() {
+  a = 40 as string|integer
+  b = 40 as string|integer
+  if a == b {
+    print("it is")
+  }
+}

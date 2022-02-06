@@ -73,6 +73,11 @@ int is_tag(char *tag, struct tagged_value *tv)
     return !strcmp(tag, tv->tag);
 }
 
+int equal_tagged_value(struct tagged_value *tv1, struct tagged_value *tv2)
+{
+    return is_tag(tv1->tag, tv2) && tv1->value == tv2->value;
+}
+
 """
 
 
@@ -258,6 +263,12 @@ int main(int argc, char **argv)
         elif ast.tag == 'Op':
             if ast.value == '==' and isinstance(ast.children[0].type, Struct):
                 self.write('equal_%s(' % ast.children[0].type.name)
+                self.compile(ast.children[0])
+                self.write(', ')
+                self.compile(ast.children[1])
+                self.write(')')
+            elif ast.value == '==' and isinstance(ast.children[0].type, Union):
+                self.write('equal_tagged_value(')
                 self.compile(ast.children[0])
                 self.write(', ')
                 self.compile(ast.children[1])

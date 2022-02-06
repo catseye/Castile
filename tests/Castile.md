@@ -601,16 +601,16 @@ Equality cannot be checked between two values of different types.
     | }
     ? mismatch
 
-Equality can be checked between unions.  (TODO)
+Equality can be checked between unions.
 
-    /| fun main() {
-    /|   a = 40 as string|integer
-    /|   b = 40 as string|integer
-    /|   if a == b {
-    /|     print("it is")
-    /|   }
-    /| }
-    /= ok
+    | fun main() {
+    |   a = 40 as string|integer
+    |   b = 40 as string|integer
+    |   if a == b {
+    |     print("it is")
+    |   }
+    | }
+    = it is
 
     | fun main() {
     |   a = 40 as string|integer
