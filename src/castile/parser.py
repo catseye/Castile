@@ -27,29 +27,33 @@ class Parser(object):
         self.text = text
         self.token = None
         self.type = None
+        self.pos = 0
         self.scan()
         # for parser...
         self.locals = None
 
     # ### SCANNER ### #
 
+    def near_text(self, length=10):
+        return self.text[self.pos:self.pos + length]
+
     def scan_pattern(self, pattern, type, token_group=1, rest_group=2):
-        pattern = r'^(' + pattern + r')(.*?)$'
-        match = re.match(pattern, self.text, re.DOTALL)
+        pattern = r'(' + pattern + r')'
+        regexp = re.compile(pattern, flags=re.DOTALL)
+        match = regexp.match(self.text, pos=self.pos)
         if not match:
             return False
         else:
             self.type = type
             self.token = match.group(token_group)
-            self.text = match.group(rest_group)
-            # print(self.type, self.token)
+            self.pos += len(match.group(0))
             return True
 
     def scan(self):
         self.scan_pattern(r'[ \t\n\r]*', 'whitespace')
-        while self.text.startswith('/*'):
-            self.scan_pattern(r'\/\*.*?\*\/[ \t\n\r]*', 'comment')
-        if not self.text:
+        while self.scan_pattern(r'\/\*.*?\*\/[ \t\n\r]*', 'comment'):
+            self.scan_pattern(r'[ \t\n\r]*', 'whitespace')
+        if self.pos >= len(self.text):
             self.token = None
             self.type = 'EOF'
             return
@@ -91,7 +95,9 @@ class Parser(object):
             self.scan()
         else:
             raise CastileSyntaxError(
-                "Expected '%s', but found '%s'" % (token, self.token)
+                "Expected '%s', but found '%s' (near '%s')" % (
+                    token, self.token, self.near_text()
+                )
             )
 
     def expect_type(self, type):
@@ -112,7 +118,9 @@ class Parser(object):
     def check_type(self, type):
         if not self.type == type:
             raise CastileSyntaxError(
-                "Expected %s, but found %s ('%s')" % (type, self.type, self.token)
+                "Expected %s, but found %s ('%s') (near '%s')" % (
+                    type, self.type, self.token, self.near_text()
+                )
             )
 
     def consume(self, token):
