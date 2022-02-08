@@ -807,6 +807,26 @@ Structs of two different types cannot be tested for equality.
     | }
     ? mismatch
 
+Deeply nested structs can be tested for equality.
+
+    | struct name { first: string; last: string }
+    | struct person { age: integer; name: name }
+    | main = fun() {
+    |   j = make person(age: 23, name:make name(first:"Bamber", last:"Smith"));
+    |   k = make person(age: 23, name:make name(first:"Bamber", last:"Smith"));
+    |   j == k
+    | }
+    = True
+
+    | struct name { first: string; last: string }
+    | struct person { age: integer; name: name }
+    | main = fun() {
+    |   j = make person(age: 23, name:make name(first:"Bamber", last:"Smith"));
+    |   k = make person(age: 23, name:make name(first:"Amber", last:"Smith"));
+    |   j != k
+    | }
+    = True
+
 Structs cannot be compared for ordering.
 
     | struct person { age: integer; name: string }

@@ -1,0 +1,15 @@
+struct name { first: string; last: string }
+struct person { age: integer; name: name }
+
+fun main() {
+  a = 40 as string|integer
+  b = 40 as string|integer
+  if a == b {
+    print("these union-type values are equal")
+  }
+  j = make person(age: 23, name:make name(first:"Bamber", last:"Smith"));
+  k = make person(age: 23, name:make name(first:"Bamber", last:"Smith"));
+  if j == k {
+    print("these deep struct-type values are equal")
+  }
+}
