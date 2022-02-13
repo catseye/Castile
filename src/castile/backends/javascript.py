@@ -1,4 +1,4 @@
-from castile.types import Struct
+from castile.types import Struct, Union
 
 OPS = {
     'and': '&&',
@@ -56,6 +56,10 @@ var repr = function(o) {
   }
 };
 
+var equal_tagged_value = function(tv1, tv2)
+{
+    return (tv1.tag === tv2.tag) && (tv1.value === tv2.value);
+}
 """)
             for child in ast.children:
                 self.compile(child)
@@ -75,8 +79,11 @@ if (result !== undefined && result !== null)
             self.out.write('function equal_%s(a, b) {\n' % ast.value)
             for child in ast.children:
                 assert child.tag == 'FieldDefn'
-                # TODO does not handle structs within structs
-                self.out.write('if (a.%s !== b.%s) return false;\n' % (child.value, child.value))
+                struct_type = child.children[0].value if child.children[0].tag == 'StructType' else None
+                if struct_type:
+                    self.out.write('if (!equal_%s(a.%s, b.%s)) return false;\n' % (struct_type, child.value, child.value))
+                else:
+                    self.out.write('if (a.%s !== b.%s) return false;\n' % (child.value, child.value))
             self.out.write('return true;\n')
             self.out.write('}\n\n')
         elif ast.tag == 'FunLit':
@@ -116,6 +123,12 @@ if (result !== undefined && result !== null)
         elif ast.tag == 'Op':
             if ast.value == '==' and isinstance(ast.children[0].type, Struct):
                 self.out.write('equal_%s(' % ast.children[0].type.name)
+                self.compile(ast.children[0])
+                self.out.write(', ')
+                self.compile(ast.children[1])
+                self.out.write(')')
+            elif ast.value == '==' and isinstance(ast.children[0].type, Union):
+                self.out.write('equal_tagged_value(')
                 self.compile(ast.children[0])
                 self.out.write(', ')
                 self.compile(ast.children[1])

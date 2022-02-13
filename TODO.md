@@ -11,8 +11,6 @@ Figure out a way to do `input`, `read`, and `write` with node.js backend.
 
 Implement `int`, `chr`, `ord` for Ruby, JavaScript, stackmac, C.
 
-Struct equality is not properly deep in JavaScript or C.
-
 Better indentation in the JavaScript backend.
 
 TaggedValue -> just a tuple.
