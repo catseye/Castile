@@ -216,8 +216,11 @@ int main(int argc, char **argv)
             self.indent += 1
             for child in ast.children:
                 assert child.tag == 'FieldDefn'
-                # TODO does not handle structs within structs
-                self.write_indent('if (a->%s != b->%s) return 0;\n' % (child.value, child.value))
+                struct_type = child.children[0].value if child.children[0].tag == 'StructType' else None
+                if struct_type:
+                    self.write_indent('if (!equal_%s(a->%s, b->%s)) return 0;\n' % (struct_type, child.value, child.value))
+                else:
+                    self.write_indent('if (a->%s != b->%s) return 0;\n' % (child.value, child.value))
 
             self.write_indent('return 1;\n')
             self.indent -= 1
