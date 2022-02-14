@@ -5,7 +5,7 @@ This is an EBNF grammar for Castile.
 
     Program ::= {Defn [";"]}.
     Defn    ::= "fun" ident "(" [Arg {"," Arg}] ")" Body
-              | "struct" ident "{" {ident ":" TExpr [";"]} "}"
+              | "struct" ident "{" {ident ":" TExpr [";"]} "}" ["for" "(" [ident {"," ident}] ")"]
               | ident (":" TExpr0 | "=" Literal).
     Arg     ::= ident [":" TExpr1].
     Body    ::= "{" {Stmt [";"]} "}".

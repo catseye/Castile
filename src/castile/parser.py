@@ -76,7 +76,17 @@ class Parser(object):
                 components.append(AST('FieldDefn', [texpr], value=name))
                 self.consume(';')
             self.expect("}")
-            return AST('StructDefn', components, value=id)
+            scope_children = []
+            if self.consume("for"):
+                self.expect("(")
+                idents = []
+                if not self.on(")"):
+                    idents.append(AST('Ident', value=self.expect_type('identifier')))
+                    while self.consume(","):
+                        idents.append(AST('Ident', value=self.expect_type('identifier')))
+                self.expect(")")
+                scope_children.append(AST('Idents', idents))
+            return AST('StructDefn', [AST('FieldDefns', components)] + scope_children, value=id)
         else:
             id = self.expect_type('identifier')
             if self.consume('='):

@@ -1250,3 +1250,80 @@ In combination with unions, this lets us create "typed enums".
     | }
     = red
     = blue
+
+### Scoped Structs ###
+
+When a `struct` is declared, it may be associated with a set of identifiers.
+Functions with these global names are the only function definitions which
+can `make` such a struct, or see that it has fields; to all other functions,
+these operations will not be available.  It is in this way that encapsulation
+is accomplished.
+
+    | struct list {
+    |   value: string;
+    |   next: list|void;
+    | } for (cons, singleton, empty)
+    | 
+    | fun cons(v: string, l: list) {
+    |   make list(value:v, next:l as list|void)
+    | }
+    | 
+    | fun singleton(v: string) {
+    |   make list(value:v, next:null as list|void)
+    | }
+    | 
+    | fun empty(l: list|void) {
+    |   a = "no";
+    |   typecase l is void { a = "yes"; }
+    |   return a;
+    | }
+    | 
+    | fun main() {
+    |   l = cons("first", cons("second", singleton("third")));
+    |   print(empty(l));
+    | }
+    = no
+
+    | struct list {
+    |   value: string;
+    |   next: list|void;
+    | } for (cons, singleton, empty)
+    | 
+    | fun cons(v: string, l: list) {
+    |   make list(value:v, next:l as list|void)
+    | }
+    | 
+    | fun singleton(v: string) {
+    |   make list(value:v, next:null as list|void)
+    | }
+    | 
+    | fun empty(l: list|void) {
+    |   a = "no";
+    |   typecase l is void { a = "yes"; }
+    |   return a;
+    | }
+    | 
+    | fun main() {
+    |   l = make list(value:"first", next:null);
+    |   print(empty(l));
+    | }
+    ? make
+
+    | struct list {
+    |   value: string;
+    |   next: list|void;
+    | } for (cons, singleton, empty)
+    | 
+    | fun cons(v: string, l: list) {
+    |   make list(value:v, next:l as list|void)
+    | }
+    | 
+    | fun singleton(v: string) {
+    |   make list(value:v, next:null as list|void)
+    | }
+    | 
+    | fun main() {
+    |   l = cons("first", cons("second", singleton("third")));
+    |   print(l.value);
+    | }
+    ? value

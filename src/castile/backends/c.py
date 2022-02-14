@@ -183,28 +183,30 @@ int main(int argc, char **argv)
         elif ast.tag == 'Forward':
             self.write_indent('extern %s;\n' % self.c_decl(ast.children[0].type, ast.value))
         elif ast.tag == 'StructDefn':
+            field_defns = ast.children[0].children
             self.write_indent('struct %s {\n' % ast.value)
             self.indent += 1
-            for child in ast.children:
+            for child in field_defns:
+                assert child.tag == 'FieldDefn', child.tag
                 self.compile(child)
             self.indent -= 1
             self.write_indent('};\n\n')
             self.write_indent('struct %s * make_%s(' % (ast.value, ast.value))
 
-            if ast.children:
-                for child in ast.children[:-1]:
-                    assert child.tag == 'FieldDefn'
+            if field_defns:
+                for child in field_defns[:-1]:
+                    assert child.tag == 'FieldDefn', child.tag
                     self.write('%s, ' % self.c_decl(child.children[0].type, child.value))
-                child = ast.children[-1]
-                assert child.tag == 'FieldDefn'
+                child = field_defns[-1]
+                assert child.tag == 'FieldDefn', child.tag
                 self.write('%s' % self.c_decl(child.children[0].type, child.value))
 
             self.write(') {\n')
             self.indent += 1
             self.write_indent('struct %s *x = malloc(sizeof(struct %s));\n' % (ast.value, ast.value))
 
-            for child in ast.children:
-                assert child.tag == 'FieldDefn'
+            for child in field_defns:
+                assert child.tag == 'FieldDefn', child.tag
                 self.write_indent('x->%s = %s;\n' % (child.value, child.value))
 
             self.write_indent('return x;\n')
@@ -214,8 +216,8 @@ int main(int argc, char **argv)
             self.write_indent('int equal_%s(struct %s * a, struct %s * b) {\n' % (ast.value, ast.value, ast.value))
 
             self.indent += 1
-            for child in ast.children:
-                assert child.tag == 'FieldDefn'
+            for child in field_defns:
+                assert child.tag == 'FieldDefn', child.tag
                 struct_type = child.children[0].value if child.children[0].tag == 'StructType' else None
                 if struct_type:
                     self.write_indent('if (!equal_%s(a->%s, b->%s)) return 0;\n' % (struct_type, child.value, child.value))

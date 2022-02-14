@@ -10,10 +10,11 @@ class CastileTypeError(ValueError):
 
 
 class StructDefinition(object):
-    def __init__(self, name, field_names, content_types):
+    def __init__(self, name, field_names, content_types, scope_idents):
         self.name = name
         self.field_names = field_names  # dict of name -> position
         self.content_types = content_types  # list of types in order
+        self.scope_idents = scope_idents  # list of identifiers, or None
 
     def field_names_in_order(self):
         m = {}
@@ -62,17 +63,19 @@ class TypeChecker(object):
         if name in self.structs:
             raise CastileTypeError('duplicate struct %s' % name)
         struct_fields = {}
-        te = []
+        type_exprs = []
         i = 0
-        for child in ast.children:
-            assert child.tag == 'FieldDefn'
+        field_defns = ast.children[0].children
+        scope_idents = ast.children[1].children if len(ast.children) > 1 else None
+        for child in field_defns:
+            assert child.tag == 'FieldDefn', child.tag
             field_name = child.value
             if field_name in struct_fields:
                 raise CastileTypeError('already-defined field %s' % field_name)
             struct_fields[field_name] = i
             i += 1
-            te.append(self.type_of(child.children[0]))
-        self.structs[name] = StructDefinition(ast.value, struct_fields, te)
+            type_exprs.append(self.type_of(child.children[0]))
+        self.structs[name] = StructDefinition(ast.value, struct_fields, type_exprs, scope_idents)
 
     def resolve_structs(self, ast):
         if isinstance(ast.type, Struct):

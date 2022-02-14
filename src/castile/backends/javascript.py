@@ -76,9 +76,10 @@ if (result !== undefined && result !== null)
         elif ast.tag == 'Forward':
             pass
         elif ast.tag == 'StructDefn':
+            field_defns = ast.children[0].children
             self.out.write('function equal_%s(a, b) {\n' % ast.value)
-            for child in ast.children:
-                assert child.tag == 'FieldDefn'
+            for child in field_defns:
+                assert child.tag == 'FieldDefn', child.tag
                 struct_type = child.children[0].value if child.children[0].tag == 'StructType' else None
                 if struct_type:
                     self.out.write('if (!equal_%s(a.%s, b.%s)) return false;\n' % (struct_type, child.value, child.value))
