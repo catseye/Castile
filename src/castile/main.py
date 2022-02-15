@@ -55,7 +55,13 @@ def main(argv):
         if options.typecheck:
             t = TypeChecker()
             t.collect_structs(ast)
-            t.type_of(ast)
+            try:
+                t.type_of(ast)
+            except Exception:
+                if options.show_ast:
+                    print(ast.pprint(0))
+                    print("-----")
+                raise
         if options.compile_to is not None:
             x = FunctionLifter()
             ast = x.lift_functions(ast)

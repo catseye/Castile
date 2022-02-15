@@ -1,0 +1,23 @@
+struct list {
+  value: string;
+  next: list|void;
+} for (cons, singleton, len)
+
+fun cons(v: string, l: list) {
+  make list(value:v, next:l as list|void)
+}
+
+fun singleton(v: string) {
+  make list(value:v, next:null as list|void)
+}
+
+length : list|void -> integer
+fun length(l: list|void) {
+  typecase l is void { return 0 }
+  typecase l is list { return 1 + length(l.next) }
+}
+
+fun main() {
+  l = cons("first", cons("second", singleton("third")));
+  print(str(length(l as list|void)));
+}

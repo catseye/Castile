@@ -1262,7 +1262,7 @@ is accomplished.
     | struct list {
     |   value: string;
     |   next: list|void;
-    | } for (cons, singleton, empty)
+    | } for (cons, singleton, len)
     | 
     | fun cons(v: string, l: list) {
     |   make list(value:v, next:l as list|void)
@@ -1272,22 +1272,22 @@ is accomplished.
     |   make list(value:v, next:null as list|void)
     | }
     | 
-    | fun empty(l: list|void) {
-    |   a = "no";
-    |   typecase l is void { a = "yes"; }
-    |   return a;
+    | len : list|void -> integer
+    | fun length(l: list|void) {
+    |   typecase l is void { return 0 }
+    |   typecase l is list { return 1 + length(l.next) }
     | }
     | 
     | fun main() {
     |   l = cons("first", cons("second", singleton("third")));
-    |   print(empty(l));
+    |   print(str(length(l as list|void)));
     | }
-    = no
+    = 3
 
     | struct list {
     |   value: string;
     |   next: list|void;
-    | } for (cons, singleton, empty)
+    | } for (cons, singleton, len)
     | 
     | fun cons(v: string, l: list) {
     |   make list(value:v, next:l as list|void)
@@ -1297,22 +1297,22 @@ is accomplished.
     |   make list(value:v, next:null as list|void)
     | }
     | 
-    | fun empty(l: list|void) {
-    |   a = "no";
-    |   typecase l is void { a = "yes"; }
-    |   return a;
+    | len : list|void -> integer
+    | fun length(l: list|void) {
+    |   typecase l is void { return 0 }
+    |   typecase l is list { return 1 + length(l.next) }
     | }
     | 
     | fun main() {
     |   l = make list(value:"first", next:null);
-    |   print(empty(l));
+    |   print(str(length(l)));
     | }
     ? make
 
     | struct list {
     |   value: string;
     |   next: list|void;
-    | } for (cons, singleton, empty)
+    | } for (cons, singleton, len)
     | 
     | fun cons(v: string, l: list) {
     |   make list(value:v, next:l as list|void)
