@@ -67,7 +67,9 @@ class TypeChecker(object):
         type_exprs = []
         i = 0
         field_defns = ast.children[0].children
-        scope_idents = ast.children[1].children if len(ast.children) > 1 else None
+        scope_idents = None
+        if len(ast.children) > 1:
+            scope_idents = [a.value for a in ast.children[1].children]
         for child in field_defns:
             assert child.tag == 'FieldDefn', child.tag
             field_name = child.value
@@ -243,13 +245,14 @@ class TypeChecker(object):
                 raise CastileTypeError("undefined struct %s" % t.name)
             struct_defn = self.structs[t.name]
             if struct_defn.scope_idents is not None:
-                scope_idents = [ast.value for ast in struct_defn.scope_idents]
-                if self.current_defn not in scope_idents:
-                    raise CastileTypeError("inaccessible struct %s for make: %s not in %s" % 
-                        (t.name, self.current_defn, scope_idents)
+                if self.current_defn not in struct_defn.scope_idents:
+                    raise CastileTypeError("inaccessible struct %s for make: %s not in %s" %
+                        (t.name, self.current_defn, struct_defn.scope_idents)
                     )
             if len(struct_defn.content_types) != len(ast.children) - 1:
-                raise CastileTypeError("argument mismatch")
+                raise CastileTypeError("argument mismatch; expected {}, got {} in {}".format(
+                    len(struct_defn.content_types), len(ast.children) - 1, ast
+                ))
             i = 0
             for defn in ast.children[1:]:
                 name = defn.value
@@ -263,15 +266,21 @@ class TypeChecker(object):
             ast.type = self.type_of(ast.children[0])
         elif ast.tag == 'Index':
             t = self.type_of(ast.children[0])
+            struct_defn = self.structs[t.name]
+            if struct_defn.scope_idents is not None:
+                if self.current_defn not in struct_defn.scope_idents:
+                    raise CastileTypeError("inaccessible struct %s for access: %s not in %s" %
+                        (t.name, self.current_defn, struct_defn.scope_idents)
+                    )
             field_name = ast.value
-            struct_fields = self.structs[t.name].field_names
+            struct_fields = struct_defn.field_names
             if field_name not in struct_fields:
                 raise CastileTypeError("undefined field")
             index = struct_fields[field_name]
             # we make this value available to compiler backends
             ast.aux = index
             # we look up the type from the StructDefinition
-            ast.type = self.structs[t.name].content_types[index]
+            ast.type = struct_defn.content_types[index]
         elif ast.tag == 'TypeCase':
             t1 = self.type_of(ast.children[0])
             t2 = self.type_of(ast.children[1])

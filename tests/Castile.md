@@ -1262,7 +1262,7 @@ is accomplished.
     | struct list {
     |   value: string;
     |   next: list|void;
-    | } for (cons, singleton, len)
+    | } for (cons, singleton, length)
     | 
     | fun cons(v: string, l: list) {
     |   make list(value:v, next:l as list|void)
@@ -1287,7 +1287,7 @@ is accomplished.
     | struct list {
     |   value: string;
     |   next: list|void;
-    | } for (cons, singleton, len)
+    | } for (cons, singleton, length)
     | 
     | fun cons(v: string, l: list) {
     |   make list(value:v, next:l as list|void)
@@ -1312,7 +1312,7 @@ is accomplished.
     | struct list {
     |   value: string;
     |   next: list|void;
-    | } for (cons, singleton, len)
+    | } for (cons, singleton, length)
     | 
     | fun cons(v: string, l: list) {
     |   make list(value:v, next:l as list|void)
@@ -1326,4 +1326,4 @@ is accomplished.
     |   l = cons("first", cons("second", singleton("third")));
     |   print(l.value);
     | }
-    ? value
+    ? struct
