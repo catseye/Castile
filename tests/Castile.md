@@ -1272,7 +1272,7 @@ is accomplished.
     |   make list(value:v, next:null as list|void)
     | }
     | 
-    | len : list|void -> integer
+    | length : list|void -> integer
     | fun length(l: list|void) {
     |   typecase l is void { return 0 }
     |   typecase l is list { return 1 + length(l.next) }
@@ -1297,15 +1297,15 @@ is accomplished.
     |   make list(value:v, next:null as list|void)
     | }
     | 
-    | len : list|void -> integer
+    | length : list|void -> integer
     | fun length(l: list|void) {
     |   typecase l is void { return 0 }
     |   typecase l is list { return 1 + length(l.next) }
     | }
     | 
     | fun main() {
-    |   l = make list(value:"first", next:null);
-    |   print(str(length(l)));
+    |   l = make list(value:"first", next:null as list|void);
+    |   print(str(length(l as list|void)));
     | }
     ? make
 
