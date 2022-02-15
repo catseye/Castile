@@ -34,6 +34,7 @@ class TypeChecker(object):
         self.context = ScopedContext(global_context, level='global')
         self.toplevel_context = ScopedContext({}, self.context, level='toplevel')
         self.context = self.toplevel_context
+        self.current_defn = None
 
         self.forwards = {}
         self.structs = {}  # struct name -> StructDefinition
@@ -241,6 +242,12 @@ class TypeChecker(object):
             if t.name not in self.structs:
                 raise CastileTypeError("undefined struct %s" % t.name)
             struct_defn = self.structs[t.name]
+            if struct_defn.scope_idents is not None:
+                scope_idents = [ast.value for ast in struct_defn.scope_idents]
+                if self.current_defn not in scope_idents:
+                    raise CastileTypeError("inaccessible struct %s for make: %s not in %s" % 
+                        (t.name, self.current_defn, scope_idents)
+                    )
             if len(struct_defn.content_types) != len(ast.children) - 1:
                 raise CastileTypeError("argument mismatch")
             i = 0
@@ -287,7 +294,9 @@ class TypeChecker(object):
             ast.type = Void()
             self.resolve_structs(ast)
         elif ast.tag == 'Defn':
+            self.current_defn = ast.value
             t = self.type_of(ast.children[0])
+            self.current_defn = None
             if ast.value in self.forwards:
                 self.assert_eq(self.forwards[ast.value], t)
                 del self.forwards[ast.value]
