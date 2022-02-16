@@ -1,3 +1,4 @@
+from castile.backends.base import BaseCompiler
 from castile.transformer import VarDeclTypeAssigner
 from castile.types import (
     Integer, String, Void, Boolean, Function, Union, Struct
@@ -9,7 +10,7 @@ OPS = {
 }
 
 PRELUDE = r"""
-/* AUTOMATICALLY GENERATED -- EDIT AT OWN RISK */
+/* AUTOMATICALLY GENERATED -- EDIT AT YOUR OWN RISK */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -81,26 +82,11 @@ int equal_tagged_value(struct tagged_value *tv1, struct tagged_value *tv2)
 """
 
 
-class Compiler(object):
+class Compiler(BaseCompiler):
     def __init__(self, out):
-        self.out = out
+        super(Compiler, self).__init__(out)
         self.main_type = None
-        self.indent = 0
         self.typecasing = set()
-
-    def commas(self, asts, sep=','):
-        if asts:
-            for child in asts[:-1]:
-                self.compile(child)
-                self.out.write(sep)
-            self.compile(asts[-1])
-
-    def write(self, x):
-        self.out.write(x)
-
-    def write_indent(self, x):
-        self.out.write('    ' * self.indent)
-        self.out.write(x)
 
     # as used in local variable declarations
     def c_type(self, type):

@@ -1,8 +1,11 @@
+from castile.backends.base import BaseCompiler
+
+
 OPS = {
 }
 
 PRELUDE = """\
-# AUTOMATICALLY GENERATED -- EDIT AT OWN RISK
+# AUTOMATICALLY GENERATED -- EDIT AT YOUR OWN RISK
 
 input = lambda { |s|
   print(s)
@@ -64,25 +67,7 @@ end
 """
 
 
-class Compiler(object):
-    def __init__(self, out):
-        self.out = out
-        self.indent = 0
-
-    def commas(self, asts, sep=','):
-        if asts:
-            for child in asts[:-1]:
-                self.compile(child)
-                self.out.write(sep)
-            self.compile(asts[-1])
-
-    def write(self, x):
-        self.out.write(x)
-
-    def write_indent(self, x):
-        self.out.write('  ' * self.indent)
-        self.out.write(x)
-
+class Compiler(BaseCompiler):
     def mangle(self, ident):
         if ident.startswith('next'):
             return '{}_'.format(ident)

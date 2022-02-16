@@ -21,6 +21,7 @@ Castile 0.5
 
 *   Requesting the AST be dumped, will also dump the AST with
     type assignments, if an error occurs during type checking.
+*   Established an abstract base class for compiler backends.
 
 Castile 0.4
 -----------

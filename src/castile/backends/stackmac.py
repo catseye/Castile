@@ -89,7 +89,7 @@ class Compiler(object):
     def compile(self, ast):
         if ast.tag == 'Program':
             self.out.write("""\
-; AUTOMATICALLY GENERATED -- EDIT AT OWN RISK
+; AUTOMATICALLY GENERATED -- EDIT AT YOUR OWN RISK
 
 """)
             for child in ast.children:
