@@ -1390,3 +1390,45 @@ One can use this facility to implement abstract data types.
     = um
     = second
     = ya
+
+This program should work even with a redundant upcast in it.
+
+    | struct assoc {
+    |   key: string;
+    |   value: string;
+    |   next: assoc|void;
+    | } for (singleton, update, lookup, remove)
+    | 
+    | fun singleton(k: string, v: string) {
+    |   make assoc(key:k, value:v, next:null as assoc|void)
+    | }
+    | 
+    | fun update(k: string, v: string, a: assoc) {
+    |   make assoc(key:k, value:v, next:a as assoc|void)
+    | }
+    | 
+    | lookup : assoc, string -> string|void
+    | fun lookup(a: assoc, k: string) {
+    |   if a.key == k {
+    |     return a.value as string|void
+    |   }
+    |   n = a.next
+    |   typecase n is void {
+    |     return null as string|void
+    |   }
+    |   typecase n is assoc {
+    |     return lookup(n, k) as string|void
+    |   }
+    | }
+    | 
+    | fun main() {
+    |   a = update("1", "first", update("2", "second", singleton("3", "third")));
+    |   r = lookup(a, "2");
+    |   print("um");
+    |   typecase r is void { print("NOT FOUND"); }
+    |   typecase r is string { print(r); }
+    |   print("ya");
+    | }
+    = um
+    = second
+    = ya
