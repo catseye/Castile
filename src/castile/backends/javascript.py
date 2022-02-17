@@ -76,11 +76,14 @@ class Compiler(BaseCompiler):
             self.write('function equal_%s(a, b) {\n' % ast.value)
             for child in field_defns:
                 assert child.tag == 'FieldDefn', child.tag
-                struct_type = child.children[0].value if child.children[0].tag == 'StructType' else None
-                if struct_type:
-                    self.write('if (!equal_%s(a.%s, b.%s)) return false;\n' % (struct_type, child.value, child.value))
+                child_type = child.children[0]
+                if child_type.tag == 'StructType':
+                    struct_type = child_type.value
+                    self.write_indent('if (!equal_%s(a.%s, b.%s)) return false;\n' % (struct_type, child.value, child.value))
+                elif child_type.tag == 'UnionType':
+                    self.write_indent('if (!equal_tagged_value(a.%s, b.%s)) return 0;\n' % (child.value, child.value))
                 else:
-                    self.write('if (a.%s !== b.%s) return false;\n' % (child.value, child.value))
+                    self.write_indent('if (a.%s !== b.%s) return false;\n' % (child.value, child.value))
             self.write('return true;\n')
             self.write('}\n\n')
         elif ast.tag == 'FunLit':
