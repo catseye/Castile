@@ -204,9 +204,12 @@ int main(int argc, char **argv)
             self.indent += 1
             for child in field_defns:
                 assert child.tag == 'FieldDefn', child.tag
-                struct_type = child.children[0].value if child.children[0].tag == 'StructType' else None
-                if struct_type:
+                child_type = child.children[0]
+                if child_type.tag == 'StructType':
+                    struct_type = child_type.value
                     self.write_indent('if (!equal_%s(a->%s, b->%s)) return 0;\n' % (struct_type, child.value, child.value))
+                elif child_type.tag == 'UnionType':
+                    self.write_indent('if (!equal_tagged_value(a->%s, b->%s)) return 0;\n' % (child.value, child.value))
                 else:
                     self.write_indent('if (a->%s != b->%s) return 0;\n' % (child.value, child.value))
 

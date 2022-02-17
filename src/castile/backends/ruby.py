@@ -193,15 +193,21 @@ class Compiler(BaseCompiler):
             self.write_indent('if (')
             self.compile(ast.children[0])
             self.write("[0] == '%s')" % str(ast.children[1].type))
-            self.write('then save=')
+            self.write(' then\n')
+            self.indent += 1
+            self.write_indent('save=')
             self.compile(ast.children[0])
             self.write('\n')
+            self.write_indent('')
             self.compile(ast.children[0])
             self.write('=')
             self.compile(ast.children[0])
             self.write('[1]\n')
             self.compile(ast.children[2])
+            self.write_indent('')
             self.compile(ast.children[0])
-            self.write(' = save end')
+            self.write(' = save\n')
+            self.indent -= 1
+            self.write_indent('end')
         else:
             raise NotImplementedError(repr(ast))
