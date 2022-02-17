@@ -3,6 +3,9 @@ TODO
 
 ### Implementation ###
 
+call equal_tagged_value() when you find a union type when
+comparing structs deeply.  (C backend, probably others)
+
 Name mangling for compilers (prepend with `_` most likely.)
 
 And literal characters in strings, especially `'` and `"`.
