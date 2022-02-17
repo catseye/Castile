@@ -167,8 +167,10 @@ def typeof(x):
         return "Type(string:)"
     elif isinstance(x, StructDict):
         return x.name
+    elif isinstance(x, TaggedValue):
+        return x.tag
     else:
-        return "wtf"
+        raise NotImplementedError(x)
 
 
 class Program(object):
