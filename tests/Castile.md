@@ -827,6 +827,27 @@ Deeply nested structs can be tested for equality.
     | }
     = True
 
+Deeply nested structs can be tested for equality, even when containing values
+of union type.
+
+    | struct name { first: string; last: string|integer }
+    | struct person { age: integer; name: name }
+    | main = fun() {
+    |   j = make person(age: 23, name:make name(first:"Bamber", last:"Smith" as string|integer));
+    |   k = make person(age: 23, name:make name(first:"Bamber", last:"Smith" as string|integer));
+    |   j == k
+    | }
+    = True
+
+    | struct name { first: string; last: string|integer }
+    | struct person { age: integer; name: name }
+    | main = fun() {
+    |   j = make person(age: 23, name:make name(first:"Bamber", last:"Smith" as string|integer));
+    |   k = make person(age: 23, name:make name(first:"Bamber", last:75 as string|integer));
+    |   j != k
+    | }
+    = True
+
 Structs cannot be compared for ordering.
 
     | struct person { age: integer; name: string }
@@ -1354,7 +1375,7 @@ One can use this facility to implement abstract data types.
     |     return null as string|void
     |   }
     |   typecase n is assoc {
-    |     return lookup(n, k) as string|void
+    |     return lookup(n, k)
     |   }
     | }
     | 
