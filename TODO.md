@@ -6,8 +6,10 @@ TODO
 call equal_tagged_value() when you find a union type when
 comparing structs deeply.  (C backend, probably others)
 
-There appears to be a bug with casting a union type to
-itself?  The tag in the tagged value is the union?
+Actually the idea of deep equality of structs is suspect.
+Especially if the visibility of those structs is limited.
+Instead users should write their own `equal` functions
+(possibly abstract, possibly only testing equivalence.)
 
 Name mangling for compilers (prepend with `_` most likely.)
 

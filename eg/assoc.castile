@@ -22,7 +22,7 @@ fun lookup(a: assoc, k: string) {
     return null as string|void
   }
   typecase n is assoc {
-    return lookup(n, k)
+    return lookup(n, k) as string|void
   }
 }
 

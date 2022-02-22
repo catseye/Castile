@@ -238,12 +238,14 @@ call
         elif ast.tag == 'TypeCast':
             self.compile(ast.children[0])
             t = str(ast.children[0].type)
-            self.out.write('; tag with "%s"\n' % t)
-            if self.size_of(ast.children[0].type) == 0:
-                # special case.  there is nothing on the stack
-                self.out.write('push 0\n')
-            tag = self.get_tag(t)
-            self.out.write('tag %d\n' % tag)
+            # If the LHS is not already a union type, promote it to a tagged value.
+            if not isinstance(ast.children[0].type, Union):
+                self.out.write('; tag with "%s"\n' % t)
+                if self.size_of(ast.children[0].type) == 0:
+                    # special case.  there is nothing on the stack
+                    self.out.write('push 0\n')
+                tag = self.get_tag(t)
+                self.out.write('tag %d\n' % tag)
         elif ast.tag == 'TypeCase':
             end_typecase = self.get_label('end_typecase')
             self.compile(ast.children[0])

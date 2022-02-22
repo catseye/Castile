@@ -1,4 +1,5 @@
 from castile.backends.base import BaseCompiler
+from castile.types import Union
 
 
 OPS = {
@@ -186,9 +187,13 @@ class Compiler(BaseCompiler):
             self.compile(ast.children[0])
             self.write('["%s"]' % ast.value)
         elif ast.tag == 'TypeCast':
-            self.write("['%s'," % str(ast.children[0].type))
-            self.compile(ast.children[0])
-            self.write(']')
+            # If the LHS is not already a union type, promote it to a tagged value.
+            if isinstance(ast.children[0].type, Union):
+                self.compile(ast.children[0])
+            else:
+                self.write("['%s'," % str(ast.children[0].type))
+                self.compile(ast.children[0])
+                self.write(']')
         elif ast.tag == 'TypeCase':
             self.write_indent('if (')
             self.compile(ast.children[0])
