@@ -72,6 +72,7 @@ class Compiler(BaseCompiler):
         elif ast.tag == 'Forward':
             pass
         elif ast.tag == 'StructDefn':
+            # FIXME the language no longer supports this, it can be jettisoned
             field_defns = ast.children[0].children
             self.write('function equal_%s(a, b) {\n' % ast.value)
             for child in field_defns:

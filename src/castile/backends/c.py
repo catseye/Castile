@@ -199,6 +199,7 @@ int main(int argc, char **argv)
             self.indent -= 1
             self.write_indent('}\n\n')
 
+            # FIXME the language no longer supports this, it can be jettisoned
             self.write_indent('int equal_%s(struct %s * a, struct %s * b) {\n' % (ast.value, ast.value, ast.value))
 
             self.indent += 1

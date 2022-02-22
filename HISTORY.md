@@ -14,8 +14,11 @@ Castile 0.5
     after the struct.  A value of a scope struct can only be
     `make`d, and the fields of such a value can only be accessed,
     lexically inside one of the definitions named in the `for`.
-*   Nested structs can be tested for deep equality.
-*   Values of union type can be tested for equality.
+*   Structs cannot be tested for equality with the `==` and `!=`
+    operators.  Instead the programmer should write a function
+    that compares structs for equality, if desired.
+*   Values of union type can be tested for equality, but only if
+    none of the types involved in the union are structs.
 
 ### Implementation
 

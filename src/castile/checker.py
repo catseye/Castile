@@ -105,8 +105,8 @@ class TypeChecker(object):
                 type1 = self.type_of(ast.children[0])
                 type2 = self.type_of(ast.children[1])
                 self.assert_eq(type1, type2)
-                if ast.value in ('>', '>=', '<', '<=') and isinstance(type1, Struct):
-                    raise CastileTypeError("structs cannot be compared for order")
+                if isinstance(type1, Struct):
+                    raise CastileTypeError("structs cannot be compared")
                 ast.type = Boolean()
         elif ast.tag == 'Not':
             type1 = self.type_of(ast.children[0])

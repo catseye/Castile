@@ -769,8 +769,8 @@ Order of field initialization when making a struct doesn't matter.
     | }
     = 23
 
-Structs can be tested for equality.  (Since structs are immutable, it
-doesn't matter if this is structural equality or identity.)
+Structs cannot be tested for equality with the `==` or `!==`
+operators.
 
     | struct person { name: string; age: integer }
     | main = fun() {
@@ -778,15 +778,7 @@ doesn't matter if this is structural equality or identity.)
     |   k = make person(name:"Jake", age: 23);
     |   j == k
     | }
-    = True
-
-    | struct person { age: integer; name: string }
-    | main = fun() {
-    |   j = make person(age: 23, name:"Jake");
-    |   k = make person(age: 23, name:"John");
-    |   j == k
-    | }
-    = False
+    ? structs cannot be compared
 
     | struct person { age: integer; name: string }
     | main = fun() {
@@ -794,7 +786,7 @@ doesn't matter if this is structural equality or identity.)
     |   k = make person(age: 21, name:"Jake");
     |   j != k
     | }
-    = True
+    ? structs cannot be compared
 
 Structs of two different types cannot be tested for equality.
 
@@ -807,44 +799,17 @@ Structs of two different types cannot be tested for equality.
     | }
     ? mismatch
 
-Deeply nested structs can be tested for equality.
+If you really want to compare two structs for equality, you'll
+have to write the equality predicate function yourself.
 
-    | struct name { first: string; last: string }
-    | struct person { age: integer; name: name }
-    | main = fun() {
-    |   j = make person(age: 23, name:make name(first:"Bamber", last:"Smith"));
-    |   k = make person(age: 23, name:make name(first:"Bamber", last:"Smith"));
-    |   j == k
+    | struct person { name: string; age: integer }
+    | equ_person = fun(a: person, b: person) {
+    |   a.age == b.age and a.name == b.name
     | }
-    = True
-
-    | struct name { first: string; last: string }
-    | struct person { age: integer; name: name }
     | main = fun() {
-    |   j = make person(age: 23, name:make name(first:"Bamber", last:"Smith"));
-    |   k = make person(age: 23, name:make name(first:"Amber", last:"Smith"));
-    |   j != k
-    | }
-    = True
-
-Deeply nested structs can be tested for equality, even when containing values
-of union type.
-
-    | struct name { first: string; last: string|integer }
-    | struct person { age: integer; name: name }
-    | main = fun() {
-    |   j = make person(age: 23, name:make name(first:"Bamber", last:"Smith" as string|integer));
-    |   k = make person(age: 23, name:make name(first:"Bamber", last:"Smith" as string|integer));
-    |   j == k
-    | }
-    = True
-
-    | struct name { first: string; last: string|integer }
-    | struct person { age: integer; name: name }
-    | main = fun() {
-    |   j = make person(age: 23, name:make name(first:"Bamber", last:"Smith" as string|integer));
-    |   k = make person(age: 23, name:make name(first:"Bamber", last:75 as string|integer));
-    |   j != k
+    |   j = make person(age: 23, name:"Jake");
+    |   k = make person(name:"Jake", age: 23);
+    |   equ_person(j, k)
     | }
     = True
 
@@ -856,7 +821,7 @@ Structs cannot be compared for ordering.
     |   k = make person(age: 21, name:"Jake");
     |   j > k
     | }
-    ? structs cannot be compared for order
+    ? structs cannot be compared
 
 Structs can be passed to functions.
 

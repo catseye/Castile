@@ -3,13 +3,7 @@ TODO
 
 ### Implementation ###
 
-call equal_tagged_value() when you find a union type when
-comparing structs deeply.  (C backend, probably others)
-
-Actually the idea of deep equality of structs is suspect.
-Especially if the visibility of those structs is limited.
-Instead users should write their own `equal` functions
-(possibly abstract, possibly only testing equivalence.)
+Remove the deep struct equality implementation from backends.
 
 Name mangling for compilers (prepend with `_` most likely.)
 
@@ -35,6 +29,9 @@ or implement some kind of resource-awareness in the language itself.
 Other backends (Python? Java? CIL? Scheme?)
 
 ### Design ###
+
+Disallow equality checking for union types too (maybe except where
+all member types are simple.)
 
 Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)
 

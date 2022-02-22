@@ -1,0 +1,37 @@
+struct list {
+  value: string;
+  next: list|void;
+}
+
+fun empty() {
+  return null as list|void
+}
+
+fun cons(v: string, l: list|void) {
+  make list(value:v, next:l) as list|void
+}
+
+equal_list : list|void, list|void -> boolean
+fun equal_list(a: list|void, b: list|void) {
+  typecase a is void {
+    typecase b is void {
+      return true
+    }
+  }
+  typecase a is list {
+    typecase b is list {
+      return a.value == b.value and equal_list(a.next, b.next)
+    }
+  }
+  return false
+}
+
+main = fun() {
+  l1 = cons("first", cons("second", cons("third", empty())));
+  l2 = cons("first", cons("second", cons("third", empty())));
+  l3 = cons("first", cons("second", empty()));
+
+  if (equal_list(l1, l2) and not equal_list(l2, l3)) {
+    print("Yep, story checks out")
+  }
+}
