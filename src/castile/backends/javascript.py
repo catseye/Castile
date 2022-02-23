@@ -72,21 +72,7 @@ class Compiler(BaseCompiler):
         elif ast.tag == 'Forward':
             pass
         elif ast.tag == 'StructDefn':
-            # FIXME the language no longer supports this, it can be jettisoned
-            field_defns = ast.children[0].children
-            self.write('function equal_%s(a, b) {\n' % ast.value)
-            for child in field_defns:
-                assert child.tag == 'FieldDefn', child.tag
-                child_type = child.children[0]
-                if child_type.tag == 'StructType':
-                    struct_type = child_type.value
-                    self.write_indent('if (!equal_%s(a.%s, b.%s)) return false;\n' % (struct_type, child.value, child.value))
-                elif child_type.tag == 'UnionType':
-                    self.write_indent('if (!equal_tagged_value(a.%s, b.%s)) return 0;\n' % (child.value, child.value))
-                else:
-                    self.write_indent('if (a.%s !== b.%s) return false;\n' % (child.value, child.value))
-            self.write('return true;\n')
-            self.write('}\n\n')
+            pass
         elif ast.tag == 'FunLit':
             self.write('function(')
             self.compile(ast.children[0])
@@ -123,11 +109,7 @@ class Compiler(BaseCompiler):
             self.compile(ast.children[1])
         elif ast.tag == 'Op':
             if ast.value == '==' and isinstance(ast.children[0].type, Struct):
-                self.write('equal_%s(' % ast.children[0].type.name)
-                self.compile(ast.children[0])
-                self.write(', ')
-                self.compile(ast.children[1])
-                self.write(')')
+                raise NotImplementedError('structs cannot be compared for equality')
             elif ast.value == '==' and isinstance(ast.children[0].type, Union):
                 self.write('equal_tagged_value(')
                 self.compile(ast.children[0])

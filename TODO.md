@@ -3,8 +3,6 @@ TODO
 
 ### Implementation ###
 
-Remove the deep struct equality implementation from backends.
-
 Name mangling for compilers (prepend with `_` most likely.)
 
 And literal characters in strings, especially `'` and `"`.
