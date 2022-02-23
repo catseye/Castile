@@ -28,10 +28,11 @@ or implement some kind of resource-awareness in the language itself.
 
 Other backends (Python? Java? CIL? Scheme?)
 
-### Design ###
+Test framework: collect the backend-independent tests into a single
+file, and only test it once.  Run all the *other* tests on every
+backend.
 
-Disallow equality checking for union types too (maybe except where
-all member types are simple.)
+### Design ###
 
 Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)
 

@@ -602,7 +602,8 @@ Equality cannot be checked between two values of different types.
     | }
     ? mismatch
 
-Equality can be checked between unions.
+Equality can be checked between unions, as long as they are
+unions entirely of simple (non-struct) types.
 
     | fun main() {
     |   a = 40 as string|integer
@@ -632,6 +633,19 @@ Equality cannot be tested between two disjoint unions.
     |   }
     | }
     ? mismatch
+
+Equality cannot be tested between values of a union type
+that contains a struct type as one of its members.
+
+    | struct person { name: string; age: integer }
+    | fun main() {
+    |   a = 40 as person|integer
+    |   b = 40 as person|integer
+    |   if a == b {
+    |     print("it is")
+    |   }
+    | }
+    ? struct
 
 ### Builtins ###
 

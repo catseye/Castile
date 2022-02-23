@@ -107,6 +107,8 @@ class TypeChecker(object):
                 self.assert_eq(type1, type2)
                 if isinstance(type1, Struct):
                     raise CastileTypeError("structs cannot be compared")
+                if isinstance(type1, Union) and type1.contains_instance_of(Struct):
+                    raise CastileTypeError("unions containing structs cannot be compared")
                 ast.type = Boolean()
         elif ast.tag == 'Not':
             type1 = self.type_of(ast.children[0])
