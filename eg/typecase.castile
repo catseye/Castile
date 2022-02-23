@@ -9,6 +9,7 @@ fun foo(a, b: integer|string) {
   r
 }
 main = fun() {
+  a = 0;
   a = foo(a, 333 as integer|string);
   a = foo(a, "hiya" as integer|string);
   a /* should output 337 */
