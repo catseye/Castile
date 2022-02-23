@@ -1,7 +1,5 @@
 import re
 
-from castile.ast import AST
-
 
 class CastileSyntaxError(ValueError):
     pass
@@ -14,6 +12,7 @@ class Scanner(object):
         self.token = None
         self.type = None
         self.pos = 0
+        self.line = 1
         self.scan()
 
     def near_text(self, length=10):
@@ -29,6 +28,7 @@ class Scanner(object):
             self.type = type
             self.token = match.group(token_group)
             self.pos += len(match.group(0))
+            self.line += self.token.count('\n')
             return True
 
     def scan(self):
@@ -77,8 +77,8 @@ class Scanner(object):
             self.scan()
         else:
             raise CastileSyntaxError(
-                "Expected '%s', but found '%s' (near '%s')" % (
-                    token, self.token, self.near_text()
+                "Expected '%s', but found '%s' (line %s, near '%s')" % (
+                    token, self.token, self.line, self.near_text()
                 )
             )
 
@@ -100,8 +100,8 @@ class Scanner(object):
     def check_type(self, type):
         if not self.type == type:
             raise CastileSyntaxError(
-                "Expected %s, but found %s ('%s') (near '%s')" % (
-                    type, self.type, self.token, self.near_text()
+                "Expected %s, but found %s ('%s') (line %s, near '%s')" % (
+                    type, self.type, self.token, self.line, self.near_text()
                 )
             )
 

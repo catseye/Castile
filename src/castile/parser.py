@@ -1,5 +1,3 @@
-import re
-
 from castile.ast import AST
 from castile.scanner import Scanner, CastileSyntaxError
 
@@ -43,6 +41,12 @@ class Parser(object):
     def on_type(self, *args, **kwargs):
         return self.scanner.on_type(*args, **kwargs)
 
+    ### Delegate to AST
+
+    def ast(self, *args, **kwargs):
+        kwargs['line'] = self.scanner.line
+        return AST(*args, **kwargs)
+
     ### Parser proper
 
     def program(self):
@@ -50,7 +54,7 @@ class Parser(object):
         while not self.on_type('EOF'):
             defns.append(self.defn())
             self.consume(';')
-        return AST('Program', defns)
+        return self.ast('Program', defns)
 
     def defn(self):
         if self.consume('fun'):
@@ -63,8 +67,8 @@ class Parser(object):
                     args.append(self.arg())
             self.expect(")")
             body = self.body()
-            funlit = AST('FunLit', [AST('Args', args), body])
-            return AST('Defn', [funlit], value=id)
+            funlit = self.ast('FunLit', [self.ast('Args', args), body])
+            return self.ast('Defn', [funlit], value=id)
         elif self.consume('struct'):
             id = self.expect_type('identifier')
             self.expect("{")
@@ -73,7 +77,7 @@ class Parser(object):
                 name = self.expect_type('identifier')
                 self.expect(':')
                 texpr = self.texpr0()
-                components.append(AST('FieldDefn', [texpr], value=name))
+                components.append(self.ast('FieldDefn', [texpr], value=name))
                 self.consume(';')
             self.expect("}")
             scope_children = []
@@ -81,41 +85,41 @@ class Parser(object):
                 self.expect("(")
                 idents = []
                 if not self.on(")"):
-                    idents.append(AST('Ident', value=self.expect_type('identifier')))
+                    idents.append(self.ast('Ident', value=self.expect_type('identifier')))
                     while self.consume(","):
-                        idents.append(AST('Ident', value=self.expect_type('identifier')))
+                        idents.append(self.ast('Ident', value=self.expect_type('identifier')))
                 self.expect(")")
-                scope_children.append(AST('Idents', idents))
-            return AST('StructDefn', [AST('FieldDefns', components)] + scope_children, value=id)
+                scope_children.append(self.ast('Idents', idents))
+            return self.ast('StructDefn', [self.ast('FieldDefns', components)] + scope_children, value=id)
         else:
             id = self.expect_type('identifier')
             if self.consume('='):
                 e = self.literal()
-                return AST('Defn', [e], value=id)
+                return self.ast('Defn', [e], value=id)
             else:
                 self.expect(':')
                 e = self.texpr0()
-                return AST('Forward', [e], value=id)
+                return self.ast('Forward', [e], value=id)
 
     def arg(self):
         id = self.expect_type('identifier')
-        te = AST('Type', value='integer')
+        te = self.ast('Type', value='integer')
         if self.consume(':'):
             te = self.texpr1()
-        return AST('Arg', [te], value=id)
+        return self.ast('Arg', [te], value=id)
 
     def texpr0(self):
         ast = self.texpr1()
         if self.consume('->'):
             r = self.texpr1()
-            return AST('FunType', [r, ast])
+            return self.ast('FunType', [r, ast])
         if self.on(','):
             args = [ast]
             while self.consume(','):
                 args.append(self.texpr1())
             self.expect('->')
             r = self.texpr1()
-            return AST('FunType', [r] + args)
+            return self.ast('FunType', [r] + args)
         return ast
 
     def texpr1(self):
@@ -124,7 +128,7 @@ class Parser(object):
             args = [ast]
             while self.consume('|'):
                 args.append(self.texpr2())
-            ast = AST('UnionType', args)
+            ast = self.ast('UnionType', args)
         return ast
 
     def texpr2(self):
@@ -134,9 +138,9 @@ class Parser(object):
             return ast
         elif self.on_type('identifier'):
             id = self.consume_type('identifier')
-            return AST('StructType', [], value=id)
+            return self.ast('StructType', [], value=id)
         tname = self.expect_type('type name')
-        return AST('Type', value=tname)
+        return self.ast('Type', value=tname)
 
     def block(self):
         self.expect('{')
@@ -145,7 +149,7 @@ class Parser(object):
             stmts.append(self.stmt())
             self.consume(';')
         self.expect('}')
-        return AST('Block', stmts)
+        return self.ast('Block', stmts)
 
     STMT_TAGS = ('If', 'While', 'TypeCase', 'Return', 'Break')
 
@@ -163,17 +167,17 @@ class Parser(object):
             stmts.append(last)
             self.consume(';')
         if len(stmts) == 0:
-            stmts = [AST('Return', [AST('None')])]
+            stmts = [self.ast('Return', [self.ast('None')])]
         elif last is not None and last.tag not in self.STMT_TAGS:
-            stmts[-1] = AST('Return', [stmts[-1]])
+            stmts[-1] = self.ast('Return', [stmts[-1]])
         self.expect('}')
-        vardecls = AST(
+        vardecls = self.ast(
             'VarDecls',
-            [AST('VarDecl', value=name) for name in self.locals]
+            [self.ast('VarDecl', value=name) for name in self.locals]
         )
-        stmts = AST('Block', stmts)
+        stmts = self.ast('Block', stmts)
         self.locals = save_locals
-        return AST('Body', [vardecls, stmts])
+        return self.ast('Body', [vardecls, stmts])
 
     def stmt(self):
         if self.on('if'):
@@ -181,18 +185,18 @@ class Parser(object):
         elif self.consume('while'):
             t = self.expr0()
             b = self.block()
-            return AST('While', [t, b])
+            return self.ast('While', [t, b])
         elif self.consume('typecase'):
             id = self.expect_type('identifier')
-            e = AST('VarRef', value=id)
+            e = self.ast('VarRef', value=id)
             self.expect('is')
             te = self.texpr0()
             b = self.block()
-            return AST('TypeCase', [e, te, b], value=te.minirepr())
+            return self.ast('TypeCase', [e, te, b], value=te.minirepr())
         elif self.consume('return'):
-            return AST('Return', [self.expr0()])
+            return self.ast('Return', [self.expr0()])
         elif self.consume('break'):
-            return AST('Break')
+            return self.ast('Break')
         else:
             return self.expr0()
 
@@ -206,18 +210,18 @@ class Parser(object):
                 b2 = self.ifstmt()
             else:
                 b2 = self.block()
-            return AST('If', [t, b1, b2])
-        return AST('If', [t, b1])
+            return self.ast('If', [t, b1, b2])
+        return self.ast('If', [t, b1])
 
     def expr0(self):
         e = self.expr1()
         while self.on_type('boolean operator'):
             op = self.expect_type('boolean operator')
             e2 = self.expr1()
-            e = AST('Op', [e, e2], value=op)
+            e = self.ast('Op', [e, e2], value=op)
         if self.consume('as'):
             union_te = self.texpr0()
-            e = AST('TypeCast', [e, union_te])
+            e = self.ast('TypeCast', [e, union_te])
         return e
 
     def expr1(self):
@@ -225,7 +229,7 @@ class Parser(object):
         while self.on_type('relational operator'):
             op = self.expect_type('relational operator')
             e2 = self.expr2()
-            e = AST('Op', [e, e2], value=op)
+            e = self.ast('Op', [e, e2], value=op)
         return e
 
     def expr2(self):
@@ -233,7 +237,7 @@ class Parser(object):
         while self.on_type('additive operator'):
             op = self.expect_type('additive operator')
             e2 = self.expr3()
-            e = AST('Op', [e, e2], value=op)
+            e = self.ast('Op', [e, e2], value=op)
         return e
 
     def expr3(self):
@@ -241,7 +245,7 @@ class Parser(object):
         while self.on_type('multiplicative operator'):
             op = self.expect_type('multiplicative operator')
             e2 = self.expr4()
-            e = AST('Op', [e, e2], value=op)
+            e = self.ast('Op', [e, e2], value=op)
         return e
 
     def expr4(self):
@@ -255,10 +259,10 @@ class Parser(object):
                     while self.consume(","):
                         args.append(self.expr0())
                 self.expect(")")
-                e = AST('FunCall', [e] + args)
+                e = self.ast('FunCall', [e] + args)
             elif self.consume('.'):
                 id = self.expect_type('identifier')
-                e = AST('Index', [e], value=id)
+                e = self.ast('Index', [e], value=id)
             else:
                 done = True
         return e
@@ -269,7 +273,7 @@ class Parser(object):
         elif self.on_any(('-', 'fun', 'true', 'false', 'null')):
             return self.literal()
         elif self.consume('not'):
-            return AST('Not', [self.expr1()])
+            return self.ast('Not', [self.expr1()])
         elif self.consume('make'):
             # TODO I just accidentally any type.  Is that bad?
             texpr = self.texpr0()
@@ -279,14 +283,14 @@ class Parser(object):
                 id = self.expect_type('identifier')
                 self.expect(':')
                 e = self.expr0()
-                args.append(AST('FieldInit', [e], value=id))
+                args.append(self.ast('FieldInit', [e], value=id))
                 while self.consume(","):
                     id = self.expect_type('identifier')
                     self.expect(':')
                     e = self.expr0()
-                    args.append(AST('FieldInit', [e], value=id))
+                    args.append(self.ast('FieldInit', [e], value=id))
             self.expect(")")
-            return AST('Make', [texpr] + args, value=texpr.minirepr())
+            return self.ast('Make', [texpr] + args, value=texpr.minirepr())
 
         elif self.consume('('):
             e = self.expr0()
@@ -294,32 +298,32 @@ class Parser(object):
             return e
         else:
             id = self.expect_type('identifier')
-            ast = AST('VarRef', value=id)
+            ast = self.ast('VarRef', value=id)
             if self.consume('='):
                 e = self.expr0()
                 aux = None
                 if id not in self.locals:
                     self.locals.add(id)
                     aux = 'defining instance'
-                ast = AST('Assignment', [ast, e], aux=aux)
+                ast = self.ast('Assignment', [ast, e], aux=aux)
             return ast
 
     def literal(self):
         if self.on_type('string literal'):
             v = self.consume_type('string literal')
-            return AST('StrLit', value=v)
+            return self.ast('StrLit', value=v)
         elif self.on_type('integer literal'):
             v = int(self.consume_type('integer literal'))
-            return AST('IntLit', value=v)
+            return self.ast('IntLit', value=v)
         elif self.consume('-'):
             v = 0 - int(self.expect_type('integer literal'))
-            return AST('IntLit', value=v)
+            return self.ast('IntLit', value=v)
         elif self.consume('true'):
-            return AST('BoolLit', value=True)
+            return self.ast('BoolLit', value=True)
         elif self.consume('false'):
-            return AST('BoolLit', value=False)
+            return self.ast('BoolLit', value=False)
         elif self.consume('null'):
-            return AST('None')
+            return self.ast('None')
         else:
             self.expect('fun')
             self.expect("(")
@@ -330,4 +334,4 @@ class Parser(object):
                     args.append(self.arg())
             self.expect(")")
             body = self.body()
-            return AST('FunLit', [AST('Args', args), body])
+            return self.ast('FunLit', [self.ast('Args', args), body])
