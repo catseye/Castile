@@ -22,6 +22,8 @@ Castile 0.5
 
 ### Implementation
 
+*   Line numbers are recorded in the AST when parsing, and
+    reported on type errors when type errors occur.
 *   Requesting the AST be dumped, will also dump the AST with
     type assignments, if an error occurs during type checking.
 *   Established an abstract base class for compiler backends.

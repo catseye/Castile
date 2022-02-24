@@ -26,10 +26,18 @@ fun equal_list(a: list|void, b: list|void) {
   return false
 }
 
+length : list|void -> integer
+fun length(l: list|void) {
+  typecase l is void { return 0 }
+  typecase l is list { return 1 + length(l.next) }
+}
+
 main = fun() {
   l1 = cons("first", cons("second", cons("third", empty())));
   l2 = cons("first", cons("second", cons("third", empty())));
   l3 = cons("first", cons("second", empty()));
+
+  print(str(length(l1 as list|void)));
 
   if (equal_list(l1, l2) and not equal_list(l2, l3)) {
     print("Yep, story checks out")

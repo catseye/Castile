@@ -19,8 +19,6 @@ stackmac: store tagged values as two values on the stack.
 and void types in unions of (void, X) should only be one value.
 (structs are still boxed though)
 
-AST nodes should have source line numbers, it would be really nice.
-
 Implement garbage collection of some sort in the C backend.  Either that
 or implement some kind of resource-awareness in the language itself.
 
