@@ -3,6 +3,8 @@ TODO
 
 ### Implementation ###
 
+Line number reporting for Context errors and Syntax errors.
+
 Name mangling for compilers (prepend with `_` most likely.)
 
 And literal characters in strings, especially `'` and `"`.
@@ -28,16 +30,17 @@ Test framework: collect the backend-independent tests into a single
 file, and only test it once.  Run all the *other* tests on every
 backend.
 
+Also make sure that doctests are run by test script.
+
 ### Design ###
 
 Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)
 
-Convenience:
+Automatic type promotion (upcasting), e.g. using an integer where
+integer|string is expected (as e.g. a function argument) is fine,
+an `as integer|string` should be automatically inserted.
 
-*   Should we have automatic promotion (value tagging?)
-    Since it causes an operation, I think it should be explicit, but the
-    explicit syntax could be more lightweight.
-*   Lua-esque `:` operator: `a:b(c)` -> `a.b(a, c)`
+Lua-esque `:` operator: `a:b(c)` -> `a.b(a, c)`
 
 Type promotion with higher precedence?  So that it can be used at toplevel.
 
