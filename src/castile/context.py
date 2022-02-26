@@ -3,19 +3,6 @@ class CastileContextError(ValueError):
 
 
 class ScopedContext(object):
-    """
-    >>> d = ScopedContext({ 'a': 2, 'b': 3 })
-    >>> e = ScopedContext({ 'c': 4 }, parent=d)
-    >>> e['c']
-    4
-    >>> e['b']
-    3
-    >>> 'a' in e
-    True
-    >>> 'e' in e
-    False
-
-    """
     def __init__(self, dict, parent=None, level=None):
         self._dict = dict
         self.parent = parent
@@ -47,14 +34,3 @@ class ScopedContext(object):
 
     def __repr__(self):
         return 'ScopedContext(%r,parent=%r)' % (self._dict, self.parent)
-
-
-if __name__ == "__main__":
-    import sys
-    import doctest
-    (fails, something) = doctest.testmod()
-    if fails == 0:
-        print("All tests passed.")
-        sys.exit(0)
-    else:
-        sys.exit(1)

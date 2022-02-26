@@ -32,6 +32,9 @@ Castile 0.5
 *   Established an abstract base class for compiler backends.
 *   Fixed a bug where tagged values were being tagged again
     during a cast from a union type to another union type.
+*   ArgumentParser is used instead of OptionParser to parse
+    command-line arguments. `--version` added, `--test` (and
+    remaining doctests in source modules) removed.
 
 Castile 0.4
 -----------

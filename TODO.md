@@ -30,8 +30,6 @@ Test framework: collect the backend-independent tests into a single
 file, and only test it once.  Run all the *other* tests on every
 backend.
 
-Also make sure that doctests are run by test script.
-
 ### Design ###
 
 Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)
