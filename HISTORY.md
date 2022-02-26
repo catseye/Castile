@@ -22,6 +22,9 @@ Castile 0.5
 
 ### Implementation
 
+*   Lexical scanner has been split off from parser code, into
+    its own module.  A performance bug (using O(n^2) space
+    instead of O(n)) during scanning has also been fixed.
 *   Line numbers are recorded in the AST when parsing, and
     reported on type errors when type errors occur.
 *   Requesting the AST be dumped, will also dump the AST with
