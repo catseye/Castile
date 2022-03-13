@@ -1,8 +1,12 @@
+from castile.backends.base import BaseCompiler
+from castile.types import Union
+
+
 OPS = {
 }
 
 PRELUDE = """\
-# AUTOMATICALLY GENERATED -- EDIT AT OWN RISK
+# AUTOMATICALLY GENERATED -- EDIT AT YOUR OWN RISK
 
 input = lambda { |s|
   print(s)
@@ -64,25 +68,7 @@ end
 """
 
 
-class Compiler(object):
-    def __init__(self, out):
-        self.out = out
-        self.indent = 0
-
-    def commas(self, asts, sep=','):
-        if asts:
-            for child in asts[:-1]:
-                self.compile(child)
-                self.out.write(sep)
-            self.compile(asts[-1])
-
-    def write(self, x):
-        self.out.write(x)
-
-    def write_indent(self, x):
-        self.out.write('  ' * self.indent)
-        self.out.write(x)
-
+class Compiler(BaseCompiler):
     def mangle(self, ident):
         if ident.startswith('next'):
             return '{}_'.format(ident)
@@ -201,22 +187,32 @@ class Compiler(object):
             self.compile(ast.children[0])
             self.write('["%s"]' % ast.value)
         elif ast.tag == 'TypeCast':
-            self.write("['%s'," % str(ast.children[0].type))
-            self.compile(ast.children[0])
-            self.write(']')
+            # If the LHS is not already a union type, promote it to a tagged value.
+            if isinstance(ast.children[0].type, Union):
+                self.compile(ast.children[0])
+            else:
+                self.write("['%s'," % str(ast.children[0].type))
+                self.compile(ast.children[0])
+                self.write(']')
         elif ast.tag == 'TypeCase':
             self.write_indent('if (')
             self.compile(ast.children[0])
             self.write("[0] == '%s')" % str(ast.children[1].type))
-            self.write('then save=')
+            self.write(' then\n')
+            self.indent += 1
+            self.write_indent('save=')
             self.compile(ast.children[0])
             self.write('\n')
+            self.write_indent('')
             self.compile(ast.children[0])
             self.write('=')
             self.compile(ast.children[0])
             self.write('[1]\n')
             self.compile(ast.children[2])
+            self.write_indent('')
             self.compile(ast.children[0])
-            self.write(' = save end')
+            self.write(' = save\n')
+            self.indent -= 1
+            self.write_indent('end')
         else:
             raise NotImplementedError(repr(ast))

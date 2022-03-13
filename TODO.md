@@ -3,6 +3,8 @@ TODO
 
 ### Implementation ###
 
+Line number reporting for Context errors and Syntax errors.
+
 Name mangling for compilers (prepend with `_` most likely.)
 
 And literal characters in strings, especially `'` and `"`.
@@ -10,8 +12,6 @@ And literal characters in strings, especially `'` and `"`.
 Figure out a way to do `input`, `read`, and `write` with node.js backend.
 
 Implement `int`, `chr`, `ord` for Ruby, JavaScript, stackmac, C.
-
-Struct equality is not properly deep in JavaScript or C.
 
 Better indentation in the JavaScript backend.
 
@@ -21,23 +21,24 @@ stackmac: store tagged values as two values on the stack.
 and void types in unions of (void, X) should only be one value.
 (structs are still boxed though)
 
-AST nodes should have source line numbers, it would be really nice.
-
 Implement garbage collection of some sort in the C backend.  Either that
 or implement some kind of resource-awareness in the language itself.
 
 Other backends (Python? Java? CIL? Scheme?)
 
+Test framework: collect the backend-independent tests into a single
+file, and only test it once.  Run all the *other* tests on every
+backend.
+
 ### Design ###
 
 Don't output final value.  Command-line arguments passed to `main`.  (`sysmain`?)
 
-Convenience:
+Automatic type promotion (upcasting), e.g. using an integer where
+integer|string is expected (as e.g. a function argument) is fine,
+an `as integer|string` should be automatically inserted.
 
-*   Should we have automatic promotion (value tagging?)
-    Since it causes an operation, I think it should be explicit, but the
-    explicit syntax could be more lightweight.
-*   Lua-esque `:` operator: `a:b(c)` -> `a.b(a, c)`
+Lua-esque `:` operator: `a:b(c)` -> `a.b(a, c)`
 
 Type promotion with higher precedence?  So that it can be used at toplevel.
 

@@ -24,6 +24,10 @@ if [ ! x`command -v gcc` = x ]; then
     APPLIANCES="$APPLIANCES tests/appliances/castile-c-c.md"
 fi
 
+#APPLIANCES="tests/appliances/castile.py3.md"
+#APPLIANCES="tests/appliances/castile-c-c.md"
+#APPLIANCES="tests/appliances/castile-c-javascript.md"
+
 falderal $APPLIANCES tests/Castile.md
 RESULT=$?
 rm -f foo.* a.out

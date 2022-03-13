@@ -1,3 +1,4 @@
+from castile.backends.base import BaseCompiler
 from castile.transformer import VarDeclTypeAssigner
 from castile.types import (
     Integer, String, Void, Boolean, Function, Union, Struct
@@ -9,7 +10,7 @@ OPS = {
 }
 
 PRELUDE = r"""
-/* AUTOMATICALLY GENERATED -- EDIT AT OWN RISK */
+/* AUTOMATICALLY GENERATED -- EDIT AT YOUR OWN RISK */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,29 +74,19 @@ int is_tag(char *tag, struct tagged_value *tv)
     return !strcmp(tag, tv->tag);
 }
 
+int equal_tagged_value(struct tagged_value *tv1, struct tagged_value *tv2)
+{
+    return is_tag(tv1->tag, tv2) && tv1->value == tv2->value;
+}
+
 """
 
 
-class Compiler(object):
+class Compiler(BaseCompiler):
     def __init__(self, out):
-        self.out = out
+        super(Compiler, self).__init__(out)
         self.main_type = None
-        self.indent = 0
         self.typecasing = set()
-
-    def commas(self, asts, sep=','):
-        if asts:
-            for child in asts[:-1]:
-                self.compile(child)
-                self.out.write(sep)
-            self.compile(asts[-1])
-
-    def write(self, x):
-        self.out.write(x)
-
-    def write_indent(self, x):
-        self.out.write('    ' * self.indent)
-        self.out.write(x)
 
     # as used in local variable declarations
     def c_type(self, type):
@@ -178,43 +169,33 @@ int main(int argc, char **argv)
         elif ast.tag == 'Forward':
             self.write_indent('extern %s;\n' % self.c_decl(ast.children[0].type, ast.value))
         elif ast.tag == 'StructDefn':
+            field_defns = ast.children[0].children
             self.write_indent('struct %s {\n' % ast.value)
             self.indent += 1
-            for child in ast.children:
+            for child in field_defns:
+                assert child.tag == 'FieldDefn', child.tag
                 self.compile(child)
             self.indent -= 1
             self.write_indent('};\n\n')
             self.write_indent('struct %s * make_%s(' % (ast.value, ast.value))
 
-            if ast.children:
-                for child in ast.children[:-1]:
-                    assert child.tag == 'FieldDefn'
+            if field_defns:
+                for child in field_defns[:-1]:
+                    assert child.tag == 'FieldDefn', child.tag
                     self.write('%s, ' % self.c_decl(child.children[0].type, child.value))
-                child = ast.children[-1]
-                assert child.tag == 'FieldDefn'
+                child = field_defns[-1]
+                assert child.tag == 'FieldDefn', child.tag
                 self.write('%s' % self.c_decl(child.children[0].type, child.value))
 
             self.write(') {\n')
             self.indent += 1
             self.write_indent('struct %s *x = malloc(sizeof(struct %s));\n' % (ast.value, ast.value))
 
-            for child in ast.children:
-                assert child.tag == 'FieldDefn'
+            for child in field_defns:
+                assert child.tag == 'FieldDefn', child.tag
                 self.write_indent('x->%s = %s;\n' % (child.value, child.value))
 
             self.write_indent('return x;\n')
-            self.indent -= 1
-            self.write_indent('}\n\n')
-
-            self.write_indent('int equal_%s(struct %s * a, struct %s * b) {\n' % (ast.value, ast.value, ast.value))
-
-            self.indent += 1
-            for child in ast.children:
-                assert child.tag == 'FieldDefn'
-                # TODO does not handle structs within structs
-                self.write_indent('if (a->%s != b->%s) return 0;\n' % (child.value, child.value))
-
-            self.write_indent('return 1;\n')
             self.indent -= 1
             self.write_indent('}\n\n')
 
@@ -257,7 +238,9 @@ int main(int argc, char **argv)
             self.indent -= 1
         elif ast.tag == 'Op':
             if ast.value == '==' and isinstance(ast.children[0].type, Struct):
-                self.write('equal_%s(' % ast.children[0].type.name)
+                raise NotImplementedError('structs cannot be compared for equality')
+            elif ast.value == '==' and isinstance(ast.children[0].type, Union):
+                self.write('equal_tagged_value(')
                 self.compile(ast.children[0])
                 self.write(', ')
                 self.compile(ast.children[1])
@@ -343,9 +326,13 @@ int main(int argc, char **argv)
             self.compile(ast.children[0])
             self.write('->%s' % ast.value)
         elif ast.tag == 'TypeCast':
-            self.write('tag("%s",(void *)' % str(ast.children[0].type))
-            self.compile(ast.children[0])
-            self.write(')')
+            # If the LHS is not already a union type, promote it to a tagged value.
+            if isinstance(ast.children[0].type, Union):
+                self.compile(ast.children[0])
+            else:
+                self.write('tag("%s",(void *)' % str(ast.children[0].type))
+                self.compile(ast.children[0])
+                self.write(')')
         elif ast.tag == 'TypeCase':
             self.write_indent('if (is_tag("%s",' % str(ast.children[1].type))
             self.compile(ast.children[0])

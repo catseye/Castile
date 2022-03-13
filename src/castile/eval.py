@@ -142,7 +142,9 @@ class Closure(object):
             return v
         elif ast.tag == 'TypeCast':
             v = self.eval(ast.children[0])
-            return TaggedValue(typeof(v), v)
+            if not isinstance(v, TaggedValue):
+                v = TaggedValue(typeof(v), v)
+            return v
         elif ast.tag == 'TypeCase':
             r = self.eval(ast.children[0])
             assert isinstance(r, TaggedValue)
@@ -167,8 +169,10 @@ def typeof(x):
         return "Type(string:)"
     elif isinstance(x, StructDict):
         return x.name
+    elif isinstance(x, TaggedValue):
+        return x.tag
     else:
-        return "wtf"
+        raise NotImplementedError(x)
 
 
 class Program(object):

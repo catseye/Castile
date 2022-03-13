@@ -1,6 +1,7 @@
 class AST(object):
-    def __init__(self, tag, children=None, value=None, type=None, aux=None):
+    def __init__(self, tag, children=None, value=None, type=None, aux=None, line=None):
         self.tag = tag
+        self.line = line
         self.value = value
         # typechecker may populate this.  parser will not.
         self.type = type

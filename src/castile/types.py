@@ -61,6 +61,12 @@ class Union(Type):
                 return True
         return False
 
+    def contains_instance_of(self, cls):
+        for member in self.content_types:
+            if isinstance(member, cls):
+                return True
+        return False
+
     def __str__(self):
         h = "union("
         h += ', '.join(sorted([str(t) for t in self.content_types]))

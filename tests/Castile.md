@@ -362,7 +362,7 @@ Variables in upper scopes may be modified.
 
 ### Non-local Values ###
 
-Literals may appear at the toplevel.    Semicolons are optional at toplevel.
+Literals may appear at the toplevel.  Semicolons are optional at toplevel.
 
     | factor = 5;
     | fun main() {
@@ -370,7 +370,8 @@ Literals may appear at the toplevel.    Semicolons are optional at toplevel.
     | }
     = 30
 
-Toplevel literals may not be updated.  (And thus
+Toplevel literals may not be updated.  Thus, the following looks like it
+is defining a local with the same name as a toplevel, which is not permitted.
 
     | factor = 5
     | fun main() {
@@ -601,16 +602,17 @@ Equality cannot be checked between two values of different types.
     | }
     ? mismatch
 
-Equality can be checked between unions.  (TODO)
+Equality can be checked between unions, as long as they are
+unions entirely of simple (non-struct) types.
 
-    /| fun main() {
-    /|   a = 40 as string|integer
-    /|   b = 40 as string|integer
-    /|   if a == b {
-    /|     print("it is")
-    /|   }
-    /| }
-    /= ok
+    | fun main() {
+    |   a = 40 as string|integer
+    |   b = 40 as string|integer
+    |   if a == b {
+    |     print("it is")
+    |   }
+    | }
+    = it is
 
     | fun main() {
     |   a = 40 as string|integer
@@ -631,6 +633,19 @@ Equality cannot be tested between two disjoint unions.
     |   }
     | }
     ? mismatch
+
+Equality cannot be tested between values of a union type
+that contains a struct type as one of its members.
+
+    | struct person { name: string; age: integer }
+    | fun main() {
+    |   a = 40 as person|integer
+    |   b = 40 as person|integer
+    |   if a == b {
+    |     print("it is")
+    |   }
+    | }
+    ? struct
 
 ### Builtins ###
 
@@ -768,8 +783,8 @@ Order of field initialization when making a struct doesn't matter.
     | }
     = 23
 
-Structs can be tested for equality.  (Since structs are immutable, it
-doesn't matter if this is structural equality or identity.)
+Structs cannot be tested for equality with the `==` or `!==`
+operators.
 
     | struct person { name: string; age: integer }
     | main = fun() {
@@ -777,15 +792,7 @@ doesn't matter if this is structural equality or identity.)
     |   k = make person(name:"Jake", age: 23);
     |   j == k
     | }
-    = True
-
-    | struct person { age: integer; name: string }
-    | main = fun() {
-    |   j = make person(age: 23, name:"Jake");
-    |   k = make person(age: 23, name:"John");
-    |   j == k
-    | }
-    = False
+    ? structs cannot be compared
 
     | struct person { age: integer; name: string }
     | main = fun() {
@@ -793,7 +800,7 @@ doesn't matter if this is structural equality or identity.)
     |   k = make person(age: 21, name:"Jake");
     |   j != k
     | }
-    = True
+    ? structs cannot be compared
 
 Structs of two different types cannot be tested for equality.
 
@@ -806,6 +813,20 @@ Structs of two different types cannot be tested for equality.
     | }
     ? mismatch
 
+If you really want to compare two structs for equality, you'll
+have to write the equality predicate function yourself.
+
+    | struct person { name: string; age: integer }
+    | equ_person = fun(a: person, b: person) {
+    |   a.age == b.age and a.name == b.name
+    | }
+    | main = fun() {
+    |   j = make person(age: 23, name:"Jake");
+    |   k = make person(name:"Jake", age: 23);
+    |   equ_person(j, k)
+    | }
+    = True
+
 Structs cannot be compared for ordering.
 
     | struct person { age: integer; name: string }
@@ -814,7 +835,7 @@ Structs cannot be compared for ordering.
     |   k = make person(age: 21, name:"Jake");
     |   j > k
     | }
-    ? structs cannot be compared for order
+    ? structs cannot be compared
 
 Structs can be passed to functions.
 
@@ -1229,3 +1250,164 @@ In combination with unions, this lets us create "typed enums".
     | }
     = red
     = blue
+
+### Scoped Structs ###
+
+When a `struct` is declared, it may be associated with a set of identifiers.
+Functions with these global names are the only function definitions which
+can `make` such a struct, or see that it has fields; to all other functions,
+these operations will not be available.  It is in this way that encapsulation
+is accomplished.
+
+    | struct list {
+    |   value: string;
+    |   next: list|void;
+    | } for (cons, singleton, length)
+    | 
+    | fun cons(v: string, l: list) {
+    |   make list(value:v, next:l as list|void)
+    | }
+    | 
+    | fun singleton(v: string) {
+    |   make list(value:v, next:null as list|void)
+    | }
+    | 
+    | length : list|void -> integer
+    | fun length(l: list|void) {
+    |   typecase l is void { return 0 }
+    |   typecase l is list { return 1 + length(l.next) }
+    | }
+    | 
+    | fun main() {
+    |   l = cons("first", cons("second", singleton("third")));
+    |   print(str(length(l as list|void)));
+    | }
+    = 3
+
+    | struct list {
+    |   value: string;
+    |   next: list|void;
+    | } for (cons, singleton, length)
+    | 
+    | fun cons(v: string, l: list) {
+    |   make list(value:v, next:l as list|void)
+    | }
+    | 
+    | fun singleton(v: string) {
+    |   make list(value:v, next:null as list|void)
+    | }
+    | 
+    | length : list|void -> integer
+    | fun length(l: list|void) {
+    |   typecase l is void { return 0 }
+    |   typecase l is list { return 1 + length(l.next) }
+    | }
+    | 
+    | fun main() {
+    |   l = make list(value:"first", next:null as list|void);
+    |   print(str(length(l as list|void)));
+    | }
+    ? make
+
+    | struct list {
+    |   value: string;
+    |   next: list|void;
+    | } for (cons, singleton, length)
+    | 
+    | fun cons(v: string, l: list) {
+    |   make list(value:v, next:l as list|void)
+    | }
+    | 
+    | fun singleton(v: string) {
+    |   make list(value:v, next:null as list|void)
+    | }
+    | 
+    | fun main() {
+    |   l = cons("first", cons("second", singleton("third")));
+    |   print(l.value);
+    | }
+    ? struct
+
+One can use this facility to implement abstract data types.
+
+    | struct assoc {
+    |   key: string;
+    |   value: string;
+    |   next: assoc|void;
+    | } for (singleton, update, lookup, remove)
+    | 
+    | fun singleton(k: string, v: string) {
+    |   make assoc(key:k, value:v, next:null as assoc|void)
+    | }
+    | 
+    | fun update(k: string, v: string, a: assoc) {
+    |   make assoc(key:k, value:v, next:a as assoc|void)
+    | }
+    | 
+    | lookup : assoc, string -> string|void
+    | fun lookup(a: assoc, k: string) {
+    |   if a.key == k {
+    |     return a.value as string|void
+    |   }
+    |   n = a.next
+    |   typecase n is void {
+    |     return null as string|void
+    |   }
+    |   typecase n is assoc {
+    |     return lookup(n, k)
+    |   }
+    | }
+    | 
+    | fun main() {
+    |   a = update("1", "first", update("2", "second", singleton("3", "third")));
+    |   r = lookup(a, "2");
+    |   print("um");
+    |   typecase r is void { print("NOT FOUND"); }
+    |   typecase r is string { print(r); }
+    |   print("ya");
+    | }
+    = um
+    = second
+    = ya
+
+This program should work even with a redundant upcast in it.
+
+    | struct assoc {
+    |   key: string;
+    |   value: string;
+    |   next: assoc|void;
+    | } for (singleton, update, lookup, remove)
+    | 
+    | fun singleton(k: string, v: string) {
+    |   make assoc(key:k, value:v, next:null as assoc|void)
+    | }
+    | 
+    | fun update(k: string, v: string, a: assoc) {
+    |   make assoc(key:k, value:v, next:a as assoc|void)
+    | }
+    | 
+    | lookup : assoc, string -> string|void
+    | fun lookup(a: assoc, k: string) {
+    |   if a.key == k {
+    |     return a.value as string|void
+    |   }
+    |   n = a.next
+    |   typecase n is void {
+    |     return null as string|void
+    |   }
+    |   typecase n is assoc {
+    |     return lookup(n, k) as string|void
+    |   }
+    | }
+    | 
+    | fun main() {
+    |   a = update("1", "first", update("2", "second", singleton("3", "third")));
+    |   r = lookup(a, "2");
+    |   print("um");
+    |   typecase r is void { print("NOT FOUND"); }
+    |   typecase r is string { print(r); }
+    |   print("ya");
+    | }
+    = um
+    = second
+    = ya

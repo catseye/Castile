@@ -1,9 +1,10 @@
+struct person { name: string };
 fun foo(a, b: integer|string) {
   r = a;
   typecase b is integer {
     r = r + b;
   };
-  typecase b is string {
+  typecase b is person {
     r = r + len(b);
   };
   r
