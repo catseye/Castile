@@ -2,8 +2,8 @@ Castile
 =======
 
 Version 0.5 | _Entry_ [@ catseye.tc](https://catseye.tc/node/Castile)
-| _See also:_ [Eightebed](https://github.com/catseye/Eightebed#readme)
-∘ [Dieter](https://github.com/catseye/Dieter#readme)
+| _See also:_ [Eightebed](https://codeberg.org/catseye/Eightebed#the-eightebed-programming-language)
+∘ [Dieter](https://codeberg.org/catseye/Dieter#the-dieter-programming-language)
 
 - - - -
 
